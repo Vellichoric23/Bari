@@ -494,6 +494,9 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+.when-line{margin:8px 0 0;font-weight:600;color:var(--text)}
+.when-note{margin:4px 0 0;color:var(--accent)}
+.seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .cd-music{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:14px;padding:8px 10px;margin:10px 0}
 .cd-music>div{flex:1;min-width:0;display:grid}
 .cd-music small{color:var(--muted);font-size:12px}
@@ -1343,7 +1346,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -1422,7 +1425,17 @@ const projPick=(sel,filter)=>settings.projects.filter(filter).map(p=>`<button da
 const STAGE_LABEL={idea:"Придумать",script:"Сценарий",text:"Текст",shoot:"Съёмка",design:"Дизайн",edit:"Монтаж",post:"Выложить"};
 function openAdd(){
   const work=settings.projects.filter(p=>p.kind!=="home");
-  const st={kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",homeStage:"me",ptime:postTime(work[0]?.id)};
+  const st={kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",end:"",timed:false,note:"",homeStage:"me",ptime:postTime(work[0]?.id)};
+  const span=()=>{const a=parseHM(st.time),b=parseHM(st.end);if(a===null||b===null)return 0;const d=(b-a+1440)%1440;return d||1440;};
+  const fixNight=()=>{st.note="";if(!st.timed||st.date!==todayKey())return;const a=parseHM(st.time);if(a===null)return;const n=new Date(),nowM=n.getHours()*60+n.getMinutes();
+    if(a<nowM-15&&a<360){const tm=addDays(todayKey(),1);st.date=tm;st.note=gx(`${st.time} сегодня уже прошло — поставила на ночь с ${["воскресенья","понедельника","вторника","среды","четверга","пятницы","субботы"][n.getDay()]} на ${["воскресенье","понедельник","вторник","среду","четверг","пятницу","субботу"][(n.getDay()+1)%7]}.`);}
+    else if(a<nowM-15) st.note="Это время сегодня уже прошло. Если имеешь в виду завтра — нажми «Завтра».";};
+  const whenLine=()=>{if(!st.timed){return `Без точного времени: BARI сам найдёт место в дне · ${fmtH(st.hours)}`;}const d=span();if(!st.time)return "Выбери, со скольки.";if(!st.end)return `${niceWd(st.date)}, с ${st.time}. Укажи, до скольки.`;const a=parseHM(st.time),cross=a+d>1440;return `${niceWd(st.date)}, ${st.time} → ${st.end}${cross?" (уже следующего дня)":""} · ${fmtH(d/60)}`;};
+  const timeBlock=()=>`<div class="field"><span class="label">Время</span>
+      <div class="row"><button type="button" class="tog" data-tm="0" aria-pressed="${!st.timed}">Любое</button><button type="button" class="tog" data-tm="1" aria-pressed="${st.timed}">С … до …</button></div>
+      ${st.timed?`<div class="row" style="margin-top:8px"><div class="field" style="flex:1"><label class="label" for="aFrom">С</label><input id="aFrom" type="time" value="${esc(st.time)}"></div><div class="field" style="flex:1"><label class="label" for="aTo">До</label><input id="aTo" type="time" value="${esc(st.end)}"></div></div>`
+      :`<div class="seg" style="margin-top:8px">${[.5,1,2,3,4].map(h=>`<button type="button" class="mini-btn ${st.hours===h?"on":""}" data-hq="${h}">${h<1?"30 мин":h+" ч"}</button>`).join("")}<input id="aHours" type="number" min="0.25" step="0.25" value="${st.hours}" aria-label="Часов" style="width:80px"></div>`}
+      <p class="tip when-line">${esc(whenLine())}</p>${st.note?`<p class="tip when-note">${esc(st.note)}</p>`:""}</div>`;
   const dateRow=(label)=>`<div class="field"><label class="label" for="aDate">${label}</label>
       <div class="row"><button type="button" class="tog" data-qd="0" aria-pressed="${st.date===todayKey()}">Сегодня</button><button type="button" class="tog" data-qd="1" aria-pressed="${st.date===addDays(todayKey(),1)}">Завтра</button><input id="aDate" type="date" value="${st.date}" min="${todayKey()}" style="flex:1"></div></div>`;
   const draw=()=>{
@@ -1442,15 +1455,13 @@ function openAdd(){
     } else if(st.kind==="task"){
       body=`
       <div class="field"><span class="label">Проект</span><div class="pick">${projPick(st.project,p=>p.kind!=="home")}</div></div>
-      ${dateRow("Когда")}
-      <div class="row"><div class="field" style="flex:1"><label class="label" for="aHours">Сколько времени, часов</label><input id="aHours" type="number" min="0.25" step="0.25" value="${st.hours}"></div>
-      <div class="field" style="flex:1"><label class="label" for="aTime">Время (если важно)</label><input id="aTime" type="time" value="${esc(st.time)}"></div></div>`;
+      ${dateRow("Какой день")}
+      ${timeBlock()}`;
     } else {
       body=`
       <div class="field"><span class="label">Тип</span><div class="pick">${HOME_TPL.map(s=>`<button data-hs="${s}" aria-pressed="${st.homeStage===s}">${ic(STAGES[s].icon)}${STAGES[s].name}</button>`).join("")}</div></div>
-      ${dateRow("Когда")}
-      <div class="row"><div class="field" style="flex:1"><label class="label" for="aHours">Часов</label><input id="aHours" type="number" min="0.25" step="0.25" value="${st.hours}"></div>
-      <div class="field" style="flex:1"><label class="label" for="aTime">Время</label><input id="aTime" type="time" value="${esc(st.time)}"></div></div>`;
+      ${dateRow("Какой день")}
+      ${timeBlock()}`;
     }
     openSheet(`
       <div class="add-head"><h3>${ic("plus")}Добавить в план</h3><button type="button" class="mini-btn" id="addHelp">? Как записывать</button></div>
@@ -1467,14 +1478,18 @@ function openAdd(){
     q("[data-stg]",b=>{const s=b.dataset.stg;st.stages=st.stages.includes(s)?st.stages.filter(x=>x!==s):st.stages.concat(s);});
     q("[data-only]",b=>{const o=b.dataset.only;st.stages=o==="all"?FORMATS[st.fmt].stages.slice():[o];});
     q("[data-hs]",b=>{st.homeStage=b.dataset.hs;st.hours=STAGES[st.homeStage].h;});
-    q("[data-qd]",b=>{st.date=addDays(todayKey(),Number(b.dataset.qd));});
-    document.getElementById("aDate").onchange=e=>{if(e.target.value){st.date=e.target.value;draw();}};
+    q("[data-qd]",b=>{st.date=addDays(todayKey(),Number(b.dataset.qd));st.note="";});
+    q("[data-tm]",b=>{st.timed=b.dataset.tm==="1";if(st.timed&&!st.time){const n=new Date();const m=Math.ceil((n.getHours()*60+n.getMinutes())/30)*30%1440;st.time=hm(m);st.end=hm(m+Math.round(st.hours*60));}fixNight();});
+    q("[data-hq]",b=>{st.hours=Number(b.dataset.hq);});
+    document.getElementById("aDate").onchange=e=>{if(e.target.value){st.date=e.target.value;st.note="";draw();}};
+    const af=document.getElementById("aFrom"); if(af) af.onchange=()=>{const old=span();st.time=af.value;if(old&&parseHM(st.time)!==null)st.end=hm(parseHM(st.time)+old);fixNight();draw();};
+    const at=document.getElementById("aTo"); if(at) at.onchange=()=>{st.end=at.value;draw();};
     const pt=document.getElementById("aPT"); if(pt) pt.onchange=()=>{st.ptime=pt.value;draw();};
     const hh=document.getElementById("aHours"); if(hh) hh.oninput=()=>st.hours=Number(hh.value)||1;
-    const tm=document.getElementById("aTime"); if(tm) tm.oninput=()=>st.time=tm.value;
     document.getElementById("aCancel").onclick=closeSheet;
     document.getElementById("aSave").onclick=async()=>{
       if(!st.title.trim()){t.focus();t.placeholder="Сначала напиши название";return;}
+      if((st.kind==="task"||st.kind==="home")&&st.timed){if(!st.time||!st.end){toast("Укажи, с какого и до какого времени.");return;}st.hours=Math.round(span()/60*100)/100;}else if(st.kind!=="content"){st.time="";}
       const title=st.title.trim(), piece=uid(), date=st.date<todayKey()?todayKey():st.date;
       if(st.kind==="content"){
         const items=planPiece(date,st.stages,st.project); if(!items.length) return;
@@ -1505,7 +1520,8 @@ function openEdit(id){
       <div class="field"><span class="label">День</span>
         <div class="row"><button class="navbtn" id="eMinus" aria-label="На день раньше">${ic("left")}</button><input id="eDate" type="date" value="${t.date}" style="flex:1"><button class="navbtn" id="ePlus" aria-label="На день позже">${ic("right")}</button></div></div>
       <div class="row">
-        <div class="field" style="flex:1;min-width:90px"><label class="label" for="eTime">Время</label><input id="eTime" type="text" inputmode="numeric" value="${esc(t.time||"")}" placeholder="${esc(effTime(t)||"любое")}"></div>
+        <div class="field" style="flex:1;min-width:90px"><label class="label" for="eTime">С</label><input id="eTime" type="time" value="${esc(parseHM(t.time||"")!==null?t.time:"")}"></div>
+        <div class="field" style="flex:1;min-width:90px"><label class="label" for="eEnd">До</label><input id="eEnd" type="time" value="${parseHM(t.time||"")!==null?hm(parseHM(t.time)+Math.round(Number(t.hours)*60)):""}"></div>
         <div class="field" style="flex:1;min-width:90px"><label class="label" for="eHours">План, ч</label><input id="eHours" type="number" min="0.25" step="0.25" value="${t.hours}"></div>
         <div class="field" style="flex:1;min-width:90px"><label class="label" for="eSpent">Факт, мин</label><input id="eSpent" type="number" min="0" step="1" value="${Math.round(sp)}"></div>
       </div>
@@ -1515,7 +1531,9 @@ function openEdit(id){
       <div class="actions"><button class="ghost danger" id="eDel">${confirmDel?"Точно удалить?":ic("trash")}</button><button class="ghost" id="eCancel">Отмена</button><button class="primary" id="eSave">Сохранить</button></div>`);
     const g=i=>document.getElementById(i);
     g("eTitle").oninput=e=>t.title=e.target.value; g("eDate").onchange=e=>{if(e.target.value)t.date=e.target.value;};
-    g("eHours").oninput=e=>t.hours=Number(e.target.value)||t.hours; g("eTime").oninput=e=>t.time=e.target.value.trim();
+    const syncEnd=()=>{const a=parseHM(t.time||"");g("eEnd").value=a!==null?hm(a+Math.round(Number(t.hours)*60)):"";};
+    g("eHours").oninput=e=>{t.hours=Number(e.target.value)||t.hours;syncEnd();}; g("eTime").onchange=e=>{t.time=e.target.value.trim();syncEnd();};
+    g("eEnd").onchange=e=>{const a=parseHM(t.time||""),b=parseHM(e.target.value);if(a===null||b===null)return;const d=((b-a+1440)%1440)||1440;t.hours=Math.round(d/60*100)/100;g("eHours").value=t.hours;};
     g("eSpent").oninput=e=>t.spentEdited=Math.max(0,Number(e.target.value)||0);
     g("eMinus").onclick=()=>{t.date=addDays(t.date,-1);draw();};
     g("ePlus").onclick=()=>{t.date=addDays(t.date,1);draw();};
@@ -2825,6 +2843,81 @@ function bindRoom(){
   const st=document.getElementById("readStop"); if(st) st.onclick=()=>{clearInterval(readTimer.iv);readTimer=null;render();};
 }
 
+/* hobbies and book picks for everyone except the owner: by profession and hobbies */
+const HOBBIES=[
+  {id:"read",n:"Чтение"},{id:"cinema",n:"Кино и сериалы"},{id:"music",n:"Музыка"},{id:"sport",n:"Спорт и фитнес"},
+  {id:"travel",n:"Путешествия"},{id:"cook",n:"Кулинария"},{id:"cars",n:"Автомобили"},{id:"craft",n:"Рукоделие и творчество"},
+  {id:"games",n:"Игры"},{id:"psych",n:"Психология"},{id:"history",n:"История"},{id:"money",n:"Деньги и инвестиции"},
+  {id:"nature",n:"Природа и рыбалка"},{id:"lang",n:"Языки"},{id:"photo",n:"Фото и видео"},{id:"tech",n:"Технологии"}
+];
+const B=(t,a,w)=>({t,a,w});
+const NICHE_BOOKS={
+  smm:[B("Кради как художник","Остин Клеон","Короткая и вдохновляющая: как честно брать идеи и делать их своими. Читается за вечер."),B("Заразительный","Йона Бергер","Шесть причин, почему людям хочется делиться контентом. Каждую можно проверить на своих постах."),B("Сделано, чтобы прилипнуть","Чип Хиз, Дэн Хиз","Как сделать мысль запоминающейся: простота, неожиданность, история."),B("Пиши, сокращай","Максим Ильяхов, Людмила Сарычева","Главная русскоязычная книга о понятных текстах.")],
+  teach:[B("Общаться с ребёнком. Как?","Юлия Гиппенрейтер","Классика про активное слушание — приёмы работают и на уроке."),B("Гибкое сознание","Кэрол Дуэк","Про мышление роста: почему похвала за старание работает лучше похвалы за ум."),B("Как говорить, чтобы дети слушали, и как слушать, чтобы дети говорили","Адель Фабер, Элейн Мазлиш","Готовые фразы и примеры-комиксы — сразу в работу.")],
+  biz:[B("От нуля к единице","Питер Тиль","Как создавать то, чего ещё нет, а не копировать конкурентов."),B("Бизнес с нуля","Эрик Рис","Метод lean startup: проверяй идею малыми шагами, прежде чем вкладываться."),B("Клиенты на всю жизнь","Карл Сьюэлл","Простые правила сервиса, после которых клиенты возвращаются.")],
+  beauty:[B("Клиенты на всю жизнь","Карл Сьюэлл","Сервис, после которого клиент записывается снова и приводит подруг."),B("Зачем мы спим","Мэтью Уокер","Научно о сне — и о том, как он влияет на кожу, вес и настроение."),B("Очаровательный кишечник","Джулия Эндерс","Живо и с юмором о пищеварении — основе здоровья.")],
+  it:[B("Не заставляйте меня думать","Стив Круг","Короткая классика юзабилити: как делать интерфейсы понятными."),B("Дизайн привычных вещей","Дональд Норман","Почему одни вещи удобные, а другие нет."),B("Чистый код","Роберт Мартин","Как писать код, который легко читать и менять.")],
+  creative:[B("Кради как художник","Остин Клеон","10 правил творчества — коротко и по делу."),B("Путь художника","Джулия Кэмерон","12-недельный курс, который возвращает вдохновение. Утренние страницы — главное открытие."),B("Большая магия","Элизабет Гилберт","Про страх и смелость творить.")],
+  student:[B("Учись учиться","Барбара Оакли, Терренс Сейновски","Как работает память и как готовиться к экзаменам без зубрёжки."),B("Атомные привычки","Джеймс Клир","Маленькие шаги, которые складываются в большие результаты."),B("Думай медленно… решай быстро","Даниэль Канеман","Как устроено наше мышление и где оно нас обманывает.")],
+  mom:[B("Тайная опора","Людмила Петрановская","Про привязанность и чувство безопасности у ребёнка. Тёплая, без нравоучений."),B("Общаться с ребёнком. Как?","Юлия Гиппенрейтер","Активное слушание — главный инструмент спокойного родителя."),B("Как говорить, чтобы дети слушали, и как слушать, чтобы дети говорили","Адель Фабер, Элейн Мазлиш","Практика: готовые фразы на трудные ситуации.")],
+  office:[B("Джедайские техники","Максим Дорофеев","Как разгрузить голову и перестать прокрастинировать."),B("Эссенциализм","Грег МакКеон","Делать меньше, но лучше — и спокойно говорить «нет»."),B("Пиши, сокращай","Максим Ильяхов, Людмила Сарычева","Письма и отчёты станут короче и понятнее.")],
+  driver:[B("Самый богатый человек в Вавилоне","Джордж Клейсон","Притчи о деньгах: как откладывать и не тратить всё. Короткая — 2–3 часа в аудио."),B("Мастер и Маргарита","Михаил Булгаков","Лучший роман для аудиоформата: смешно, страшно и не отпускает."),B("Шантарам","Грегори Дэвид Робертс","Огромное приключение в Индии — хватит на много смен."),B("Человек в поисках смысла","Виктор Франкл","Короткая сильная книга о том, что держит человека в трудные времена.")],
+  med:[B("Человек, который принял жену за шляпу","Оливер Сакс","Удивительные истории пациентов невролога — читаются как рассказы."),B("Чек-лист","Атул Гаванде","Как простые списки спасают жизни в больницах и не только."),B("Зачем мы спим","Мэтью Уокер","О сне — для себя и пациентов.")],
+  build:[B("Архитектура счастья","Ален де Боттон","Почему одни дома и улицы радуют, а другие нет."),B("Самый богатый человек в Вавилоне","Джордж Клейсон","Простые правила денег для тех, кто работает руками и головой."),B("Атомные привычки","Джеймс Клир","Как маленькие ежедневные шаги складываются в большой результат.")],
+  sales:[B("СПИН-продажи","Нил Рекхэм","Как задавать вопросы, после которых клиент сам хочет купить."),B("Психология влияния","Роберт Чалдини","Шесть принципов, почему люди говорят «да»."),B("Как завоёвывать друзей и оказывать влияние на людей","Дейл Карнеги","Классика общения, которая до сих пор работает.")],
+  sport:[B("Рождённый бежать","Кристофер Макдугл","История о племени бегунов и о том, почему человек создан для движения."),B("Открытый","Андре Агасси","Честная автобиография теннисиста — одна из лучших спортивных книг."),B("Сила воли","Келли Макгонигал","Как работает самоконтроль и как его тренировать.")],
+  oil:[B("Добыча","Дэниел Ергин","История нефти, денег и власти — Пулитцеровская премия."),B("Чек-лист","Атул Гаванде","Почему простые списки и процедуры спасают от аварий."),B("Думай медленно… решай быстро","Даниэль Канеман","Как мы ошибаемся в решениях — полезно для любой ответственной работы.")],
+  finance:[B("Психология денег","Морган Хаузел","Почему с деньгами важнее поведение, чем формулы."),B("Разумный инвестор","Бенджамин Грэм","Классика инвестирования, которую советовал Уоррен Баффетт."),B("Самый богатый человек в Вавилоне","Джордж Клейсон","Простые правила денег в форме притч.")],
+  gov:[B("Почему одни страны богатые, а другие бедные","Дарон Аджемоглу, Джеймс Робинсон","Как институты государства решают судьбу стран."),B("Пиши, сокращай","Максим Ильяхов, Людмила Сарычева","Документы и письма станут понятными людям."),B("Эссенциализм","Грег МакКеон","Как выделять главное, когда задач слишком много.")],
+  other:[B("Атомные привычки","Джеймс Клир","Маленькие шаги, которые складываются в большие перемены."),B("Человек в поисках смысла","Виктор Франкл","Короткая сильная книга о том, ради чего жить."),B("Sapiens. Краткая история человечества","Юваль Ной Харари","Увлекательно о том, как мы стали людьми.")]
+};
+const HOBBY_BOOKS={
+  read:[B("Сто лет одиночества","Габриэль Гарсиа Маркес","Волшебная сага одной семьи — классика, которую не забываешь."),B("Унесённые ветром","Маргарет Митчелл","Большой роман о характере и выживании.")],
+  cinema:[B("Крёстный отец","Марио Пьюзо","Роман, по которому снят великий фильм. Книга подробнее и интереснее."),B("Спасите котика!","Блейк Снайдер","Как устроены сценарии — после неё смотришь кино иначе.")],
+  music:[B("Просто дети","Патти Смит","Тёплые воспоминания музыкантки о Нью-Йорке 70-х."),B("Жан-Кристоф","Ромен Роллан","Роман о жизни композитора — Нобелевская премия автора.")],
+  sport:[B("Рождённый бежать","Кристофер Макдугл","После неё хочется выйти на пробежку."),B("Мамба-ментальность","Коби Брайант","Как думал и тренировался один из великих баскетболистов.")],
+  travel:[B("Вокруг света за 80 дней","Жюль Верн","Классическое путешествие-гонка."),B("Есть, молиться, любить","Элизабет Гилберт","Италия, Индия, Бали — путешествие к себе.")],
+  cook:[B("Соль, жир, кислота, тепло","Самин Носрат","Четыре основы вкуса — научишься готовить без рецептов."),B("Шоколад","Джоанн Харрис","Тёплый роман о маленькой шоколадной лавке.")],
+  cars:[B("Моя жизнь, мои достижения","Генри Форд","Как Форд сделал автомобиль доступным для всех."),B("Илон Маск","Уолтер Айзексон","Биография основателя Tesla и SpaceX."),B("Дзен и искусство ухода за мотоциклом","Роберт Пирсиг","Роман-путешествие о качестве и о том, как любить своё дело.")],
+  craft:[B("Путь художника","Джулия Кэмерон","Курс, который будит творчество."),B("Кради как художник","Остин Клеон","10 коротких правил для всех, кто делает что-то руками.")],
+  games:[B("Кровь, пот и пиксели","Джейсон Шрейер","Как на самом деле делают видеоигры."),B("Игра Эндера","Орсон Скотт Кард","Фантастика о мальчике-стратеге — классика жанра.")],
+  psych:[B("Эмоциональный интеллект","Дэниел Гоулман","Почему умение понимать чувства важнее IQ."),B("Человек в поисках смысла","Виктор Франкл","О силе духа и смысле.")],
+  history:[B("Ружья, микробы и сталь","Джаред Даймонд","Почему одни народы завоевали другие."),B("Кочевники","Ильяс Есенберлин","Захватывающий роман о Казахском ханстве.")],
+  money:[B("Психология денег","Морган Хаузел","Короткие истории о том, почему мы так обращаемся с деньгами."),B("Самый богатый человек в Вавилоне","Джордж Клейсон","Простые правила: откладывай, не трать всё, умножай.")],
+  nature:[B("Старик и море","Эрнест Хемингуэй","Короткая повесть о рыбаке и огромной рыбе."),B("Тайная жизнь деревьев","Петер Вольлебен","Лесник рассказывает, как деревья «общаются».")],
+  lang:[B("Как я изучаю языки","Като Ломб","Переводчица, знавшая 16 языков, делится методом."),B("Язык как инстинкт","Стивен Пинкер","Как устроен язык в нашей голове.")],
+  photo:[B("О фотографии","Сьюзен Сонтаг","Классические эссе о том, как снимки меняют наш взгляд."),B("Camera lucida","Ролан Барт","Короткая книга о магии фотографии.")],
+  tech:[B("Стив Джобс","Уолтер Айзексон","Биография создателя Apple."),B("Инноваторы","Уолтер Айзексон","Как люди придумали компьютеры и интернет.")]
+};
+const HOBBY_TIPS={
+  read:["Носи книгу с собой — 10 страниц в очереди складываются в книгу за месяц.","Выпиши одну мысль из прочитанного — так она останется с тобой."],
+  cinema:["Посмотри фильм режиссёра, о котором слышал(а), но ни разу не смотрел(а).","После фильма прочитай, как его снимали — увидишь его по-новому."],
+  music:["Послушай целиком один альбом, а не плейлист.","Найди музыку страны, где сейчас BARI, — в карточке города есть мелодия."],
+  sport:["20 минут движения сегодня лучше часа «когда-нибудь».","Растяжка 5 минут перед сном — спина скажет спасибо."],
+  travel:["Отметь на карте место в пределах 100 км, где ещё не был(а), и съезди в выходные.","Выучи 5 слов страны мечты — пригодятся."],
+  cook:["Приготовь блюдо страны, где сейчас BARI, в халяльном варианте.","Попробуй одну новую специю на этой неделе."],
+  cars:["Проверь давление в шинах — это экономит топливо.","Послушай в машине выпуск подкаста или главу аудиокниги."],
+  craft:["Сделай одну маленькую вещь за вечер — без цели «идеально».","Сфотографируй работу: через год увидишь, как вырос(ла)."],
+  games:["Сыграй с близкими в настольную игру вместо сериала.","Поставь лимит: игра — награда после важного дела."],
+  psych:["Запиши три вещи, за которые благодарен(на) сегодня.","Перед сложным разговором сделай 5 медленных вдохов."],
+  history:["Узнай историю своей улицы или района.","Расспроси старших в семье об их молодости и запиши."],
+  money:["Запиши сегодня все траты — без оценки, просто посмотреть.","Отложи 10% с ближайшего дохода в первый же день."],
+  nature:["Выйди на рассвет или закат к воде.","Узнай название одного дерева или птицы рядом с домом."],
+  lang:["10 минут языка в дороге — с приложением или подкастом.","Запиши голосовое на новом языке о своём дне."],
+  photo:["Сними серию из 5 кадров на одну тему.","Попробуй снимать в «золотой час» — за час до заката."],
+  tech:["Разберись с одной функцией телефона, которой не пользуешься.","Почисти фото и приложения — освободишь память и голову."]
+};
+function picksForUser(){
+  const j=journeyFor(todayKey()), n=nicheOf(), out=[];
+  if(n){const l=NICHE_BOOKS[n.id]||NICHE_BOOKS.other;out.push({id:"niche",n:n.id==="driver"?"Для дороги: аудиокниги":`Для твоей работы · ${n.n}`,g:n.g,why:n.id==="driver"?"Удобно слушать в машине: за смену — несколько глав.":"Подобрали по твоей сфере.",l});}
+  for(const h of (settings.hobbies||[])){const l=HOBBY_BOOKS[h];const hb=HOBBIES.find(x=>x.id===h);if(l&&hb)out.push({id:"h-"+h,n:`Хобби · ${hb.n}`,g:"book2",why:"По твоим увлечениям.",l});}
+  const base=BOOK_PICKS.filter(p=>p.id==="wardrobe"||p.id==="kz"||(p.id==="italy"&&j.country==="Италия")||p.id==="time"||(p.id==="kids"&&hasKids())).map(p=>p.id==="kz"?{...p,why:"Главные книги казахской литературы — их стоит знать каждому."}:p.id==="time"?{...p,why:"Меньше суеты — больше времени на то, что важно.",l:p.l.map(b=>({...b,w:b.w.replace(/ клиент[а-я]*/g,"")}))}:p);
+  if(!out.length) out.push({id:"niche",n:"Для начала",g:"tree",why:"Добавь сферу и увлечения в «О себе» — подборки станут точнее.",l:NICHE_BOOKS.other});
+  return out.concat(base);
+}
+const allPicks=()=>isOwner()?BOOK_PICKS:picksForUser();
+function hobbyTip(k){const hs=settings.hobbies||[];if(!hs.length)return null;const i=Math.floor((fromKey(k)-new Date(2026,0,1))/864e5);const h=hs[i%hs.length], L=HOBBY_TIPS[h]||[];if(!L.length)return null;return {h:HOBBIES.find(x=>x.id===h)?.n||"",t:gx(L[Math.floor(i/hs.length)%L.length])};}
+
 function bookRow(b){
   const stars=[1,2,3,4,5].map(n=>`<button class="star ${(b.rating||0)>=n?"on":""}" data-brate="${b.id}" data-n="${n}" aria-label="${n}">★</button>`).join("");
   return `<div class="book-i"><span class="spine" style="background:${b.color||bookColor(b.title)}"></span>
@@ -2841,7 +2934,7 @@ function renderLib(){
   const tod=todOf(), night=tod==="night"||tod==="evening", j=journeyFor(todayKey());
   const year=String(new Date().getFullYear()), readYear=read.filter(b=>(b.finished||"").startsWith(year)).length, goal=Number(settings.bookGoal)||12;
   const list=libFilter==="all"?all:all.filter(b=>b.status===libFilter);
-  const picks=BOOK_PICKS.slice().sort((a,b)=>(b.id==="italy"&&j.country==="Италия")-(a.id==="italy"&&j.country==="Италия"));
+  const picks=isOwner()?BOOK_PICKS.slice().sort((a,b)=>(b.id==="italy"&&j.country==="Италия")-(a.id==="italy"&&j.country==="Италия")):allPicks();
   document.getElementById("view-lib").innerHTML=`
     <div class="lib-room ${night?"night":""}">${libRoomSvg()}
       <div class="lib-bari">${bari({mood:readTimer?"think":night&&!lampOn()?"sleep":"happy",arms:"hold",prop:`<g transform="translate(66 118) scale(2.8)">${GLYPHS.book2}</g>`,size:92})}</div>
@@ -2881,7 +2974,7 @@ function renderLib(){
     };
   };
   V.querySelector("#bookGoal").onclick=()=>{const v=prompt("Сколько книг хочешь прочитать за год?",String(goal));if(v&&Number(v)>0)store.saveSettings({...settings,bookGoal:Number(v)});};
-  V.querySelectorAll("[data-bwant]").forEach(b=>b.onclick=async()=>{const[pid,i]=b.dataset.bwant.split("|");const x=BOOK_PICKS.find(p=>p.id===pid).l[Number(i)];await saveBook({id:bookId(x),title:x.t,author:x.a,why:x.w,status:"want"});toast("Книга на полке «Хочу»");});
+  V.querySelectorAll("[data-bwant]").forEach(b=>b.onclick=async()=>{const[pid,i]=b.dataset.bwant.split("|");const x=allPicks().find(p=>p.id===pid).l[Number(i)];await saveBook({id:bookId(x),title:x.t,author:x.a,why:x.w,status:"want"});toast("Книга на полке «Хочу»");});
   V.querySelectorAll("[data-bstart]").forEach(b=>b.onclick=()=>saveBook({...books[b.dataset.bstart],status:"reading",started:todayKey()}));
   V.querySelectorAll("[data-bpage]").forEach(b=>b.onclick=()=>{const x=books[b.dataset.bpage];const page=Math.min(x.pages||1e4,(x.page||0)+10);saveBook({...x,page});});
   V.querySelectorAll("[data-bdone]").forEach(b=>b.onclick=()=>finishBook(books[b.dataset.bdone]));
@@ -3544,7 +3637,7 @@ document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))openTour
 const NICHES=[
   {id:"smm",n:"SMM и маркетинг",g:"spark2"},{id:"teach",n:"Учитель, репетитор",g:"book2"},{id:"biz",n:"Свой бизнес",g:"espresso"},
   {id:"beauty",n:"Красота и здоровье",g:"flower"},{id:"it",n:"IT и дизайн",g:"column"},{id:"creative",n:"Творчество и блог",g:"lantern"},
-  {id:"student",n:"Учёба, студент",g:"apple"},{id:"mom",n:"Мама в декрете",g:"heart"},{id:"office",n:"Работа в офисе",g:"tower"},{id:"other",n:"Другое",g:"tree"}
+  {id:"student",n:"Учёба, студент",g:"apple"},{id:"mom",n:"Мама в декрете",g:"heart"},{id:"office",n:"Работа в офисе",g:"tower"},{id:"driver",n:"Водитель, такси, доставка",g:"bus"},{id:"med",n:"Медицина",g:"heart"},{id:"build",n:"Строительство, ремонт",g:"column"},{id:"sales",n:"Продажи и сервис",g:"bun"},{id:"sport",n:"Спорт, тренер",g:"bicycle"},{id:"oil",n:"Нефть, газ, производство",g:"mountain"},{id:"finance",n:"Финансы, бухгалтерия",g:"apple"},{id:"gov",n:"Госслужба",g:"temple"},{id:"other",n:"Другое",g:"tree"}
 ];
 GLYPHS.spark2=`<path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" fill="#FFD166"/>`;
 const PRIORITIES=[
@@ -3572,15 +3665,17 @@ function routeJourney(k){
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 let obDraft=null;
 function obStep2(edit){
-  const d=obDraft; d.prio=d.prio||settings.priorities||[];
+  const d=obDraft; d.prio=d.prio||settings.priorities||[]; d.hobbies=d.hobbies||settings.hobbies||[];
   openSheet(`<div class="ci-sheet ob">
     <div class="ob-top">${bari({mood:"think",size:80})}<div><span class="label">Шаг 2 из 3</span><h3 style="margin:2px 0 0">Чем ты занимаешься?</h3><p class="tip" style="margin:4px 0 0">По нише я буду предлагать идеи для работы, а по приоритетам — привычки.</p></div></div>
     <div><span class="label">Твоя сфера</span><div class="ob-grid">${NICHES.map(n=>`<button class="pick-c ${d.niche===n.id?"on":""}" data-niche="${n.id}">${glyph(n.g,18)}${esc(n.n)}</button>`).join("")}</div></div>
     <label>Опиши подробнее (по желанию)<input id="obNicheText" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: репетитор английского для детей 7–10 лет"></label>
     <div><span class="label">Что для тебя сейчас важнее всего? До 4</span><div class="ob-grid">${PRIORITIES.map(p=>`<button class="pick-c ${d.prio.includes(p.id)?"on":""}" data-prio="${p.id}">${esc(p.n)}</button>`).join("")}</div></div>
+    <div><span class="label">Твои увлечения — до 5</span><div class="ob-grid">${HOBBIES.map(h=>`<button class="pick-c ${(d.hobbies||[]).includes(h.id)?"on":""}" data-hob="${h.id}">${esc(h.n)}</button>`).join("")}</div></div>
     <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obNext">Дальше</button></div></div>`);
   document.querySelectorAll("[data-niche]").forEach(b=>b.onclick=()=>{d.niche=b.dataset.niche;document.querySelectorAll("[data-niche]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-prio]").forEach(b=>b.onclick=()=>{const id=b.dataset.prio;if(d.prio.includes(id))d.prio=d.prio.filter(x=>x!==id);else if(d.prio.length<4)d.prio=d.prio.concat(id);else{toast("Можно выбрать до 4.");return;}b.classList.toggle("on",d.prio.includes(id));});
+  document.querySelectorAll("[data-hob]").forEach(b=>b.onclick=()=>{const id=b.dataset.hob;if(d.hobbies.includes(id))d.hobbies=d.hobbies.filter(x=>x!==id);else if(d.hobbies.length<5)d.hobbies=d.hobbies.concat(id);else{toast("Можно выбрать до 5.");return;}b.classList.toggle("on",d.hobbies.includes(id));});
   const keep=()=>{d.nicheText=document.getElementById("obNicheText").value.trim();};
   document.getElementById("obBack").onclick=()=>{keep();openOnboarding(edit,true);};
   document.getElementById("obNext").onclick=()=>{keep();obStep3(edit);};
@@ -3606,7 +3701,7 @@ async function obFinish(edit){
   const d=obDraft; let route=d.route&&d.route.length?d.route:shuffle(JOURNEY.map(j=>j.country));
   const habits=d.prio&&d.prio.length?PRIORITIES.filter(p=>d.prio.includes(p.id)).map(p=>p.h):null;
   const same=hasRoute()&&JSON.stringify(route)===JSON.stringify(settings.route);
-  const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
+  const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],hobbies:d.hobbies||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
   if(habits&&(!edit||!settings.habits)) next.habits=habits;
   await store.saveSettings(next); obDraft=null;
   if(edit){closeSheet();toast("Сохранила! Маршрут обновлён.");} else openTour(0);
@@ -3631,6 +3726,7 @@ function nicheCard(k){
     ${pick.length?`<div class="ni-list">${pick.map(x=>`<div class="ni"><b>${esc(x.t||"")}</b>${x.why?`<span class="tip">${esc(x.why)}</span>`:""}${x.step?`<small>Первый шаг: ${esc(x.step)}</small>`:""}</div>`).join("")}</div>`
       :data===false?`<p class="tip" style="margin:0">BARI собирает идеи для твоей сферы — они появятся в понедельник.</p>`:`<p class="tip" style="margin:0">Загружаю идеи…</p>`}
     ${occ.length?`<span class="label" style="margin-top:6px">Поводы впереди</span><div class="ni-list">${occ.map(o=>`<div class="ni"><b>${esc(o.t)}</b><span class="tip">${esc(new Date(o.d).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}))}${o.idea?` — ${esc(o.idea)}`:""}</span></div>`).join("")}</div>`:""}
+    ${(()=>{const h=hobbyTip(k);return h?`<span class="label" style="margin-top:6px">Для души · ${esc(h.h)}</span><div class="ni-list"><div class="ni"><b>${esc(h.t)}</b></div></div>`:"";})()}
   </section>`;
 }
 document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-ni-copy]");if(!b)return;try{await navigator.clipboard.writeText(b.dataset.niCopy);toast("Скопировано.");}catch(_){toast("Не получилось скопировать.");}});
@@ -3753,7 +3849,7 @@ let remindLast={};
 function buildReminders(k){
   const sc=daySchedule(k,false), base=fromKey(k), at=m=>{const d=new Date(base);d.setHours(0,0,0,0);d.setMinutes(Math.round(m));return d.toISOString();};
   const items=[], open=sc.rows.filter(r=>!r.t.done);
-  if(open.length) items.push({key:k+"-morning",at:at(sc.ds-10),title:`${userName()?userName()+", д":"Д"}оброе утро!`,body:`Сегодня ${open.length} ${plural(open.length,"задача","задачи","задач")}. Первая: «${open[0].t.title}» в ${hm(open[0].start)}.`});
+  if(open.length&&open[0].start>=sc.ds-10) items.push({key:k+"-morning",at:at(sc.ds-10),title:`${userName()?userName()+", д":"Д"}оброе утро!`,body:`Сегодня ${open.length} ${plural(open.length,"задача","задачи","задач")}. Первая: «${open[0].t.title}» в ${hm(open[0].start)}.`});
   for(const r of open){
     if(r.t.startedAt){
       const st=new Date(r.t.startedAt), left=Math.max(5,planMin(r.t)-(Number(r.t.spentMin)||0)), end=new Date(st.getTime()+left*60000), em=end.getHours()*60+end.getMinutes();

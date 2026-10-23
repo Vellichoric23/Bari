@@ -13,7 +13,7 @@
 | `content/city/<citySlug>.json` | карточки города, легенды и 7 «фактов дня» |
 | `content/history/MM-DD.json` | «В этот день в истории»: `{date:"MM-DD", year, text}` |
 | `content/digest/YYYY-MM-DD.json` | 6 новостей дня |
-| `content/ideas/<niche>.json` | идеи по сферам: `smm, teach, biz, beauty, it, creative, student, mom, office, other` |
+| `content/ideas/<niche>.json` | идеи по сферам: `smm, teach, biz, beauty, it, creative, student, mom, office, driver, med, build, sales, sport, oil, finance, gov, other` |
 
 ## Что делать каждое утро (D0 = сегодня, D1 = завтра, время Атырау)
 
@@ -21,7 +21,7 @@
 2. **История:** `history/MM-DD.json` для D0 и D1, если нет.
 3. **Основной маршрут:** по `plan.json` для D0 и D1 проверь `lessons/<citySlug>/<topic>.json` и `city/<citySlug>.json`; создай недостающие.
 4. **Очередь:** возьми первый город из `backlog.json`. Если `city/<slug>.json` ещё нет — создай его. Если он уже есть — не переписывай, только проверь. Затем создай недостающие уроки города (`history, art, lang, film, food, books, logic`) в `lessons/<slug>/`. Когда все 7 уроков на месте — убери город из очереди. Названия `items` в `city/<slug>.json` должны совпадать с CITY_ITEMS (или COUNTRY_ITEMS) в index.html.
-5. **Идеи:** по понедельникам (или если файла нет) обнови все 10 файлов `ideas/<niche>.json`.
+5. **Идеи:** по понедельникам (или если файла нет) обнови все 18 файлов `ideas/<niche>.json` (идеи — практичные советы для этой профессии, без привязки к SMM).
 
 ## Форматы
 

@@ -494,6 +494,28 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+.m-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.m-stats>div{background:var(--surface-2);border-radius:12px;padding:8px 10px;display:grid;min-width:0}
+.m-stats small{color:var(--muted);font-size:12px}
+.m-stats b{font-size:15px;overflow-wrap:anywhere}
+.m-stats b.ok,.m-row b.ok{color:var(--ok)}
+.m-stats b.danger{color:var(--warn)}
+.m-sheet{display:grid;gap:12px}
+.m-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.m-head h3{margin:0;text-align:center;flex:1;text-transform:capitalize}
+.m-form{display:grid;gap:8px}
+.m-cats{display:flex;flex-wrap:wrap;gap:6px}
+.m-bars{display:grid;gap:8px}
+.m-bar{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.m-bar span{display:flex;align-items:center;gap:6px;font-size:14px}
+.m-bar i{grid-column:1/-1;height:8px;border-radius:99px;background:var(--accent);display:block}
+.m-list{display:grid;gap:6px}
+.m-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.m-row>div{display:grid;min-width:0}.m-row small{color:var(--muted);font-size:12px}
+.m-tips{margin:0;padding-left:18px;display:grid;gap:8px;line-height:1.45}
+.m-goal{display:grid;gap:8px}
+.lvl-bar.over i{background:var(--warn)}
+
 .when-line{margin:8px 0 0;font-weight:600;color:var(--text)}
 .when-note{margin:4px 0 0;color:var(--accent)}
 .seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -1088,6 +1110,7 @@ function localStore(){
   try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);setTasks(o.tasks||[]);settings=mergeSettings(o.settings);}}catch(e){}
   try{notes=JSON.parse(localStorage.getItem(KEY+"-notes")||"[]");}catch(e){notes=[];}
   try{erud=JSON.parse(localStorage.getItem(KEY+"-erud")||"{}");}catch(e){erud={};}
+  try{money=JSON.parse(localStorage.getItem(KEY+"-money")||"{}");}catch(e){money={};}
   try{books=JSON.parse(localStorage.getItem(KEY+"-books")||"{}");codeProg={read:{},...JSON.parse(localStorage.getItem(KEY+"-code")||"{}")};}catch(e){}
   tasksLoaded=settingsLoaded=true;
   const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify({tasks:allTasks,settings}));}catch(e){}};
@@ -1096,8 +1119,8 @@ function localStore(){
     async saveTask(t){const a=allTasks.slice();const i=a.findIndex(x=>x.id===t.id);if(i>=0)a[i]=t;else a.push(t);setTasks(a);persist();render();},
     async deleteTask(id){const t=allTasks.find(x=>x.id===id);if(t&&t.tpl){await this.saveTask({...t,skip:true});return;}setTasks(allTasks.filter(t=>t.id!==id));persist();render();},
     async saveSettings(s){settings=s;persist();render();ensureRecurring();},
-    async deleteDoc(col,id){if(col==="ideas"){const o={...ideas};delete o[id];ideas=o;}if(col==="books"){const o={...books};delete o[id];books=o;try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}}render();},
-    async saveDoc(col,id,doc){if(col==="books"){books={...books,[id]:doc};try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}render();return;}if(col==="code"){codeProg=doc;try{localStorage.setItem(KEY+"-code",JSON.stringify(doc));}catch(e){}render();return;}if(col==="ideas"){ideas={...ideas,[id]:doc};render();return;}if(col==="daily"){daily={...daily,[id]:doc};render();return;}if(col==="cityday"){cityday={...cityday,[id]:doc};render();return;}if(col==="city"){cityinfo={...cityinfo,[id]:doc};return;}if(col==="erud"){erud={...erud,[id]:doc};try{localStorage.setItem(KEY+"-erud",JSON.stringify(erud));}catch(e){}}render();},
+    async deleteDoc(col,id){if(col==="money"){const o={...money};delete o[id];money=o;try{localStorage.setItem(KEY+"-money",JSON.stringify(money));}catch(e){}}if(col==="ideas"){const o={...ideas};delete o[id];ideas=o;}if(col==="books"){const o={...books};delete o[id];books=o;try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}}render();},
+    async saveDoc(col,id,doc){if(col==="money"){money={...money,[id]:doc};try{localStorage.setItem(KEY+"-money",JSON.stringify(money));}catch(e){}render();return;}if(col==="books"){books={...books,[id]:doc};try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}render();return;}if(col==="code"){codeProg=doc;try{localStorage.setItem(KEY+"-code",JSON.stringify(doc));}catch(e){}render();return;}if(col==="ideas"){ideas={...ideas,[id]:doc};render();return;}if(col==="daily"){daily={...daily,[id]:doc};render();return;}if(col==="cityday"){cityday={...cityday,[id]:doc};render();return;}if(col==="city"){cityinfo={...cityinfo,[id]:doc};return;}if(col==="erud"){erud={...erud,[id]:doc};try{localStorage.setItem(KEY+"-erud",JSON.stringify(erud));}catch(e){}}render();},
     async addNote(n){notes=[n].concat(notes);try{localStorage.setItem(KEY+"-notes",JSON.stringify(notes));}catch(e){}render();},
     async deleteNote(id){notes=notes.filter(n=>n.id!==id);try{localStorage.setItem(KEY+"-notes",JSON.stringify(notes));}catch(e){}render();}
   };
@@ -1120,6 +1143,7 @@ async function dbStore(db){
   db.collection("cityday").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());cityday=o;if(!snap.metadata.fromCache)cdMark("a");if(view==="today"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("city").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());cityinfo=o;if(!snap.metadata.fromCache)cdMark("b");},()=>{});
   db.collection("erud").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());erud=o;if(view==="me")render();},()=>{});
+  db.collection("money").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());money=o;if(view==="today"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("books").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());books=o;if(view==="lib"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("code").onSnapshot(snap=>{snap.docs.forEach(d=>{if(d.id==="progress")codeProg={read:{},...d.data()};});if(view==="code"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("digest").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());digest=o;if(view==="me")render();},()=>{});
@@ -1133,7 +1157,7 @@ async function dbStore(db){
     saveTask(t){const{id,...body}=t;return wrap(col.doc(id).set(body));},
     deleteTask(id){const t=allTasks.find(x=>x.id===id);if(t&&t.tpl){const{id:_,...b}=t;return wrap(col.doc(id).set({...b,skip:true}));}return wrap(col.doc(id).delete());},
     saveSettings(s){settings=s;render();return wrap(cfg.set(s)).then(()=>ensureRecurring());},
-    saveDoc(col,id,doc){if(col==="books")books={...books,[id]:doc};if(col==="code")codeProg=doc;if(col==="ideas")ideas={...ideas,[id]:doc};if(col==="daily")daily={...daily,[id]:doc};render();return wrap(db.collection(col).doc(id).set(doc));},
+    saveDoc(col,id,doc){if(col==="money")money={...money,[id]:doc};if(col==="books")books={...books,[id]:doc};if(col==="code")codeProg=doc;if(col==="ideas")ideas={...ideas,[id]:doc};if(col==="daily")daily={...daily,[id]:doc};render();return wrap(db.collection(col).doc(id).set(doc));},
     deleteDoc(col,id){if(col==="ideas"){const o={...ideas};delete o[id];ideas=o;render();}return wrap(db.collection(col).doc(id).delete());},
     addNote(n){const{id,...b}=n;return wrap(db.collection("notes").doc(id).set(b));},
     deleteNote(id){return wrap(db.collection("notes").doc(id).delete());}
@@ -3496,6 +3520,133 @@ function countryTree(country,t,n,base,se,leaf){
 }
 
 /* «Для тебя» — compact tiles instead of a long scroll */
+/* ---------- money: income, expenses, savings goal, lifehacks, ideas ---------- */
+let money={}, moneyTab="month", moneyMonth=null, moneyForm=null;
+const CUR=()=>settings.currency||"₸";
+const fmtMoney=n=>Math.round(Number(n)||0).toLocaleString("ru-RU").replace(/[ ,]/g," ")+" "+CUR();
+const M_OUT=[["food","Продукты","apple"],["cafe","Кафе, доставка","espresso"],["home","Дом, коммуналка","yurt"],["car","Транспорт, бензин","bus"],["kids","Дети","heart"],["health","Здоровье","flower"],["clothes","Одежда","lantern"],["phone","Связь, подписки","tower"],["fun","Отдых, развлечения","gelato"],["gifts","Подарки","spark2"],["edu","Учёба, книги","book2"],["loan","Кредиты, рассрочки","column"],["other","Другое","tree"]];
+const M_IN=[["salary","Зарплата","spark2"],["orders","Заказы, смены","bus"],["side","Подработка","bicycle"],["gift","Подарок","heart"],["other","Другое","tree"]];
+const mCats=type=>(type==="in"?M_IN:M_OUT).filter(c=>c[0]!=="kids"||hasKids());
+const mCat=(type,id)=>(type==="in"?M_IN:M_OUT).find(c=>c[0]===id)||["other","Другое","tree"];
+const MONEY_TIPS=[
+  "Правило 50/30/20: половина дохода — на необходимое, 30% — на желания, 20% — в накопления. Начни хотя бы с 5–10%.",
+  "Правило 24 часов: хочется купить что-то незапланированное — подожди сутки. Половина желаний проходит сама.",
+  "«Сначала заплати себе»: откладывай в день зарплаты, а не то, что останется в конце месяца.",
+  "Проверь подписки и автоплатежи: часто деньги уходят за сервисы, которыми давно не пользуешься.",
+  "В магазин — сытым и со списком. Голодный покупатель тратит заметно больше.",
+  "Подушка безопасности — запас на 3–6 месяцев обычных расходов. Копи её раньше всего остального.",
+  "Считай цену вещи в часах своей работы: «эта куртка — 12 часов». Так проще решить, нужна ли она.",
+  "Крупную покупку сравни минимум в трёх местах — разница бывает в разы.",
+  "Метод конвертов: раздели деньги на неделю по категориям. Конверт пуст — траты на паузе.",
+  "Если есть несколько долгов или рассрочек — гаси сначала самый дорогой, а по остальным плати минимум.",
+  "Готовь дома на 2–3 дня вперёд: кафе и доставка — частая «дыра» в бюджете.",
+  "Раз в месяц устрой «день без трат» — и посмотри, что на самом деле нужно.",
+  "Деньги на цель держи отдельно от карты для трат — так не потратишь их случайно.",
+  "Записывай траты сразу, в ту же минуту. Через неделю картина станет очевидной.",
+  "Перед покупкой спроси себя: «Буду ли я пользоваться этим через месяц?»",
+  "Маленькие ежедневные траты — кофе, перекусы, такси — за месяц складываются в крупную сумму. Посчитай свои."
+];
+const EARN={
+  smm:["Пакет «аудит профиля» — быстрый недорогой продукт для новых клиентов.","Шаблоны сторис или постов на продажу.","Мини-курс по Reels для предпринимателей."],
+  teach:["Мини-группы по 3–4 человека вместо индивидуальных занятий.","Интенсив перед экзаменами.","Онлайн-ученики из других городов."],
+  biz:["Допродажа: что можно предложить к основному товару?","Программа «приведи друга» со скидкой обоим.","Абонемент или подписка вместо разовой покупки."],
+  beauty:["Абонемент на несколько процедур со скидкой.","Подарочные сертификаты перед праздниками.","Обучение начинающих мастеров."],
+  it:["Небольшой фриланс-проект на выходные.","Готовые шаблоны или решения на продажу.","Консультации для малого бизнеса."],
+  creative:["Продавать работы онлайн.","Платный мастер-класс.","Заказы к праздникам."],
+  student:["Репетиторство для школьников.","Фриланс: тексты, переводы, дизайн.","Сезонная подработка."],
+  mom:["Хобби в доход: выпечка или рукоделие на заказ.","Удалённая работа на 2–3 часа в день.","Совместные покупки с подругами — экономия на оптовых ценах."],
+  office:["Подготовь факты о своих результатах и попроси пересмотр зарплаты.","Подработка по профессии в свободное время.","Обучение, которое повышает разряд или должность."],
+  driver:["Запиши, в какие часы и где больше заказов, — и выходи именно туда.","Доставка в перерывах между сменами.","Проверь бонусы и акции агрегатора на неделю."],
+  med:["Онлайн-консультации.","Дополнительные дежурства.","Курсы для повышения категории."],
+  build:["Портфолио с фото «до/после» — больше заказов.","Мелкий ремонт по вызову в выходные.","Сезонные работы: кондиционеры, утепление, дачи."],
+  sales:["Допродажи — твой процент с каждой.","База постоянных клиентов с поздравлениями.","Обучение новичков в команде."],
+  sport:["Онлайн-тренировки для группы.","Программы тренировок на продажу.","Абонементы вместо разовых занятий."],
+  oil:["Курсы повышения разряда.","Сертификаты, которые ценят работодатели.","Сразу откладывай часть вахтовых денег на цель."],
+  finance:["Ведение учёта для малого бизнеса.","Декларации в сезон отчётности.","Консультации по личному бюджету."],
+  gov:["Преподавание или обучение по своему профилю.","Аттестация и повышение квалификации.","Вести семейный бюджет — найти и закрыть «утечки»."],
+  other:["Продать вещи, которыми давно не пользуешься.","Подработка по хобби.","Подумай, за что тебя уже благодарят люди, — это можно предложить за деньги."]
+};
+const mKey=d=>(d||todayKey()).slice(0,7);
+const monthName=m=>{const [y,mm]=m.split("-");const t=new Date(+y,+mm-1,1).toLocaleDateString("ru-RU",{month:"long",year:"numeric"}).replace(/\s*г\.?$/,"");return t.charAt(0).toUpperCase()+t.slice(1);};
+const shiftMonth=(m,n)=>{const [y,mm]=m.split("-").map(Number);const d=new Date(y,mm-1+n,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");};
+function monthStats(m){
+  const L=Object.entries(money).map(([id,x])=>({id,...x})).filter(x=>x&&x.date&&x.date.startsWith(m));
+  const inc=L.filter(x=>x.type==="in").reduce((a,x)=>a+(+x.amount||0),0), out=L.filter(x=>x.type!=="in").reduce((a,x)=>a+(+x.amount||0),0);
+  const by={}; L.filter(x=>x.type!=="in").forEach(x=>by[x.cat]=(by[x.cat]||0)+(+x.amount||0));
+  return {L:L.sort((a,b)=>(b.date+(b.created||"")).localeCompare(a.date+(a.created||""))),inc,out,by};
+}
+function perDayLeft(m,st){if(m!==mKey())return null;const d=new Date(),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),left=last-d.getDate()+1;return st.inc>0?{v:Math.max(0,(st.inc-st.out)/left),days:left}:null;}
+function moneyFormHtml(){
+  const f=moneyForm; if(!f) return "";
+  return `<div class="m-form card"><div class="seg"><button class="mini-btn ${f.type==="out"?"on":""}" data-mtype="out">− Расход</button><button class="mini-btn ${f.type==="in"?"on":""}" data-mtype="in">+ Доход</button></div>
+    <label class="label" for="mAmt">Сумма, ${esc(CUR())}</label><input id="mAmt" type="number" inputmode="decimal" min="0" step="1" value="${f.amount||""}" placeholder="0">
+    <span class="label">Категория</span><div class="m-cats">${mCats(f.type).map(c=>`<button class="pick-c ${f.cat===c[0]?"on":""}" data-mcat="${c[0]}">${glyph(c[2],16)}${esc(c[1])}</button>`).join("")}</div>
+    <div class="row"><div class="field" style="flex:2"><label class="label" for="mNote">Комментарий</label><input id="mNote" type="text" value="${esc(f.note||"")}" placeholder="${f.type==="in"?"Например: смена 22:00–03:00":"Например: продукты на неделю"}"></div><div class="field" style="flex:1"><label class="label" for="mDate">Дата</label><input id="mDate" type="date" value="${f.date}"></div></div>
+    <div class="actions"><button class="ghost" id="mCancel">Отмена</button><button class="primary" id="mSave">${ic("check")}Записать</button></div></div>`;
+}
+function moneyCard(k){
+  const m=mKey(k), st=monthStats(m), pd=perDayLeft(m,st), today=st.L.filter(x=>x.date===k&&x.type!=="in").reduce((a,x)=>a+(+x.amount||0),0);
+  return `<section class="card money-card"><div class="cd-head"><span class="label">Деньги · ${esc(monthName(m))}</span></div>
+    <div class="m-stats"><div><small>Доход</small><b class="ok">${fmtMoney(st.inc)}</b></div><div><small>Расход</small><b>${fmtMoney(st.out)}</b></div><div><small>Остаток</small><b class="${st.inc-st.out<0?"danger":""}">${fmtMoney(st.inc-st.out)}</b></div></div>
+    <p class="tip" style="margin:6px 0">Сегодня потрачено: <b>${fmtMoney(today)}</b>${pd?` · можно тратить ~${fmtMoney(pd.v)} в день`:""}</p>
+    <div class="row"><button class="primary" data-madd="out">− Расход</button><button class="ghost" data-madd="in">+ Доход</button><button class="ghost" data-mopen="1">Всё о деньгах</button></div></section>`;
+}
+function openMoney(){
+  const m=moneyMonth||mKey(), st=monthStats(m), prev=monthStats(shiftMonth(m,-1)), pd=perDayLeft(m,st), g=settings.moneyGoal||null, lim=Number(settings.moneyLimit)||0;
+  const cats=Object.entries(st.by).sort((a,b)=>b[1]-a[1]), max=cats.length?cats[0][1]:1;
+  const day=Math.floor((Date.now()-new Date(2026,0,1))/864e5), tip=MONEY_TIPS[day%MONEY_TIPS.length], earn=EARN[nicheOf()?.id]||EARN[isOwner()?"smm":"other"];
+  const tabs=[["month","Траты"],["goal","Цель"],["tips","Лайфхаки"],["earn","Идеи"]];
+  let body="";
+  if(moneyTab==="month") body=`${cats.length?`<div class="m-bars">${cats.map(([c,v])=>{const C=mCat("out",c);return `<div class="m-bar"><span>${glyph(C[2],18)}${esc(C[1])}</span><b>${fmtMoney(v)}</b><i style="width:${Math.max(4,v/max*100)}%"></i></div>`;}).join("")}</div>`:`<p class="tip">В этом месяце пока нет расходов.</p>`}
+    ${prev.out>0&&st.out>0?`<p class="tip">${st.out>prev.out?`Расходы больше прошлого месяца на ${fmtMoney(st.out-prev.out)}.`:`Расходы меньше прошлого месяца на ${fmtMoney(prev.out-st.out)} — отлично!`}</p>`:""}
+    <span class="label">Записи</span><div class="m-list">${st.L.length?st.L.slice(0,40).map(x=>{const C=mCat(x.type,x.cat);return `<div class="m-row">${glyph(C[2],22)}<div><b>${esc(C[1])}</b><small>${esc(nice(x.date))}${x.note?` · ${esc(x.note)}`:""}</small></div><b class="${x.type==="in"?"ok":""}">${x.type==="in"?"+":"−"}${fmtMoney(x.amount)}</b><button class="mini-btn danger" data-mdel="${x.id}" aria-label="Удалить">×</button></div>`;}).join(""):`<p class="tip">Нажми «− Расход» или «+ Доход», чтобы записать первую сумму.</p>`}</div>
+    <div class="field"><label class="label" for="mLim">Лимит расходов на месяц (необязательно)</label><input id="mLim" type="number" inputmode="numeric" value="${lim||""}" placeholder="Например: 300000"></div>`;
+  if(moneyTab==="goal") body=g&&g.target?`<div class="m-goal"><b>${esc(g.name||"Моя цель")}</b><span class="tip">${fmtMoney(g.saved||0)} из ${fmtMoney(g.target)}</span><span class="lvl-bar big"><i style="width:${Math.min(100,(g.saved||0)/g.target*100)}%"></i></span>
+      <span class="tip">${(g.saved||0)>=g.target?"Цель достигнута! 🎉":`Осталось ${fmtMoney(g.target-(g.saved||0))}.`}</span>
+      <div class="seg">${[1000,5000,10000].map(v=>`<button class="mini-btn" data-msave="${v}">+${v.toLocaleString("ru-RU")}</button>`).join("")}<input id="mSaveAmt" type="number" inputmode="numeric" placeholder="Другая сумма" style="width:130px"><button class="mini-btn" data-msave="custom">Отложить</button></div>
+      <button class="ghost danger" id="mGoalReset">Новая цель</button></div>`
+    :`<p class="tip">На что копим? Например: отпуск, подушка безопасности, подарок близким.</p><div class="field"><label class="label" for="mGName">Цель</label><input id="mGName" type="text" placeholder="Например: подушка безопасности"></div><div class="field"><label class="label" for="mGT">Сумма, ${esc(CUR())}</label><input id="mGT" type="number" inputmode="numeric" placeholder="0"></div><button class="primary" id="mGoalSet">${ic("check")}Поставить цель</button>`;
+  if(moneyTab==="tips") body=`<div class="story"><span class="label">Лайфхак дня</span><p>${esc(tip)}</p></div><ul class="m-tips">${MONEY_TIPS.filter(t=>t!==tip).map(t=>`<li>${esc(t)}</li>`).join("")}</ul><p class="tip">Это общие советы, а не финансовая консультация.</p>`;
+  if(moneyTab==="earn") body=`<p class="tip">Идеи дополнительного дохода${nicheOf()?` для сферы «${esc(nicheOf().n)}»`:""}:</p><ul class="m-tips">${earn.concat(EARN.other.slice(0,2)).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+  openSheet(`<div class="m-sheet"><div class="m-head"><button class="navbtn" id="mPrev" aria-label="Прошлый месяц">${ic("left")}</button><h3>Деньги · ${esc(monthName(m))}</h3><button class="navbtn" id="mNext" aria-label="Следующий месяц" ${m>=mKey()?"disabled":""}>${ic("right")}</button></div>
+    <div class="m-stats"><div><small>Доход</small><b class="ok">${fmtMoney(st.inc)}</b></div><div><small>Расход</small><b>${fmtMoney(st.out)}</b></div><div><small>Остаток</small><b class="${st.inc-st.out<0?"danger":""}">${fmtMoney(st.inc-st.out)}</b></div></div>
+    ${lim?`<div><span class="tip">Лимит: ${fmtMoney(st.out)} из ${fmtMoney(lim)}</span><span class="lvl-bar big ${st.out>lim?"over":""}"><i style="width:${Math.min(100,st.out/lim*100)}%"></i></span></div>`:""}
+    ${pd?`<p class="tip" style="margin:0">До конца месяца ${pd.days} ${plural(pd.days,"день","дня","дней")}: можно тратить ~<b>${fmtMoney(pd.v)}</b> в день.</p>`:""}
+    ${moneyForm?moneyFormHtml():`<div class="row"><button class="primary" data-madd="out">− Расход</button><button class="ghost" data-madd="in">+ Доход</button></div>`}
+    <div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${moneyTab===k?"on":""}" data-mtab="${k}">${n}</button>`).join("")}</div>
+    ${body}
+    <button class="ghost" id="mClose">Закрыть</button></div>`);
+  const g_=id=>document.getElementById(id);
+  g_("mClose").onclick=()=>{moneyForm=null;closeSheet();render();};
+  g_("mPrev").onclick=()=>{moneyMonth=shiftMonth(m,-1);openMoney();};
+  g_("mNext").onclick=()=>{if(m<mKey()){moneyMonth=shiftMonth(m,1);openMoney();}};
+  document.querySelectorAll("#sheetIn [data-mtab]").forEach(b=>b.onclick=()=>{moneyTab=b.dataset.mtab;openMoney();});
+  bindMoneyForm(openMoney);
+  document.querySelectorAll("#sheetIn [data-mdel]").forEach(b=>b.onclick=async()=>{if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Удалить?";return;}const o={...money};delete o[b.dataset.mdel];money=o;await store.deleteDoc("money",b.dataset.mdel);openMoney();});
+  const li=g_("mLim"); if(li) li.onchange=async()=>{await store.saveSettings({...settings,moneyLimit:Number(li.value)||0});openMoney();};
+  const gs=g_("mGoalSet"); if(gs) gs.onclick=async()=>{const t=Number(g_("mGT").value);if(!t){toast("Укажи сумму цели.");return;}await store.saveSettings({...settings,moneyGoal:{name:g_("mGName").value.trim()||"Моя цель",target:t,saved:0}});openMoney();};
+  document.querySelectorAll("#sheetIn [data-msave]").forEach(b=>b.onclick=async()=>{const v=b.dataset.msave==="custom"?Number(g_("mSaveAmt").value):Number(b.dataset.msave);if(!v)return;const G=settings.moneyGoal;const saved=(G.saved||0)+v;await store.saveSettings({...settings,moneyGoal:{...G,saved}});sfx(saved>=G.target?"chime":"pop");openMoney();});
+  const gr=g_("mGoalReset"); if(gr) gr.onclick=async()=>{if(gr.dataset.sure!=="1"){gr.dataset.sure="1";gr.textContent="Точно начать новую цель?";return;}await store.saveSettings({...settings,moneyGoal:null});openMoney();};
+}
+function bindMoneyForm(redraw){
+  const f=moneyForm, g_=id=>document.getElementById(id);
+  document.querySelectorAll("#sheetIn [data-madd]").forEach(b=>b.onclick=()=>{moneyForm=newMoneyForm(b.dataset.madd);redraw();setTimeout(()=>document.getElementById("mAmt")?.focus(),50);});
+  if(!f||!g_("mAmt")) return;
+  const keep=()=>{f.amount=g_("mAmt").value;f.note=g_("mNote").value;f.date=g_("mDate").value||todayKey();};
+  document.querySelectorAll("#sheetIn [data-mtype]").forEach(b=>b.onclick=()=>{keep();f.type=b.dataset.mtype;f.cat=f.type==="in"?"salary":"food";redraw();});
+  document.querySelectorAll("#sheetIn [data-mcat]").forEach(b=>b.onclick=()=>{keep();f.cat=b.dataset.mcat;redraw();});
+  g_("mCancel").onclick=()=>{moneyForm=null;redraw();};
+  g_("mSave").onclick=async()=>{keep();const a=Number(String(f.amount).replace(",","."));if(!(a>0)){g_("mAmt").focus();toast("Введи сумму.");return;}
+    const id=uid(), doc={type:f.type,amount:a,cat:f.cat,note:f.note.trim(),date:f.date,created:new Date().toISOString()};
+    money={...money,[id]:doc}; moneyForm=null; sfx("done");
+    await store.saveDoc("money",id,doc);
+    if(f.type!=="in"&&(settings.habits||[]).some(h=>h.id==="money")){const k=todayKey();saveDay(k,{habits:{...(dayDoc(k).habits||{}),money:1}});}
+    toast(f.type==="in"?`Доход ${fmtMoney(a)} записан.`:`Расход ${fmtMoney(a)} записан.`);
+    redraw();};
+}
+const newMoneyForm=t=>({type:t,amount:"",cat:t==="in"?"salary":"food",note:"",date:todayKey()});
+document.addEventListener("click",e=>{if(e.target.closest?.("[data-mopen]")){moneyMonth=null;openMoney();return;}const b=e.target.closest?.("[data-madd]");if(b&&!b.closest("#sheetIn")){moneyMonth=null;moneyForm=newMoneyForm(b.dataset.madd);openMoney();setTimeout(()=>document.getElementById("mAmt")?.focus(),80);}});
+
 let forYouOpen=null;
 function forYouHtml(k){
   const d=(typeof dayDoc==="function"?dayDoc(k):{})||{}, j=journeyFor(k), q=quoteOfDay(k), ideasN=Object.values(ideas).filter(x=>x&&!x.used).length;
@@ -3505,6 +3656,7 @@ function forYouHtml(k){
     {id:"city",flag:j.country,t:"Город дня",s:j.city,html:()=>cityDayCard(k)},
     {id:"work",g:"spark2",t:isOwner()?"Для работы":"Идеи",s:isOwner()?"Инфоповоды":"Для твоей сферы",html:()=>isOwner()?workCard(k):nicheCard(k)},
     {id:"care",g:"flower",t:"Забота",s:hasKids()?"Дом, ты и дети":"Для себя и дома",html:()=>careCard(k)},
+    {id:"money",g:"apple",t:"Деньги",s:(()=>{const st=monthStats(mKey(k));return st.inc||st.out?`Остаток ${fmtMoney(st.inc-st.out)}`:"Доход и расход";})(),html:()=>moneyCard(k)},
     {id:"ideas",g:"idea2",t:"Копилка",s:ideasN?`${ideasN} ${plural(ideasN,"идея","идеи","идей")}`:"Записать идею",html:()=>ideasCard()},
     {id:"links",g:"bus",t:"Ссылки",s:"Быстрый доступ",html:()=>linksCard()}
   ].filter(x=>x.id!=="work"||isOwner()||nicheOf());

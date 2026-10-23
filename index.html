@@ -2295,14 +2295,14 @@ function libRoomSvg(){
     ${lamp?`<ellipse class="glow" cx="128" cy="150" rx="70" ry="60" fill="#FFD166" opacity=".2"/><path d="M116 120h24l26 74h-76z" fill="#FFD166" opacity=".14"/>`:""}</g>
     <ellipse cx="80" cy="212" rx="78" ry="12" fill="${night?"#6C5BFF":"#B9AFFF"}" opacity=".55"/>
     <g><rect x="20" y="150" width="96" height="48" rx="16" fill="#8C7DFF"/><rect x="12" y="142" width="24" height="56" rx="12" fill="#6C5BFF"/><rect x="100" y="142" width="24" height="56" rx="12" fill="#6C5BFF"/><rect x="30" y="118" width="76" height="44" rx="18" fill="#7A6AFF"/></g>
-    <g class="obj cat" data-obj="cat"><path class="cat-tail" d="M226 210 Q246 214 248 200 Q250 192 244 192" stroke="#F2A65A" stroke-width="5" fill="none" stroke-linecap="round" style="transform-origin:226px 210px"/><ellipse cx="210" cy="210" rx="22" ry="11" fill="#F2A65A"/><circle cx="192" cy="203" r="10" fill="#F2A65A"/><path d="M184 197 l2 -9 6 6Z M194 195 l5 -8 3 8Z" fill="#F2A65A"/><path d="M187 203 q2 2 4 0 M195 203 q2 2 4 0" stroke="#5A3D33" stroke-width="1.3" fill="none"/><path d="M204 204 Q210 208 216 204 M210 214 Q216 216 222 213" stroke="#D98A3C" stroke-width="2" fill="none"/></g>
+    <g class="obj cat" data-obj="cat"><path class="cat-tail" d="M226 210 Q246 214 248 200 Q250 192 244 192" stroke="#F4EEE4" stroke-width="5" fill="none" stroke-linecap="round" style="transform-origin:226px 210px"/><ellipse cx="210" cy="210" rx="22" ry="11" fill="#FBF7F0" stroke="#D9CFC0" stroke-width="1"/><circle cx="192" cy="203" r="10" fill="#FBF7F0" stroke="#D9CFC0" stroke-width="1"/><path d="M184 197 l2 -9 6 6Z M194 195 l5 -8 3 8Z" fill="#FBF7F0" stroke="#D9CFC0" stroke-width="1"/><path d="M186 195 l1 -4 2.5 2.5Z M196 193.5 l2.2 -3.6 1.3 3.6Z" fill="#FFB3C7"/><circle cx="193" cy="206" r="1.2" fill="#FF9FB2"/><path d="M187 203 q2 2 4 0 M195 203 q2 2 4 0" stroke="#5A3D33" stroke-width="1.3" fill="none"/><path d="M204 204 Q210 208 216 204 M210 214 Q216 216 222 213" stroke="#E3D8C8" stroke-width="2" fill="none"/></g>
     ${night&&!lamp?`<rect width="360" height="230" fill="#0D0B2A" opacity=".38" pointer-events="none"/>`:night?`<rect width="360" height="230" fill="#0D0B2A" opacity=".12" pointer-events="none"/>`:""}
   </svg>`;
 }
 const ROOM_LINES={
   window:()=>roomNight()?"Падающая звезда! Загадай желание ✨":"Смотри, птицы летят на юг. Осень.",
   lamp:()=>lampOn()?"Свет включила. Уютно!":"Темно… Включим лампу?",
-  cat:()=>["Мяу! Это Бәрік, мой кот.","Мурр… почеши за ушком.","Кот одобряет твой выбор книги.","Мяу. Пора отдохнуть 20 минут."][Math.floor(Math.random()*4)],
+  cat:()=>["Мяу! Это Ақ мамық — по-казахски «белый пушок».","Мурр… почеши за ушком.","Ақ мамық одобряет твой выбор книги.","Мяу. Пора отдохнуть 20 минут."][Math.floor(Math.random()*4)],
   plant:()=>{const n=Object.values(books).filter(b=>b.status==="read").length;return n?`Полила! Цветок растёт от каждой прочитанной книги: их уже ${n}.`:"Полила! Он вырастет, когда ты дочитаешь первую книгу.";},
   radio:()=>ambient?"Включила звук дождя. Читать под него — одно удовольствие.":"Тишина.",
   empty:()=>"Свободное место на полке. Какая книга встанет сюда?",
@@ -2573,7 +2573,7 @@ const HELP={
     "<b>Мини-квиз</b> «О чём это?» помогает запомнить, а <b>цитата дня</b> — повод подумать.",
     "В карточках есть идея для поста и подсказка, как рассказать об этом ребёнку."]},
   lib:{t:"Книги",m:"happy",i:"book",p:[
-    "<b>Комната живая — нажимай на предметы.</b> Часы — таймер чтения на 20 минут, лампа, радио со звуком дождя, окно, кот Бәрік и цветок, который растёт от прочитанных книг.",
+    "<b>Комната живая — нажимай на предметы.</b> Часы — таймер чтения на 20 минут, лампа, радио со звуком дождя, окно, кошка Ақ мамық и цветок, который растёт от прочитанных книг.",
     "<b>Полка города</b> — легенды, мифы и истории города недели.",
     "<b>Моя полка:</b> «Добавить книгу» → Читаю / Прочитано / Хочу. У «Читаю» есть прогресс по страницам, а когда дочитаешь — оценка и главная мысль. Прочитанные книги встают на полку в комнате.",
     "<b>Подборки BARI</b> с объяснением, почему стоит прочитать. «Хочу» добавляет книгу на полку.",

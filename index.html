@@ -1197,6 +1197,7 @@ function taskRow(t,showDate){
   if(!(st.home&&p.kind==="home")) sub.push(`<span class="pn">${dotHtml(t.project)}${esc(p.name)}</span>`);
   if(showDate) sub.push(`<span>${niceWd(t.date)}</span>`);
   if(t.publish&&!["post","task","plan","me"].includes(t.stage)) sub.push(`<span>выход ${nice(t.publish)}</span>`);
+  if(t.due&&!t.done) sub.push(`<span class="${t.due<=todayKey()?"danger":""}">срок ${t.due===todayKey()?"сегодня":nice(t.due)}</span>`);
   sub.push(spent>=1?`<span class="hours ${over?"over-t":""}">${fmtMin(spent)} из ${fmtH(t.hours)}</span>`:`<span class="hours">${fmtH(t.hours)}</span>`);
   return `<div class="task ${t.done?"done":""} ${run?"running":""} ${run&&over?"over":""}">
     ${tile(t)}
@@ -1364,6 +1365,7 @@ function renderRhythm(){
   document.getElementById("view-rhythm").innerHTML=`
     ${isOwner()?`<h2>${ic("note")}Заметки для Claude</h2>
     <div class="card">
+      <button class="primary" id="planImport">${ic("spark")}Вставить план от Claude</button>
       <p class="tip">${isOwner()?"Пиши сюда всё новое: изменения в графике, новые задачи, сроки. Потом скажи Claude в чате «посмотри заметки», и он поправит план.":"Пиши сюда всё новое: изменения в графике, задачи, сроки, мысли. Отмечай галочкой, когда учтёшь."}</p>
       <div class="field"><label class="label" for="noteIn">Новая заметка</label><textarea id="noteIn" rows="3" placeholder="Например: с ноября в Columbus по вторникам, а не по средам"></textarea></div>
       <button class="primary" id="addNote">${ic("plus")}Сохранить заметку</button>
@@ -3646,6 +3648,39 @@ function bindMoneyForm(redraw){
 }
 const newMoneyForm=t=>({type:t,amount:"",cat:t==="in"?"salary":"food",note:"",date:todayKey()});
 document.addEventListener("click",e=>{if(e.target.closest?.("[data-mopen]")){moneyMonth=null;openMoney();return;}const b=e.target.closest?.("[data-madd]");if(b&&!b.closest("#sheetIn")){moneyMonth=null;moneyForm=newMoneyForm(b.dataset.madd);openMoney();setTimeout(()=>document.getElementById("mAmt")?.focus(),80);}});
+
+/* owner only: apply a plan prepared by Claude in chat (adds / moves / closes only this user's tasks) */
+function projByName(x){if(!x)return settings.projects.find(p=>p.kind!=="home")?.id;const q=String(x).toLowerCase();const P=settings.projects;return (P.find(p=>p.id===x)||P.find(p=>p.name.toLowerCase()===q)||P.find(p=>p.name.toLowerCase().includes(q)||q.includes(p.name.toLowerCase())))?.id||P.find(p=>p.kind!=="home")?.id;}
+function parsePlanCode(txt){const s=String(txt||"").trim().replace(/^BARI-PLAN\s*/i,"");const i=s.indexOf("{"),j=s.lastIndexOf("}");if(i<0||j<i)throw new Error("Не нашла код плана.");return JSON.parse(s.slice(i,j+1));}
+const findTask=q=>{const n=String(q).toLowerCase();return tasks.filter(t=>!t.done&&t.title.toLowerCase().includes(n)).sort((a,b)=>a.date.localeCompare(b.date))[0]||null;};
+const spanH=(a,b)=>{const x=parseHM(a),y=parseHM(b);if(x===null||y===null)return null;return (((y-x+1440)%1440)||1440)/60;};
+function planOps(P){
+  const ops=[];
+  for(const a of P.add||[]){const h=a.from&&a.to?spanH(a.from,a.to):Number(a.h)||1;const home=!!a.home;
+    ops.push({kind:"add",text:`Добавить «${a.t}» — ${niceWd(a.d||todayKey())}${a.from?` ${a.from}${a.to?"–"+a.to:""}`:""}${a.due?` · срок ${nice(a.due)}`:""}`,
+      run:()=>store.saveTask({id:uid(),title:a.t,project:home?"house":projByName(a.p),stage:home?"me":"task",date:a.d||todayKey(),hours:h,done:false,piece:uid(),time:a.from||"",...(a.due?{due:a.due}:{})})});}
+  for(const m of P.move||[]){const t=findTask(m.q);ops.push(t?{kind:"move",text:`Перенести «${t.title}» → ${niceWd(m.d||t.date)}${m.from?` ${m.from}${m.to?"–"+m.to:""}`:""}`,run:()=>store.saveTask({...t,date:m.d||t.date,...(m.from?{time:m.from}:{}),...(m.from&&m.to?{hours:spanH(m.from,m.to)}:{}),...(m.due?{due:m.due}:{})})}:{kind:"miss",text:`Не нашла задачу «${m.q}» — пропущу`});}
+  for(const q of P.done||[]){const t=findTask(q);ops.push(t?{kind:"done",text:`Отметить сделанной «${t.title}»`,run:()=>stopTrack(t,{done:true})}:{kind:"miss",text:`Не нашла задачу «${q}» — пропущу`});}
+  for(const q of P.del||[]){const t=findTask(q);ops.push(t?{kind:"del",text:`Удалить «${t.title}» (${niceWd(t.date)})`,run:()=>store.deleteTask(t.id)}:{kind:"miss",text:`Не нашла задачу «${q}» — пропущу`});}
+  return ops;
+}
+function openPlanImport(){
+  openSheet(`<div class="ci-sheet"><h3 style="margin:0">Вставить план от Claude</h3><p class="tip" style="margin:0">Напиши Claude в чате, что нужно сделать и к какому сроку. Он пришлёт код — скопируй его целиком и вставь сюда. Изменятся только твои задачи.</p>
+    <textarea id="planIn" rows="6" placeholder="BARI-PLAN {...}"></textarea><div id="planPrev"></div>
+    <div class="actions"><button class="ghost" id="planX">Отмена</button><button class="primary" id="planGo">Проверить</button></div></div>`);
+  let ops=null; const g=id=>document.getElementById(id);
+  g("planX").onclick=closeSheet;
+  g("planIn").oninput=()=>{ops=null;g("planGo").textContent="Проверить";g("planPrev").innerHTML="";};
+  g("planGo").onclick=async()=>{
+    if(!ops){try{ops=planOps(parsePlanCode(g("planIn").value));}catch(e){g("planPrev").innerHTML=`<p class="tip danger">Код не читается: скопируй его из чата целиком, вместе с фигурными скобками.</p>`;return;}
+      if(!ops.length){g("planPrev").innerHTML=`<p class="tip">В коде нет изменений.</p>`;ops=null;return;}
+      g("planPrev").innerHTML=`<span class="label">Что изменится</span><ul class="m-tips">${ops.map(o=>`<li class="${o.kind==="miss"?"tip":""}">${esc(o.text)}</li>`).join("")}</ul>`;g("planGo").innerHTML=`${ic("check")}Применить`;return;}
+    const n=ops.filter(o=>o.run).length; g("planGo").disabled=true;
+    for(const o of ops) if(o.run){try{await o.run();}catch(e){}}
+    closeSheet(); sfx("chime"); toast(`Готово: ${n} ${plural(n,"изменение","изменения","изменений")} в плане.`);
+  };
+}
+document.addEventListener("click",e=>{if(e.target.closest?.("#planImport"))openPlanImport();});
 
 let forYouOpen=null;
 function forYouHtml(k){

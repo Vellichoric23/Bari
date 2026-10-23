@@ -494,6 +494,33 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.stamp{opacity:1;filter:none;display:grid;justify-items:center;gap:2px;padding:10px 6px;border-radius:50%;aspect-ratio:1;align-content:center;border:2.5px dashed var(--accent);background:var(--accent-soft);color:var(--ink);font:inherit;cursor:pointer;transform:rotate(var(--r,0deg))}
+.stamp b{font-size:12.5px;line-height:1.1;text-align:center}.stamp small{font-size:10.5px;color:var(--muted)}
+.stamp.now{border-style:solid;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
+.stamp.soon{opacity:.45;filter:grayscale(1);border-color:var(--line);background:var(--surface-2);cursor:default}
+
+.studio-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.studio-strip button{display:grid;justify-items:center;gap:2px;padding:10px 4px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.studio-strip b{font-size:12.5px}.studio-strip small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.quick-in{display:flex;gap:8px;margin:0 0 12px}.quick-in input{flex:1;min-width:0}
+.close-day{width:100%;margin:10px 0 0}
+.studio{display:grid;gap:12px}
+.st-group{display:grid;gap:8px}.st-group .label{display:flex;align-items:center;gap:6px}
+.st-card{background:var(--surface-2);border-radius:14px;padding:10px 12px;display:grid;gap:6px}
+.st-card.done{opacity:.55}.st-card p{margin:0;line-height:1.45;white-space:pre-wrap}
+.st-at{font-weight:800;color:var(--accent)}
+.st-act{display:flex;flex-wrap:wrap;gap:6px}.st-act .mini-btn.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.st-add summary{cursor:pointer;font-weight:700;padding:6px 0}
+.pc-list{display:grid;gap:8px}
+.pc-card{display:grid;gap:4px;text-align:left;padding:10px 12px;border-radius:14px;border:1px solid var(--line);border-left:5px solid var(--pc);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.pc-card small{color:var(--muted);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.pc-st{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--accent)}
+.pc-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.pc-bar i{height:4px;border-radius:2px;background:var(--line)}.pc-bar i.on{background:var(--pc)}
+.pc-stages .mini-btn.on,.m-tabs .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rp-pre{white-space:pre-wrap;background:var(--surface-2);border-radius:14px;padding:12px;font:inherit;font-size:14px;line-height:1.5;margin:0}
+.in-list{display:grid;gap:8px}.in-row{background:var(--surface-2);border-radius:14px;padding:10px 12px;display:grid;gap:6px}.in-row p{margin:0}
+
 .m-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .m-stats>div{background:var(--surface-2);border-radius:12px;padding:8px 10px;display:grid;min-width:0}
 .m-stats small{color:var(--muted);font-size:12px}
@@ -1111,6 +1138,7 @@ function localStore(){
   try{notes=JSON.parse(localStorage.getItem(KEY+"-notes")||"[]");}catch(e){notes=[];}
   try{erud=JSON.parse(localStorage.getItem(KEY+"-erud")||"{}");}catch(e){erud={};}
   try{money=JSON.parse(localStorage.getItem(KEY+"-money")||"{}");}catch(e){money={};}
+  for(const c of STUDIO_COLS){try{S[c]=JSON.parse(localStorage.getItem(KEY+"-"+c)||"{}");}catch(e){}}
   try{books=JSON.parse(localStorage.getItem(KEY+"-books")||"{}");codeProg={read:{},...JSON.parse(localStorage.getItem(KEY+"-code")||"{}")};}catch(e){}
   tasksLoaded=settingsLoaded=true;
   const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify({tasks:allTasks,settings}));}catch(e){}};
@@ -1119,8 +1147,8 @@ function localStore(){
     async saveTask(t){const a=allTasks.slice();const i=a.findIndex(x=>x.id===t.id);if(i>=0)a[i]=t;else a.push(t);setTasks(a);persist();render();},
     async deleteTask(id){const t=allTasks.find(x=>x.id===id);if(t&&t.tpl){await this.saveTask({...t,skip:true});return;}setTasks(allTasks.filter(t=>t.id!==id));persist();render();},
     async saveSettings(s){settings=s;persist();render();ensureRecurring();},
-    async deleteDoc(col,id){if(col==="money"){const o={...money};delete o[id];money=o;try{localStorage.setItem(KEY+"-money",JSON.stringify(money));}catch(e){}}if(col==="ideas"){const o={...ideas};delete o[id];ideas=o;}if(col==="books"){const o={...books};delete o[id];books=o;try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}}render();},
-    async saveDoc(col,id,doc){if(col==="money"){money={...money,[id]:doc};try{localStorage.setItem(KEY+"-money",JSON.stringify(money));}catch(e){}render();return;}if(col==="books"){books={...books,[id]:doc};try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}render();return;}if(col==="code"){codeProg=doc;try{localStorage.setItem(KEY+"-code",JSON.stringify(doc));}catch(e){}render();return;}if(col==="ideas"){ideas={...ideas,[id]:doc};render();return;}if(col==="daily"){daily={...daily,[id]:doc};render();return;}if(col==="cityday"){cityday={...cityday,[id]:doc};render();return;}if(col==="city"){cityinfo={...cityinfo,[id]:doc};return;}if(col==="erud"){erud={...erud,[id]:doc};try{localStorage.setItem(KEY+"-erud",JSON.stringify(erud));}catch(e){}}render();},
+    async deleteDoc(col,id){if(STUDIO_COLS.includes(col)){const o={...S[col]};delete o[id];S[col]=o;try{localStorage.setItem(KEY+"-"+col,JSON.stringify(o));}catch(e){}render();return;}if(col==="money"){const o={...money};delete o[id];money=o;try{localStorage.setItem(KEY+"-money",JSON.stringify(money));}catch(e){}}if(col==="ideas"){const o={...ideas};delete o[id];ideas=o;}if(col==="books"){const o={...books};delete o[id];books=o;try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}}render();},
+    async saveDoc(col,id,doc){if(STUDIO_COLS.includes(col)){S[col]={...S[col],[id]:doc};try{localStorage.setItem(KEY+"-"+col,JSON.stringify(S[col]));}catch(e){}render();return;}if(col==="money"){money={...money,[id]:doc};try{localStorage.setItem(KEY+"-money",JSON.stringify(money));}catch(e){}render();return;}if(col==="books"){books={...books,[id]:doc};try{localStorage.setItem(KEY+"-books",JSON.stringify(books));}catch(e){}render();return;}if(col==="code"){codeProg=doc;try{localStorage.setItem(KEY+"-code",JSON.stringify(doc));}catch(e){}render();return;}if(col==="ideas"){ideas={...ideas,[id]:doc};render();return;}if(col==="daily"){daily={...daily,[id]:doc};render();return;}if(col==="cityday"){cityday={...cityday,[id]:doc};render();return;}if(col==="city"){cityinfo={...cityinfo,[id]:doc};return;}if(col==="erud"){erud={...erud,[id]:doc};try{localStorage.setItem(KEY+"-erud",JSON.stringify(erud));}catch(e){}}render();},
     async addNote(n){notes=[n].concat(notes);try{localStorage.setItem(KEY+"-notes",JSON.stringify(notes));}catch(e){}render();},
     async deleteNote(id){notes=notes.filter(n=>n.id!==id);try{localStorage.setItem(KEY+"-notes",JSON.stringify(notes));}catch(e){}render();}
   };
@@ -1143,6 +1171,7 @@ async function dbStore(db){
   db.collection("cityday").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());cityday=o;if(!snap.metadata.fromCache)cdMark("a");if(view==="today"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("city").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());cityinfo=o;if(!snap.metadata.fromCache)cdMark("b");},()=>{});
   db.collection("erud").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());erud=o;if(view==="me")render();},()=>{});
+  for(const c of ["stories","pieces","inbox","reports"]) db.collection(c).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());S[c]=o;if(document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("money").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());money=o;if(view==="today"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("books").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());books=o;if(view==="lib"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("code").onSnapshot(snap=>{snap.docs.forEach(d=>{if(d.id==="progress")codeProg={read:{},...d.data()};});if(view==="code"&&document.getElementById("sheet").hidden)render();},()=>{});
@@ -1253,12 +1282,13 @@ function renderToday(){
     :(ci&&ci.kind!=="start")?{mood:"think",prop:PROPS.q,size:150}
     :hr<12?{mood:"happy",wave:true,size:150}
     :{mood:"happy",arms:"hold",prop:PROPS[se],size:150};
-  const bariState=bariState0.outfit?bariState0:{...bariState0,outfit:monthLook().o};
+  let bariState=bariState0.outfit?bariState0:{...bariState0,outfit:monthLook().o};
+  {const wv=weatherNow(jr.city);if(wv&&wv.rain&&bariState.mood!=="sleep")bariState={...bariState,arms:"down",wave:false,prop:RPROP.umbrella};}
   window.bariStateNow=bariState;
   setTimeout(()=>typeof placeBari==="function"&&placeBari(),0);
   document.getElementById("view-today").innerHTML=`
     <div class="city-hero">
-      <span class="scene-city">${flag(jr.country,22)||ic("pin")}${esc(jr.city)} · ${esc(jr.country)}</span>
+      <span class="scene-city">${flag(jr.country,22)||ic("pin")}${esc(jr.city)} · ${esc(jr.country)}${(()=>{const v=weatherNow(jr.city);return v?` · ${wxLine(v)}`:"";})()}</span>
       <p class="greet">${esc(greet)}${userName()?", "+esc(userName()):""}</p>${lg.sub?`<p class="greet-sub">${esc(lg.sub)}</p>`:""}
       ${levelChip()}
       ${cityChipsHtml(k)}
@@ -1273,6 +1303,9 @@ function renderToday(){
       </div>
       <div class="ring ${ringCls}">${ringSvg(total,doneH,lim)}<div class="ring-c"><b class="hours">${fmtH(doneH)}</b><span>из ${fmtH(total)}</span></div></div>
     </div>
+    ${closeDayBtn(k)}
+    ${studioStrip(k)}
+    ${quickInbox()}
     ${checkinHtml(ci)}
     ${ci&&ci.kind==="over"?"":runBanner}
     ${blk?`<div class="banner"><span class="tile" style="--pc:var(${proj(blk.project).color})">${ic("tent")}</span><div><b>${esc(blk.title)}</b><br>${esc(blk.note||"")} · до ${nice(blk.to)}</div></div>`:""}
@@ -1735,16 +1768,16 @@ const BARI_LINES=["Один шаг — уже движение.","Не всё с
 /* journey: one country per month, one city per week */
 const JOURNEY=[
   {from:"2026-10",country:"Италия",lang:"итальянский",cities:[["Рим","colosseum"],["Флоренция","dome"],["Венеция","venice"],["Милан","spires"],["Неаполь","volcano"],["Болонья","towers"]]},
-  {from:"2026-12",country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Рованиеми","forest"],["Турку","towers"],["Тампере","sea"]]},
-  {from:"2027-01",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","pagoda"],["Нара","forest"]]},
+  {from:"2026-12",country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Рованиеми","forest"],["Турку","castle"],["Тампере","lake"]]},
+  {from:"2027-01",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","jcastle"],["Нара","forest"]]},
   {from:"2027-02",country:"Франция",lang:"французский",cities:[["Париж","eiffel"],["Лион","dome"],["Прованс","windmill"],["Ницца","sea"]]},
-  {from:"2027-03",country:"Казахстан",lang:"казахский",cities:[["Алматы","mountains"],["Туркестан","dome"],["Астана","tower"],["Атырау","sea"]]},
-  {from:"2027-04",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","towers"],["Утрехт","spires"],["Роттердам","sea"]]},
-  {from:"2027-05",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","tower"],["Валенсия","sea"]]},
+  {from:"2027-03",country:"Казахстан",lang:"казахский",cities:[["Алматы","mountains"],["Туркестан","yasawi"],["Астана","tower"],["Атырау","zhaiyk"]]},
+  {from:"2027-04",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","binnenhof"],["Утрехт","domtower"],["Роттердам","erasmus"]]},
+  {from:"2027-05",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
   {from:"2027-06",country:"Греция",lang:"греческий",cities:[["Афины","temple"],["Санторини","sea"],["Крит","mountains"],["Дельфы","temple"]]},
   {from:"2027-07",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]},
   {from:"2027-08",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]},
-  {from:"2027-09",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","towers"],["Бат","temple"]]}
+  {from:"2027-09",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","castle"],["Бат","temple"]]}
 ];
 const JOURNEY_START="2026-10-19";
 function journeyFor(k){
@@ -1785,7 +1818,19 @@ function landmark(mark,c){
     case "pyramid": return [0,1,2,3,4].map(i=>`<rect ${f} x="${70+i*12}" y="${128-i*16}" width="${120-i*24}" height="14"/>`).join("")+`<rect ${f} x="122" y="50" width="16" height="12"/>`;
     case "mountains": return `<path ${f} d="M30 140 L90 64 L120 100 L150 60 L210 140Z"/><path d="M80 77 L90 64 L100 77 L94 74 L90 80 L86 74Z M140 74 L150 60 L160 74 L154 71 L150 77 L146 71Z" fill="#fff" opacity=".7"/>`;
     case "forest": return [0,1,2,3,4,5].map(i=>`<path ${f} d="M${70+i*20} ${140} L${80+i*20} ${96+(i%3)*10} L${90+i*20} 140Z"/>`).join("");
-    case "sea": default: return `<rect ${f} x="70" y="118" width="40" height="22"/><path ${f} d="M70 118 L90 104 L110 118Z"/><rect ${f} x="150" y="70" width="10" height="70"/><path ${f} d="M146 70 H164 L155 58Z"/>`;
+
+    case "castle": return `<path fill="#8C8070" d="M30 140 Q50 112 92 108 Q140 98 196 110 Q214 120 220 140Z"/><g ${f}><rect x="78" y="76" width="104" height="34"/>${[0,1,2,3,4,5,6,7,8].map(i=>`<rect x="${78+i*12}" y="70" width="7" height="7"/>`).join("")}<rect x="70" y="54" width="20" height="56"/><rect x="170" y="60" width="18" height="50"/><path d="M68 54 L80 38 L92 54Z M168 60 L179 46 L190 60Z"/><rect x="118" y="58" width="22" height="20"/></g><g fill="#fff" opacity=".35"><rect x="96" y="86" width="6" height="10" rx="3"/><rect x="128" y="86" width="6" height="10" rx="3"/><rect x="156" y="86" width="6" height="10" rx="3"/></g>`;
+    case "binnenhof": return `<g ${f}><rect x="92" y="92" width="76" height="48"/><path d="M92 92 L130 52 L168 92Z"/><rect x="80" y="74" width="12" height="66"/><rect x="168" y="74" width="12" height="66"/><path d="M78 74 L86 56 L94 74Z M166 74 L174 56 L182 74Z"/></g><circle cx="130" cy="80" r="8" fill="#fff" opacity=".4"/><g fill="#fff" opacity=".3"><rect x="104" y="104" width="8" height="18" rx="4"/><rect x="126" y="104" width="8" height="18" rx="4"/><rect x="148" y="104" width="8" height="18" rx="4"/></g>`;
+    case "domtower": return `<g ${f}><rect x="114" y="62" width="32" height="78"/><rect x="118" y="38" width="24" height="26"/><path d="M120 38 L130 22 L140 38Z"/><rect x="128" y="10" width="4" height="14"/><rect x="70" y="114" width="44" height="26"/></g><g fill="#fff" opacity=".35"><rect x="124" y="74" width="5" height="18" rx="2.5"/><rect x="131" y="74" width="5" height="18" rx="2.5"/><rect x="126" y="44" width="8" height="12" rx="4"/></g>`;
+    case "erasmus": return `<path d="M30 118 H220" stroke="#F4F6FA" stroke-width="5"/><path d="M150 118 L140 70 L118 26" stroke="#F4F6FA" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M119 28 L40 117 M122 34 L60 117 M126 42 L80 117 M131 52 L100 117 M135 60 L118 117 M126 42 L170 117 M131 52 L190 117 M135 60 L210 117" stroke="#E2E6EE" stroke-width="1.4"/><g transform="translate(176 92)" fill="#F2C14E"><rect x="0" y="0" width="14" height="14" transform="rotate(45 7 7)"/><rect x="18" y="4" width="12" height="12" transform="rotate(45 24 10)"/></g>`;
+    case "giralda": return `<g ${f}><rect x="116" y="58" width="28" height="82"/><rect x="119" y="34" width="22" height="26"/><rect x="123" y="20" width="14" height="16"/><path d="M125 20 L130 8 L135 20Z"/><rect x="70" y="110" width="46" height="30"/><rect x="144" y="114" width="40" height="26"/></g><g fill="#fff" opacity=".4"><rect x="122" y="40" width="6" height="12" rx="3"/><rect x="132" y="40" width="6" height="12" rx="3"/>${[0,1,2,3].map(i=>`<rect x="127" y="${70+i*16}" width="6" height="9" rx="3"/>`).join("")}</g>`;
+    case "artsci": return `<rect x="50" y="128" width="160" height="12" fill="#7FC3E8"/><path d="M60 128 Q100 84 150 98 Q190 108 206 128Z" fill="#F4F6FA"/>${[0,1,2,3,4].map(i=>`<path d="M${90+i*20} 124 Q${96+i*20} 96 ${112+i*20} 92" stroke="#D3DAE6" stroke-width="2" fill="none"/>`).join("")}<path d="M150 98 Q176 70 196 62 Q186 86 176 104Z" fill="#E8EDF4"/><ellipse cx="88" cy="118" rx="22" ry="9" fill="none" stroke="#F4F6FA" stroke-width="4"/>`;
+    case "jcastle": return `<path d="M76 140 L86 112 H174 L184 140Z" fill="#9A9488"/><rect x="92" y="94" width="76" height="18" fill="#F5F2EA"/><path d="M84 96 L130 82 L176 96Z" fill="#3E8E6A"/><rect x="102" y="70" width="56" height="16" fill="#F5F2EA"/><path d="M94 72 L130 58 L166 72Z" fill="#3E8E6A"/><rect x="112" y="48" width="36" height="14" fill="#F5F2EA"/><path d="M104 50 L130 36 L156 50Z" fill="#3E8E6A"/><path d="M116 36 L118 30 M144 36 L142 30" stroke="#E0B84A" stroke-width="3"/><g fill="#5B6B5E" opacity=".6"><rect x="104" y="100" width="6" height="6"/><rect x="127" y="100" width="6" height="6"/><rect x="150" y="100" width="6" height="6"/></g>`;
+    case "yasawi": return `<rect x="150" y="98" width="44" height="42" fill="#C9A57A"/><rect x="156" y="88" width="32" height="12" fill="#B8936A"/><ellipse cx="172" cy="86" rx="20" ry="18" fill="#2FA4A0"/><path d="M160 80 Q172 62 184 80" stroke="#7AD3CC" stroke-width="2" fill="none"/><rect x="86" y="56" width="62" height="84" fill="#C9A57A"/><path d="M100 140 V90 Q117 66 134 90 V140Z" fill="#8E6E4C"/><rect x="86" y="56" width="62" height="8" fill="#2FA4A0"/><g stroke="#6E5A40" stroke-width="2"><path d="M86 72 H72 M86 88 H74 M148 72 H160"/></g>`;
+    case "zhaiyk": return `<path d="M36 128 Q130 46 224 128" stroke="#F4F6FA" stroke-width="6" fill="none"/><path d="M36 128 H224" stroke="#E4E1EC" stroke-width="5"/>${[0,1,2,3,4,5,6,7].map(i=>{const x=60+i*20,y=128-Math.sqrt(Math.max(0,1-Math.pow((x-130)/94,2)))*68;return `<path d="M${x} ${y.toFixed(0)} V126" stroke="#E4E1EC" stroke-width="1.6"/>`;}).join("")}<g><rect x="196" y="98" width="3" height="28" fill="#5B5470"/><rect x="186" y="92" width="24" height="10" rx="2" fill="#F4F6FA"/><text x="198" y="100" font-size="6" text-anchor="middle" fill="#4E3FD9" font-family="sans-serif">EU | AS</text></g>`;
+    case "lake": return `<g ${f}><rect x="68" y="98" width="92" height="42"/><path d="M68 98 L84 86 L100 98 L116 86 L132 98 L148 86 L160 98Z"/><rect x="166" y="36" width="12" height="104"/></g><g fill="#fff" opacity=".35">${[0,1,2,3,4].map(i=>`<rect x="${76+i*17}" y="108" width="8" height="12" rx="4"/>`).join("")}</g><path d="M170 30 Q160 18 174 10" stroke="#C9C2D4" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>`;
+    case "sea": return `<rect x="150" y="56" width="14" height="84" fill="#F4F6FA"/><rect x="150" y="72" width="14" height="10" fill="#E5532E"/><rect x="150" y="100" width="14" height="10" fill="#E5532E"/><path d="M146 56 H168 L157 42Z" fill="#E5532E"/><circle cx="157" cy="50" r="3" fill="#FFE27A"/><g transform="translate(70 104)"><path d="M0 22 H44 L36 32 H8Z" fill="#8C5A4A"/><path d="M22 0 V22 H4Z" fill="#F4F6FA"/><path d="M24 4 V22 H40Z" fill="#E9DCC8"/></g>`;
+    default: return `<rect ${f} x="70" y="118" width="40" height="22"/><path ${f} d="M70 118 L90 104 L110 118Z"/><rect ${f} x="150" y="70" width="10" height="70"/><path ${f} d="M146 70 H164 L155 58Z"/>`;
   }
 }
 function sceneSvg(k,opts={}){
@@ -1851,7 +1896,7 @@ const GLYPHS={
   temple:`<path d="M3 8l9-5 9 5z" fill="#F6F1E8"/><g fill="#EDE6DA"><rect x="5" y="9" width="2" height="9"/><rect x="9" y="9" width="2" height="9"/><rect x="13" y="9" width="2" height="9"/><rect x="17" y="9" width="2" height="9"/></g><rect x="3" y="18" width="18" height="2" fill="#EDE6DA"/>`,
   tower:`<path d="M11 2h2l2 19H9z" fill="#8C7DFF"/><rect x="8" y="9" width="8" height="2" rx="1" fill="#6C5BFF"/>`
 };
-const GLYPH_ALIAS={tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat"};
+const GLYPH_ALIAS={tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat",castle:"tower",binnenhof:"tower",domtower:"tower",erasmus:"boat",giralda:"tower",artsci:"dome",jcastle:"pagoda",yasawi:"dome",zhaiyk:"boat",lake:"boat"};
 const glyph=(n,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${GLYPHS[n]||GLYPHS[GLYPH_ALIAS[n]]||GLYPHS.tree}</svg>`;
 /* what to see and taste: city first, then country */
 const CITY_ITEMS={
@@ -1902,7 +1947,7 @@ const COUNTRY_ITEMS={
 };
 const itemsFor=j=>CITY_ITEMS[j.city]||COUNTRY_ITEMS[j.country]||[["tree","Прогулка"]];
 const FOLIAGE={autumn:["#E58A3A","#F2B33D","#C9783B","#D9A441"],winter:["#FFFFFF","#EEF3FF","#DCE6FA","#FFFFFF"],spring:["#FFB3C7","#FFD1DC","#9FD06B","#FFC2D4"],summer:["#7CC23A","#5FA82E","#A6D85A","#6DB33F"]};
-const STONE={colosseum:"#C98F58",dome:"#E3B98A",venice:"#D9A274",spires:"#EFE6DA",volcano:"#8C6A5A",towers:"#C9744A",tower:"#B9AFFF",pagoda:"#E85A4A",eiffel:"#8A7666",windmill:"#C9783B",temple:"#F6F1E8",pyramid:"#D9A96A",mountains:"#8E9CC4",forest:"#3E8E5A",sea:"#E9DCC8"};
+const STONE={castle:"#7E7468",binnenhof:"#A0523C",domtower:"#9C8C78",giralda:"#D9A06A",lake:"#A84E3A",colosseum:"#C98F58",dome:"#C7895A",venice:"#B97A55",spires:"#EFE6DA",volcano:"#8C6A5A",towers:"#C9744A",tower:"#B9AFFF",pagoda:"#E85A4A",eiffel:"#8A7666",windmill:"#C9783B",temple:"#F6F1E8",pyramid:"#D9A96A",mountains:"#8E9CC4",forest:"#3E8E5A",sea:"#E9DCC8"};
 const FACADES={"Нидерланды":["#9C4A36","#7E3B2C","#B5654A","#6E4A3A","#C27B5A"],"Великобритания":["#A85A44","#8E4A3A","#C9B79C","#B86A50"],"Мексика":["#F2A541","#E5677D","#2EC4B6","#F7D154","#9B5DE5"],"Испания":["#F6EFE2","#EBD9B4","#F2E3C6","#E3C9A0"],"Южная Корея":["#F4ECE0","#E9DCC8","#EFE4D2"],"Финляндия":["#B5422F","#D9A441","#F4F1EA","#8C3B2E"],"Италия":["#F2C48D","#E8A87C","#F5D7A1","#D98E5F","#F0B98A"],"Япония":["#F4ECE0","#E9D7C3","#D8C3A5","#F2E6D8"],"Франция":["#F3EBDD","#E9DCC8","#F6F0E6","#DCCFBB"],"Казахстан":["#F4ECE0","#E9D7C3","#C9D6E3","#F2E3C6"],default:["#F3E6D3","#E9D2B6","#F6EBDD","#DCC3A5"]};
 function cityBgSvg(k,W=400){
   /* the city fills the top half of the screen (behind the greeting); a quiet piazza continues below the cards */
@@ -1931,7 +1976,7 @@ function cityBgSvg(k,W=400){
   return `<svg viewBox="0 0 ${W} 860" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
     <defs><linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".4" stop-color="${sky[1]}"/></linearGradient></defs>
     <rect width="${W}" height="860" fill="url(#cbg)"/>${sun}${clouds}
-    ${backdropSvg(j.country,W,BASE,S,dim,se)}
+    ${backdropSvg(j.country,W,BASE,S,dim,se,j.city)}
     <g transform="translate(${cx-206} ${BASE-231}) scale(1.65)" style="${dim}">${landmark(j.mark,STONE[j.mark]||"#E9DCC8")}</g>
     <g style="${dim}">${houses}${streetExtras(j.country,W,BASE,night,se)}</g>
     ${se==="winter"?`<rect y="${BASE-4}" width="${W}" height="6" fill="#fff"/>`:""}
@@ -2008,7 +2053,8 @@ function cityDayCard(k){
   const fact=d?.fact||(sameCity?lesson?.facts?.[0]:"")||"";
   const w=d?.word?.it?d.word:(sameCity?lesson?.words?.[0]:null)||null;
   return `<section class="card cityday">
-    <div class="cd-head"><span class="label">Город дня · ${esc(j.city)}</span><span class="cd-time">${cityTimeLine(j)}</span></div>
+    <div class="cd-head"><span class="label">Город дня · ${esc(j.city)}</span><span class="cd-time">${cityTimeLine(j)}${(()=>{const v=weatherNow(j.city);return v?` · ${wxLine(v)}`:"";})()}</span></div>
+    ${(()=>{const v=weatherNow(j.city);return v?`<p class="tip" style="margin:0 0 6px">${esc(wxSay(j.city,v))}</p>`:"";})()}
     ${fact?`<p class="cd-fact">${ic("spark")}<span>${esc(fact)}</span></p>`:`<p class="tip">${cityBusy?"BARI собирает факты о городе…":"Факт дня появится, как только BARI его найдёт."}</p>`}
     ${w?`<div class="cd-word"><span class="label">Слово дня</span><b>${flag(j.country,18)} ${esc(w.it)}</b><span>${flag("Великобритания",14)} ${esc(w.en||"")}${w.ru?` · ${esc(w.ru)}`:""}</span>${w.hint?`<small>${esc(w.hint)}</small>`:""}</div>`:""}
     ${musicRow(j.country)}
@@ -2128,19 +2174,6 @@ function bindWork(){
   if(hc) hc.onclick=async()=>{const t=document.querySelector(".hook-t")?.textContent||"";try{await navigator.clipboard.writeText(t);toast("Хук скопирован");}catch(e){const r=document.createRange();r.selectNodeContents(document.querySelector(".hook-t"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Выделила текст — скопируй вручную");}};
   const lb=document.getElementById("lvlBtn"); if(lb) lb.onclick=openLevel;
 }
-/* passport: a stamp for each city with 3+ finished lessons */
-function passportHtml(){
-  const counts={}; Object.values(erud).forEach(e=>{if(e&&e.done&&e.city)counts[e.city]=(counts[e.city]||0)+1;});
-  const k=todayKey(), cur=journeyFor(k);
-  const list=[];
-  if(hasRoute()){const wk=cur.week||0, upto=Math.floor(wk/4)%settings.route.length;settings.route.slice(0,Math.max(upto+1,2)).forEach(cn=>{const jn=JOURNEY.find(x=>x.country===cn);if(jn)jn.cities.slice(0,4).forEach(([c,m])=>list.push({c,m,country:jn.country}));});}
-  else for(const jn of JOURNEY){ if(jn.from>k.slice(0,7)&&jn.country!==cur.country) continue; jn.cities.forEach(([c,m])=>list.push({c,m,country:jn.country})); }
-  const shown=list.slice(0,12);
-  return `<div class="passport card"><div class="cd-head"><span class="label">Паспорт путешественника</span><span class="tip">Штамп за город: пройди там 3 урока</span></div>
-    <div class="stamps">${shown.map((x,i)=>{const n=counts[x.c]||0, on=n>=3, now=x.c===cur.city;
-      return `<div class="stamp ${on?"on":""} ${now?"now":""}" style="--r:${(i%3-1)*6}deg"><div class="stamp-in">${glyph(x.m==="venice"?"gondola":x.m,34)}<b>${flag(x.country,16)} ${esc(x.c)}</b><small>${on?"пройден":now?`${n}/3`:"впереди"}</small></div></div>`;}).join("")}</div></div>`;
-}
-
 /* ---------- extras: mood, habits, idea box, quick links, week review ---------- */
 let ideas={}, daily={}, ideasOpen=false;
 const MOODS=[["joy","Супер"],["happy","Хорошо"],["think","Так себе"],["sleep","Устала"]];
@@ -3249,7 +3282,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)stopMusic()
 
 const BARI_ACTS=[
   {k:"ritual",w:6},
-  {k:"walk",w:6},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
+  {k:"walk",w:6},{k:"weather",w:2},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
 ];
 const DRINKS={
   "Италия":{cup:"espresso",l:["В Италии кофе у стойки дешевле, чем за столиком. Пьют стоя, за минуту.","Капучино итальянцы пьют только утром. После обеда — эспрессо.","В Неаполе есть обычай caffè sospeso: платишь за два кофе, второй — для незнакомца.","Гейзерную кофеварку «мока» придумал Альфонсо Биалетти в 1933 году."]},
@@ -3292,6 +3325,7 @@ function bariAct(){
     setTimeout(()=>{btn.classList.remove("walking");window.bariFlip=1;placeBari();},2500);
     return;
   }
+  if(act==="weather"){const v=weatherNow(journeyFor(todayKey()).city);if(!v||!bub)return;bub.textContent=wxSay(journeyFor(todayKey()).city,v);bub.hidden=false;setTimeout(()=>{bub.hidden=true;},6500);return;}
   if(act==="tea"||act==="read"||act==="wave"){
     const jr=journeyFor(todayKey()), dr=DRINKS[jr.country];
     const prop=act==="tea"?`<g transform="translate(138 118) scale(2.1)">${GLYPHS[dr?.cup==="espresso"?"espresso":"tea"]}</g>`:act==="read"?`<g transform="translate(66 118) scale(2.8)">${GLYPHS.book2}</g>`:"";
@@ -3507,7 +3541,13 @@ function streetExtras(country,W,B,night,se){
   if(country==="Нидерланды") ex.push(`<rect y="${B+6}" width="${W}" height="10" fill="#5B8FB0" opacity=".7"/>`);
   return ex.join("");
 }
-function backdropSvg(country,W,B,S,dim,se){
+const WATER_CITIES={"Ницца":"sea","Пусан":"sea","Роттердам":"river","Валенсия":"sea","Атырау":"river","Тампере":"lake","Хельсинки":"sea","Барселона":"sea","Чеджу":"sea","Неаполь":"sea","Турку":"sea","Амстердам":"river"};
+function waterBand(W,B,kind,dim){const top=kind==="river"?B-46:B-64;return `<g style="${dim}"><rect y="${top}" width="${W}" height="${B-top}" fill="${kind==="lake"?"#5E8FB8":"#3E86C4"}" opacity=".75"/>${Array.from({length:Math.ceil(W/60)},(_,n)=>`<path d="M${n*60+8} ${top+14+(n%3)*12} q8 -5 16 0 t16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".45"/>`).join("")}</g>`;}
+function backdropSvg(country,W,B,S,dim,se,city){
+  const wk=WATER_CITIES[city];
+  if(country==="Казахстан"&&(city==="Астана"||city==="Атырау")) return `<path d="M0 ${B-58} Q${W*.3} ${B-74} ${W*.6} ${B-62} T${W} ${B-66} V${B} H0Z" fill="${se==="winter"?"#E8EEF8":"#D9C38A"}" opacity=".9" style="${dim}"/>${wk?waterBand(W,B,wk,dim):""}`;
+  if(country==="Казахстан"&&city==="Туркестан") return `<path d="M0 ${B-70} L${W*.2} ${B-110} L${W*.38} ${B-80} L${W*.6} ${B-120} L${W*.8} ${B-86} L${W} ${B-104} V${B} H0Z" fill="#B39A7A" opacity=".75" style="${dim}"/>`;
+  if(wk&&country!=="Греция") return `<path d="M0 250 Q${W*.22} 214 ${W*.5} 240 T${W} 228 V${B} H0Z" fill="${country==="Финляндия"?"#5E7A6A":S.hill[0]}" opacity=".75" style="${dim}"/>${waterBand(W,B,wk,dim)}`;
   if(country==="Казахстан") return `<path d="M0 ${B-60} L${W*.12} 150 L${W*.24} 205 L${W*.4} 120 L${W*.55} 190 L${W*.7} 135 L${W*.86} 200 L${W} 160 V${B} H0Z" fill="#8FA3C8" opacity=".85" style="${dim}"/><path d="M${W*.4-26} 156 L${W*.4} 120 L${W*.4+24} 152 L${W*.4+8} 160 L${W*.4-6} 150Z M${W*.7-24} 166 L${W*.7} 135 L${W*.7+22} 165Z M${W*.12-20} 180 L${W*.12} 150 L${W*.12+18} 178Z" fill="#FFFFFF" style="${dim}"/>`;
   if(country==="Финляндия") return `<path d="M0 250 Q${W*.22} 214 ${W*.5} 240 T${W} 228 V${B} H0Z" fill="#5E7A6A" opacity=".75" style="${dim}"/>`;
   if(country==="Греция") return `<rect y="232" width="${W}" height="${B-232}" fill="#3E86C4" opacity=".55" style="${dim}"/>`;
@@ -3662,7 +3702,7 @@ function planOps(P){
   for(const m of P.move||[]){const t=findTask(m.q);ops.push(t?{kind:"move",text:`Перенести «${t.title}» → ${niceWd(m.d||t.date)}${m.from?` ${m.from}${m.to?"–"+m.to:""}`:""}`,run:()=>store.saveTask({...t,date:m.d||t.date,...(m.from?{time:m.from}:{}),...(m.from&&m.to?{hours:spanH(m.from,m.to)}:{}),...(m.due?{due:m.due}:{})})}:{kind:"miss",text:`Не нашла задачу «${m.q}» — пропущу`});}
   for(const q of P.done||[]){const t=findTask(q);ops.push(t?{kind:"done",text:`Отметить сделанной «${t.title}»`,run:()=>stopTrack(t,{done:true})}:{kind:"miss",text:`Не нашла задачу «${q}» — пропущу`});}
   for(const q of P.del||[]){const t=findTask(q);ops.push(t?{kind:"del",text:`Удалить «${t.title}» (${niceWd(t.date)})`,run:()=>store.deleteTask(t.id)}:{kind:"miss",text:`Не нашла задачу «${q}» — пропущу`});}
-  return ops;
+  return ops.concat(planExtras(P));
 }
 function openPlanImport(){
   openSheet(`<div class="ci-sheet"><h3 style="margin:0">Вставить план от Claude</h3><p class="tip" style="margin:0">Напиши Claude в чате, что нужно сделать и к какому сроку. Он пришлёт код — скопируй его целиком и вставь сюда. Изменятся только твои задачи.</p>
@@ -3681,6 +3721,214 @@ function openPlanImport(){
   };
 }
 document.addEventListener("click",e=>{if(e.target.closest?.("#planImport"))openPlanImport();});
+
+/* ---------- Studio: stories of the day, content board, Monday report, inbox ---------- */
+const S={stories:{},pieces:{},inbox:{},reports:{}};
+const STUDIO_COLS=["stories","pieces","inbox","reports"];
+let studioTab="stories", studioDay=null, boardFilter="active";
+const studioOn=()=>isOwner()||contentMode();
+const PSTAGES=[["idea","Идея"],["brief","ТЗ готово"],["shot","Снято"],["edit","Монтаж"],["approve","Согласование"],["done","Вышло"]];
+const pStage=s=>PSTAGES.find(x=>x[0]===s)||PSTAGES[0];
+const workProjects=()=>settings.projects.filter(p=>p.kind!=="home");
+function sSave(col,id,doc){S[col]={...S[col],[id]:doc};render();return store.saveDoc(col,id,doc);}
+function sDel(col,id){const o={...S[col]};delete o[id];S[col]=o;render();return store.deleteDoc(col,id);}
+const copyText=async(t,msg)=>{try{await navigator.clipboard.writeText(t);toast(msg||"Скопировано");sfx("pop");}catch(e){toast("Не получилось скопировать");}};
+const waLink=t=>"https://wa.me/?text="+encodeURIComponent(t);
+const storiesOn=k=>Object.entries(S.stories).map(([id,x])=>({id,...x})).filter(x=>x.date===k).sort((a,b)=>(a.at||"99").localeCompare(b.at||"99"));
+function studioStrip(k){
+  if(!studioOn()) return "";
+  const L=storiesOn(k), d=L.filter(x=>x.done).length, act=Object.values(S.pieces).filter(p=>p.stage!=="done").length, inb=Object.keys(S.inbox).length;
+  return `<div class="studio-strip"><button data-studio="stories">${glyph("lantern",22)}<b>Сторис</b><small>${L.length?`${d} из ${L.length}`:"на сегодня нет"}</small></button><button data-studio="board">${glyph("column",22)}<b>Контент</b><small>${act} в работе</small></button><button data-studio="inbox">${glyph("idea2",22)}<b>Входящие</b><small>${inb||"пусто"}</small></button><button data-studio="report">${glyph("book2",22)}<b>Отчёт</b><small>за неделю</small></button></div>`;
+}
+function quickInbox(){const n=Object.keys(S.inbox).length;return `<form class="quick-in" id="quickIn"><input id="quickInT" type="text" placeholder="Быстро записать мысль или задачу…" autocomplete="off"><button class="mini-btn" aria-label="Записать">${ic("plus")}</button>${!studioOn()&&n?`<button type="button" class="mini-btn" data-studio="inbox">Входящие · ${n}</button>`:""}</form>`;}
+document.addEventListener("submit",e=>{if(e.target.id!=="quickIn")return;e.preventDefault();const i=document.getElementById("quickInT"),v=i.value.trim();if(!v)return;const id=uid();sSave("inbox",id,{text:v,created:new Date().toISOString()});i.value="";toast("Записала во «Входящие»");sfx("pop");});
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-studio]");if(b){studioTab=b.dataset.studio;studioDay=null;openStudio();}});
+function openStudio(){
+  const tabs=(studioOn()?[["stories","Сторис"],["board","Контент"],["report","Отчёт"]]:[]).concat([["inbox","Входящие"]]);
+  if(!tabs.some(t=>t[0]===studioTab)) studioTab="inbox";
+  let body="";
+  if(studioTab==="stories") body=storiesTab(); else if(studioTab==="board") body=boardTab(); else if(studioTab==="report") body=reportTab(); else body=inboxTab();
+  openSheet(`<div class="studio"><div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${studioTab===k?"on":""}" data-stab="${k}">${n}</button>`).join("")}</div>${body}<button class="ghost" id="stClose">Закрыть</button></div>`);
+  document.getElementById("stClose").onclick=()=>{closeSheet();render();};
+  document.querySelectorAll("#sheetIn [data-stab]").forEach(b=>b.onclick=()=>{studioTab=b.dataset.stab;openStudio();});
+  bindStudio();
+}
+/* stories */
+function storiesTab(){
+  const k=studioDay||todayKey(), L=storiesOn(k), d=L.filter(x=>x.done).length, P=workProjects();
+  const groups=P.map(p=>({p,items:L.filter(x=>x.project===p.id)})).filter(g=>g.items.length);
+  return `<div class="m-head"><button class="navbtn" id="stPrev" aria-label="Назад">${ic("left")}</button><h3>Сторис · ${esc(niceWd(k))}</h3><button class="navbtn" id="stNext" aria-label="Вперёд">${ic("right")}</button></div>
+    ${L.length?`<span class="tip">Выложено ${d} из ${L.length}</span><span class="lvl-bar big"><i style="width:${d/L.length*100}%"></i></span>`:`<p class="tip">На этот день сторис нет. Добавь свои ниже или попроси Claude прислать код с текстами.</p>`}
+    ${groups.map(g=>`<div class="st-group"><span class="label"><span class="dot" style="background:var(${g.p.color})"></span>${esc(g.p.name)}</span>${g.items.map(x=>`<div class="st-card ${x.done?"done":""}"><span class="hours st-at">${esc(x.at||"—")}</span><p>${esc(x.text)}</p><div class="st-act"><button class="mini-btn" data-stcopy="${x.id}">Копировать</button><button class="mini-btn ${x.done?"on":""}" data-stdone="${x.id}">${ic("check")}${x.done?"Выложено":"Выложила"}</button><button class="mini-btn danger" data-stdel="${x.id}" aria-label="Удалить">×</button></div></div>`).join("")}</div>`).join("")}
+    <details class="st-add"><summary>${ic("plus")} Добавить сторис</summary><div class="m-form"><div class="row"><select id="stP">${P.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select><input id="stAt" type="time" value="12:00" style="width:110px"></div><textarea id="stTx" rows="3" placeholder="Текст сторис"></textarea><button class="primary" id="stAdd">${ic("check")}Добавить</button></div></details>`;
+}
+/* content board */
+function boardTab(){
+  const L=Object.entries(S.pieces).map(([id,x])=>({id,...x})).sort((a,b)=>(a.due||"9").localeCompare(b.due||"9"));
+  const show=boardFilter==="active"?L.filter(x=>x.stage!=="done"):boardFilter==="done"?L.filter(x=>x.stage==="done"):L.filter(x=>x.stage===boardFilter);
+  const cnt=s=>L.filter(x=>x.stage===s).length, k=todayKey();
+  return `<p class="tip" style="margin:0">Каждый рилс и пост проходит путь от идеи до публикации. Нажми на карточку, чтобы сдвинуть этап или отправить ТЗ.</p>
+    <div class="cat-chips"><button class="pick-c ${boardFilter==="active"?"on":""}" data-bf="active">В работе · ${L.filter(x=>x.stage!=="done").length}</button>${PSTAGES.slice(0,5).map(([s,n])=>`<button class="pick-c ${boardFilter===s?"on":""}" data-bf="${s}">${n} · ${cnt(s)}</button>`).join("")}<button class="pick-c ${boardFilter==="done"?"on":""}" data-bf="done">Вышло · ${cnt("done")}</button></div>
+    <div class="pc-list">${show.length?show.map(x=>{const p=proj(x.project),late=x.due&&x.due<k&&x.stage!=="done";return `<button class="pc-card" data-piece="${x.id}" style="--pc:var(${p.color})"><span class="pc-st">${esc(pStage(x.stage)[1])}</span><b>${esc(x.title)}</b><small><span class="dot" style="background:var(${p.color})"></span>${esc(p.name)}${x.due?` · <span class="${late?"danger":""}">срок ${x.due===k?"сегодня":nice(x.due)}</span>`:""}</small><span class="pc-bar">${PSTAGES.map(([s],i)=>`<i class="${i<=PSTAGES.findIndex(z=>z[0]===x.stage)?"on":""}"></i>`).join("")}</span></button>`;}).join(""):`<p class="tip">Здесь пусто.</p>`}</div>
+    <button class="primary" id="pcNew">${ic("plus")}Новый рилс или пост</button>`;
+}
+function openPiece(id){
+  const isNew=!id; const x=isNew?{title:"",project:workProjects()[0]?.id,stage:"idea",due:"",brief:"",shots:"",cap:""}:{...S.pieces[id]};
+  const P=workProjects();
+  openSheet(`<div class="ci-sheet pc-sheet"><h3 style="margin:0">${isNew?"Новый рилс или пост":"Карточка контента"}</h3>
+    <div class="field"><label class="label" for="pcT">Название</label><input id="pcT" type="text" value="${esc(x.title)}" placeholder="Например: рилс «3 мифа об Италии»"></div>
+    <div class="row"><div class="field" style="flex:1"><label class="label" for="pcP">Проект</label><select id="pcP">${P.map(p=>`<option value="${p.id}" ${p.id===x.project?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div><div class="field" style="flex:1"><label class="label" for="pcD">Срок выхода</label><input id="pcD" type="date" value="${esc(x.due||"")}"></div></div>
+    <span class="label">Этап</span><div class="seg pc-stages">${PSTAGES.map(([s,n])=>`<button class="mini-btn ${x.stage===s?"on":""}" data-pst="${s}">${n}</button>`).join("")}</div>
+    <div class="field"><label class="label" for="pcB">ТЗ для мобилографа</label><textarea id="pcB" rows="3" placeholder="Идея, локация, кто в кадре, референс">${esc(x.brief||"")}</textarea></div>
+    <div class="field"><label class="label" for="pcS">Кадры — по одному на строку</label><textarea id="pcS" rows="4" placeholder="Крупный план тренера&#10;Дети заходят в зал">${esc(x.shots||"")}</textarea></div>
+    <div class="field"><label class="label" for="pcC">Подпись к посту</label><textarea id="pcC" rows="3">${esc(x.cap||"")}</textarea></div>
+    <div class="row"><button class="ghost" id="pcWa">${ic("send")}ТЗ в WhatsApp</button><button class="ghost" id="pcCap">Копировать подпись</button></div>
+    <div class="actions">${isNew?"":`<button class="ghost danger" id="pcDel">${ic("trash")}</button>`}<button class="ghost" id="pcX">Отмена</button><button class="primary" id="pcSave">${ic("check")}Сохранить</button></div></div>`);
+  const g=i=>document.getElementById(i);
+  const read=()=>({...x,title:g("pcT").value.trim()||"Без названия",project:g("pcP").value,due:g("pcD").value,brief:g("pcB").value,shots:g("pcS").value,cap:g("pcC").value});
+  document.querySelectorAll("#sheetIn [data-pst]").forEach(b=>b.onclick=()=>{x.stage=b.dataset.pst;document.querySelectorAll("#sheetIn [data-pst]").forEach(z=>z.classList.toggle("on",z===b));});
+  g("pcWa").onclick=()=>{const y=read(),sh=y.shots.split("\n").map(s=>s.trim()).filter(Boolean);const t=`ТЗ: ${y.title}\nПроект: ${proj(y.project).name}${y.due?`\nНужно к: ${nice(y.due)}`:""}\n\n${y.brief||""}${sh.length?`\n\nКадры:\n${sh.map((s,i)=>`${i+1}. ${s}`).join("\n")}`:""}`;window.open(waLink(t),"_blank");};
+  g("pcCap").onclick=()=>copyText(read().cap||"","Подпись скопирована");
+  g("pcX").onclick=()=>openStudio();
+  g("pcSave").onclick=async()=>{const y=read();const was=!isNew&&S.pieces[id].stage!=="done";await sSave("pieces",id||uid(),y);if(y.stage==="done"&&was)sfx("done");studioTab="board";openStudio();};
+  const del=g("pcDel"); if(del) del.onclick=async()=>{if(del.dataset.sure!=="1"){del.dataset.sure="1";del.textContent="Удалить?";return;}await sDel("pieces",id);studioTab="board";openStudio();};
+}
+/* Monday report */
+function reportWeek(){const t=todayKey(),dow=fromKey(t).getDay(),mon=mondayOf(t);return (dow===1||dow===2)?[addDays(mon,-7),addDays(mon,-1)]:[mon,addDays(mon,6)];}
+function reportTab(){
+  const P=workProjects(), [a,b]=reportWeek(); let pid=S._rp||P[0]?.id; S._rp=pid;
+  const key=pid+"-"+a, r=S.reports[key]||{};
+  return `<p class="tip" style="margin:0">Неделя ${nice(a)} – ${nice(b)}. Вбей цифры из статистики — BARI соберёт текст отчёта.</p>
+    <div class="field"><label class="label" for="rpP">Проект</label><select id="rpP">${P.map(p=>`<option value="${p.id}" ${p.id===pid?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+    <div class="row"><div class="field" style="flex:1"><label class="label" for="rpR">Охват</label><input id="rpR" inputmode="numeric" value="${esc(r.reach||"")}"></div><div class="field" style="flex:1"><label class="label" for="rpV">Просмотры</label><input id="rpV" inputmode="numeric" value="${esc(r.views||"")}"></div></div>
+    <div class="row"><div class="field" style="flex:1"><label class="label" for="rpF0">Подписчиков было</label><input id="rpF0" inputmode="numeric" value="${esc(r.f0||"")}"></div><div class="field" style="flex:1"><label class="label" for="rpF1">Стало</label><input id="rpF1" inputmode="numeric" value="${esc(r.f1||"")}"></div></div>
+    <div class="field"><label class="label" for="rpBest">Лучшая публикация и её цифры</label><input id="rpBest" value="${esc(r.best||"")}" placeholder="Например: рилс «вместо не бойся» — 12 тыс. просмотров"></div>
+    <div class="field"><label class="label" for="rpNote">Комментарий (по желанию)</label><textarea id="rpNote" rows="2">${esc(r.note||"")}</textarea></div>
+    <button class="primary" id="rpGo">${ic("spark")}Собрать отчёт</button><div id="rpOut"></div>`;
+}
+function reportText(pid,a,b,r){
+  const p=proj(pid), inW=d=>d&&d>=a&&d<=b;
+  const pub=Object.values(S.pieces).filter(x=>x.project===pid&&x.stage==="done"&&inW(x.due));
+  const st=Object.values(S.stories).filter(x=>x.project===pid&&x.done&&inW(x.date)).length;
+  const tsk=tasks.filter(t=>t.project===pid&&t.done&&inW(t.date)&&t.stage!=="stories");
+  const next=Object.values(S.pieces).filter(x=>x.project===pid&&x.stage!=="done"&&x.due&&x.due>b&&x.due<=addDays(b,7));
+  const n=v=>String(v||"").replace(/\s/g,""), diff=(n(r.f1)&&n(r.f0))?Number(n(r.f1))-Number(n(r.f0)):null;
+  const lines=[`Отчёт SMM · ${p.name} · ${nice(a)} – ${nice(b)}`,""];
+  const nums=[r.reach&&`охват ${r.reach}`,r.views&&`просмотры ${r.views}`,(r.f0||r.f1)&&`подписчики ${r.f0||"?"} → ${r.f1||"?"}${diff!==null?` (${diff>=0?"+":""}${diff})`:""}`].filter(Boolean);
+  if(nums.length) lines.push("Цифры: "+nums.join("; "),"");
+  if(pub.length) lines.push(`Опубликовано (${pub.length}):`,...pub.map(x=>`• ${x.title}`),"");
+  else if(tsk.length) lines.push(`Сделано (${tsk.length}):`,...tsk.slice(0,12).map(t=>`• ${t.title}`),"");
+  if(st) lines.push(`Сторис: ${st}`,"");
+  if(r.best) lines.push(`Лучшее: ${r.best}`,"");
+  if(next.length) lines.push("План на следующую неделю:",...next.map(x=>`• ${x.title}${x.due?` — ${nice(x.due)}`:""}`),"");
+  if(r.note) lines.push(r.note);
+  return lines.join("\n").trim();
+}
+/* inbox */
+function inboxTab(){
+  const L=Object.entries(S.inbox).map(([id,x])=>({id,...x})).sort((a,b)=>(b.created||"").localeCompare(a.created||""));
+  return `<p class="tip" style="margin:0">Всё, что записала на бегу. Разбери: сделать задачей, отправить в копилку идей или удалить.</p>${quickInbox()}
+    <div class="in-list">${L.length?L.map(x=>`<div class="in-row"><p>${esc(x.text)}</p><div class="st-act"><button class="mini-btn" data-in2task="${x.id}">${ic("task")}Задача на завтра</button><button class="mini-btn" data-in2idea="${x.id}">${ic("idea")}В копилку</button><button class="mini-btn danger" data-indel="${x.id}" aria-label="Удалить">×</button></div></div>`).join(""):`<p class="tip">Пусто — всё разобрано.</p>`}</div>`;
+}
+function bindStudio(){
+  const g=i=>document.getElementById(i), q=(sel,fn)=>document.querySelectorAll("#sheetIn "+sel).forEach(b=>b.onclick=()=>fn(b));
+  if(g("stPrev")){g("stPrev").onclick=()=>{studioDay=addDays(studioDay||todayKey(),-1);openStudio();};g("stNext").onclick=()=>{studioDay=addDays(studioDay||todayKey(),1);openStudio();};}
+  q("[data-stcopy]",b=>copyText(S.stories[b.dataset.stcopy].text,"Текст сторис скопирован"));
+  q("[data-stdone]",async b=>{const x=S.stories[b.dataset.stdone];await sSave("stories",b.dataset.stdone,{...x,done:!x.done});if(!x.done)sfx("done");openStudio();});
+  q("[data-stdel]",async b=>{if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Удалить?";return;}await sDel("stories",b.dataset.stdel);openStudio();});
+  if(g("stAdd")) g("stAdd").onclick=async()=>{const t=g("stTx").value.trim();if(!t){g("stTx").focus();return;}await sSave("stories",uid(),{date:studioDay||todayKey(),project:g("stP").value,at:g("stAt").value,text:t,done:false});openStudio();};
+  q("[data-bf]",b=>{boardFilter=b.dataset.bf;openStudio();});
+  q("[data-piece]",b=>openPiece(b.dataset.piece));
+  if(g("pcNew")) g("pcNew").onclick=()=>openPiece(null);
+  if(g("rpP")) g("rpP").onchange=()=>{S._rp=g("rpP").value;openStudio();};
+  if(g("rpGo")) g("rpGo").onclick=async()=>{const [a,b]=reportWeek(),pid=g("rpP").value,r={reach:g("rpR").value,views:g("rpV").value,f0:g("rpF0").value,f1:g("rpF1").value,best:g("rpBest").value,note:g("rpNote").value};
+    await store.saveDoc("reports",pid+"-"+a,r);S.reports[pid+"-"+a]=r;const t=reportText(pid,a,b,r);
+    g("rpOut").innerHTML=`<pre class="rp-pre">${esc(t)}</pre><div class="row"><button class="primary" id="rpCopy">Копировать</button><a class="ghost" href="${waLink(t)}" target="_blank" rel="noopener">${ic("send")}WhatsApp</a></div>`;
+    g("rpCopy").onclick=()=>copyText(t,"Отчёт скопирован");};
+  q("[data-in2task]",async b=>{const x=S.inbox[b.dataset.in2task];await store.saveTask({id:uid(),title:x.text,project:workProjects()[0]?.id,stage:"task",date:addDays(todayKey(),1),hours:.5,done:false,piece:uid(),time:""});await sDel("inbox",b.dataset.in2task);toast("Задача на завтра");openStudio();});
+  q("[data-in2idea]",async b=>{const x=S.inbox[b.dataset.in2idea];await store.saveDoc("ideas",uid(),{text:x.text,project:workProjects()[0]?.id||"",createdAt:new Date().toISOString(),used:false});await sDel("inbox",b.dataset.in2idea);toast("В копилке идей");openStudio();});
+  q("[data-indel]",async b=>{await sDel("inbox",b.dataset.indel);openStudio();});
+}
+/* close the day: move everything unfinished to tomorrow */
+function closeDayBtn(k){
+  const left=tasks.filter(t=>t.date<=k&&!t.done&&!t.skip).length, hr=new Date().getHours();
+  if(!left||hr<16) return "";
+  return `<button class="ghost close-day" id="closeDay">${ic("right")}Закрыть день · перенести ${left} ${plural(left,"дело","дела","дел")} на завтра</button>`;
+}
+document.addEventListener("click",async e=>{const b=e.target.closest?.("#closeDay");if(!b)return;
+  if(b.dataset.sure!=="1"){b.dataset.sure="1";b.innerHTML=`${ic("check")}Точно? Всё несделанное уйдёт на завтра`;return;}
+  const k=todayKey(),tm=addDays(k,1),L=tasks.filter(t=>t.date<=k&&!t.done&&!t.skip);
+  for(const t of L){if(t.tpl&&["stories","post","check","target"].includes(t.stage)){await store.deleteTask(t.id);continue;}await stopTrack(t,{date:tm});}
+  sfx("chime");toast(`Перенесла ${L.length} ${plural(L.length,"дело","дела","дел")} на завтра. Отдыхай!`);});
+/* import extras: stories, content cards, recurring */
+function planExtras(P){
+  const ops=[];
+  for(const x of P.stories||[]) ops.push({kind:"add",text:`Сторис ${proj(projByName(x.p)).name} · ${niceWd(x.d||todayKey())} ${x.at||""}: ${String(x.t).slice(0,50)}${String(x.t).length>50?"…":""}`,run:()=>sSave("stories",uid(),{date:x.d||todayKey(),project:projByName(x.p),at:x.at||"",text:String(x.t),done:false})});
+  for(const x of P.pieces||[]) ops.push({kind:"add",text:`Карточка «${x.t}» → ${pStage(x.stage||"idea")[1]}${x.due?` · срок ${nice(x.due)}`:""}`,run:()=>sSave("pieces",uid(),{title:x.t,project:projByName(x.p),stage:x.stage||"idea",due:x.due||"",brief:x.brief||"",shots:Array.isArray(x.shots)?x.shots.join("\n"):(x.shots||""),cap:x.cap||""})});
+  const reps=P.repeat||[];
+  if(reps.length) ops.push({kind:"add",text:`Регулярные дела: ${reps.map(r=>`«${r.t}» (${(r.days||[1,2,3,4,5,6,0]).map(d=>WD[d]).join(" ")}${r.from?` ${r.from}`:""})`).join(", ")}`,run:async()=>{const T=(settings.templates||[]).slice();for(const r of reps){const h=r.from&&r.to?spanH(r.from,r.to):Number(r.h)||.5;T.push({id:uid(),title:r.t,project:r.home?"house":projByName(r.p),stage:r.stage||(r.home?"me":"task"),days:r.days||[1,2,3,4,5,6,0],hours:h,time:r.from||""});}await store.saveSettings({...settings,templates:T});}});
+  return ops;
+}
+
+/* ---------- live weather in the city of the week + travel passport ---------- */
+const CITY_GEO={"Рим":[41.9,12.5],"Флоренция":[43.77,11.25],"Венеция":[45.44,12.33],"Милан":[45.46,9.19],"Неаполь":[40.85,14.27],"Болонья":[44.49,11.34],
+"Хельсинки":[60.17,24.94],"Рованиеми":[66.5,25.73],"Турку":[60.45,22.27],"Тампере":[61.5,23.76],"Токио":[35.68,139.69],"Киото":[35.01,135.77],"Осака":[34.69,135.5],"Нара":[34.69,135.8],
+"Париж":[48.86,2.35],"Лион":[45.76,4.84],"Прованс":[43.53,5.45],"Ницца":[43.7,7.27],"Алматы":[43.24,76.89],"Туркестан":[43.3,68.27],"Астана":[51.17,71.45],"Атырау":[47.11,51.92],
+"Амстердам":[52.37,4.9],"Гаага":[52.08,4.3],"Утрехт":[52.09,5.12],"Роттердам":[51.92,4.48],"Мадрид":[40.42,-3.7],"Барселона":[41.39,2.17],"Севилья":[37.39,-5.98],"Валенсия":[39.47,-0.38],
+"Афины":[37.98,23.73],"Санторини":[36.39,25.46],"Крит":[35.34,25.13],"Дельфы":[38.48,22.5],"Мехико":[19.43,-99.13],"Оахака":[17.07,-96.72],"Юкатан":[20.97,-89.62],"Гвадалахара":[20.67,-103.35],
+"Сеул":[37.57,126.98],"Кёнджу":[35.86,129.22],"Пусан":[35.18,129.08],"Чеджу":[33.5,126.53],"Лондон":[51.51,-0.13],"Оксфорд":[51.75,-1.26],"Эдинбург":[55.95,-3.19],"Бат":[51.38,-2.36]};
+const WX={0:["ясно","☀️"],1:["почти ясно","🌤"],2:["облачно","⛅"],3:["пасмурно","☁️"],45:["туман","🌫"],48:["туман","🌫"],51:["морось","🌦"],53:["морось","🌦"],55:["морось","🌦"],56:["ледяная морось","🌧"],57:["ледяная морось","🌧"],61:["дождь","🌧"],63:["дождь","🌧"],65:["ливень","🌧"],66:["ледяной дождь","🌧"],67:["ледяной дождь","🌧"],71:["снег","🌨"],73:["снег","🌨"],75:["снегопад","❄️"],77:["снежная крупа","🌨"],80:["ливень","🌦"],81:["ливень","🌧"],82:["сильный ливень","🌧"],85:["снегопад","🌨"],86:["снегопад","❄️"],95:["гроза","⛈"],96:["гроза с градом","⛈"],99:["гроза с градом","⛈"]};
+const wxCache={};
+function weatherNow(city){
+  const c=wxCache[city]; if(c&&Date.now()-c.t<30*60000) return c.v;
+  if(!c||!c.loading){
+    wxCache[city]={...(c||{}),loading:true,t:c?.t||0};
+    try{const ls=JSON.parse(localStorage.getItem("bari-wx-"+city)||"null");if(ls&&Date.now()-ls.t<30*60000){wxCache[city]={v:ls.v,t:ls.t};return ls.v;}if(ls)wxCache[city].v=ls.v;}catch(e){}
+    const g=CITY_GEO[city];
+    if(g) fetch(`https://api.open-meteo.com/v1/forecast?latitude=${g[0]}&longitude=${g[1]}&current=temperature_2m,weather_code&timezone=auto`).then(r=>r.ok?r.json():null).then(j=>{
+      if(!j||!j.current) return; const code=j.current.weather_code, w=WX[code]||["",""], v={temp:Math.round(j.current.temperature_2m),code,text:w[0],icon:w[1],rain:[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(code),snow:[71,73,75,77,85,86].includes(code)};
+      wxCache[city]={v,t:Date.now()}; try{localStorage.setItem("bari-wx-"+city,JSON.stringify({v,t:Date.now()}));}catch(e){}
+      if(view==="today"&&document.getElementById("sheet").hidden) render();
+    }).catch(()=>{wxCache[city].loading=false;});
+  }
+  return c?.v||null;
+}
+const wxLine=v=>v?`${v.temp>0?"+":""}${v.temp}° ${v.icon}`:"";
+function wxSay(city,v){
+  if(!v) return "";
+  const t=v.temp;
+  if(v.rain) return `В городе ${city} сейчас ${v.text}, ${t}°. Я взял зонтик!`;
+  if(v.snow) return `В городе ${city} идёт снег, ${t}°. Самое время для горячего чая.`;
+  if(t>=28) return `В городе ${city} жара: ${t}°. Пью воду и ищу тень.`;
+  if(t<=0) return `В городе ${city} мороз: ${t}°. Шарф — обязательно.`;
+  return `В городе ${city} сейчас ${t}° и ${v.text}. Хорошая погода для прогулки.`;
+}
+/* passport: every city the journey has already visited */
+function visitedCities(){
+  const start=hasRoute()?(settings.routeStart||mondayOf(todayKey())):JOURNEY_START, out=[], seen=new Set();
+  for(let k=start;k<=todayKey();k=addDays(k,7)){const j=journeyFor(k);if(!seen.has(j.city)){seen.add(j.city);out.push({...j,since:k});}if(out.length>60)break;}
+  const next=[];for(let i=1;next.length<3&&i<20;i++){const j=journeyFor(addDays(mondayOf(todayKey()),7*i));if(!seen.has(j.city)&&!next.some(n=>n.city===j.city))next.push({...j,since:addDays(mondayOf(todayKey()),7*i)});}
+  return {visited:out,next};
+}
+function passportHtml(){
+  const {visited,next}=visitedCities(), now=journeyFor(todayKey()).city;
+  return `<div class="card passport"><div class="cd-head"><span class="label">Паспорт путешественника</span><span class="tip">${visited.length} ${plural(visited.length,"город","города","городов")}</span></div>
+    <div class="stamps">${visited.map((v,i)=>`<button class="stamp ${v.city===now?"now":""}" data-stamp="${esc(v.city)}" style="--r:${(i*37%14)-7}deg">${flag(v.country,22)}<b>${esc(v.city)}</b><small>${v.city===now?"сейчас":nice(v.since)}</small></button>`).join("")}${next.map(v=>`<div class="stamp soon">${flag(v.country,22)}<b>${esc(v.city)}</b><small>с ${nice(v.since)}</small></div>`).join("")}</div>
+    <p class="tip" style="margin:6px 0 0">Нажми на штамп — BARI расскажет легенды этого города.</p></div>`;
+}
+async function openStamp(city){
+  const jn=JOURNEY.find(x=>x.cities.some(c=>c[0]===city)), country=jn?.country||"";
+  openSheet(`<div class="ci-sheet"><span class="label">${flag(country,18)} ${esc(country)}</span><h3 style="margin:0">${esc(city)}</h3><p class="tip">Загружаю легенды…</p></div>`);
+  let data=null;
+  try{data=typeof loadContent==="function"?await loadContent("city",slug(city)):(cityinfo[slug(city)]||null);}catch(e){}
+  const L=data&&Array.isArray(data.legends)?data.legends:[], items=data&&data.items?Object.entries(data.items):[], v=weatherNow(city);
+  openSheet(`<div class="ci-sheet"><span class="label">${flag(country,18)} ${esc(country)}${v?` · сейчас ${wxLine(v)}`:""}</span><h3 style="margin:0">${esc(city)}</h3>
+    ${L.length?L.map(l=>`<div class="story"><span class="label">${esc(l.kind||"легенда")}</span><b>${esc(l.title)}</b><p>${esc(l.text)}</p>${l.where?`<p class="tip" style="margin:4px 0 0">📍 ${esc(l.where)}</p>`:""}${l.truth?`<p class="tip" style="margin:2px 0 0">Правда или вымысел: ${esc(l.truth)}</p>`:""}</div>`).join(""):`<p class="tip">Легенды этого города BARI ещё собирает.</p>`}
+    ${items.length?`<span class="label">Что попробовать и увидеть</span><ul class="m-tips">${items.map(([n,x])=>`<li><b>${esc(n)}.</b> ${esc(x.text||"")}</li>`).join("")}</ul>`:""}
+    <button class="ghost" id="spClose">Закрыть</button></div>`);
+  document.getElementById("spClose").onclick=closeSheet;
+}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-stamp]");if(b)openStamp(b.dataset.stamp);});
 
 let forYouOpen=null;
 function forYouHtml(k){
@@ -4047,6 +4295,7 @@ function buildReminders(k){
     items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:gx(`Уже ${hm(r.start+r.dur)}. Сделала?`),body:`«${r.t.title}» — отметь ✓ или перенеси.`});
   }
   items.push(...careItems(k,sc));
+  if(studioOn()) for(const x of storiesOn(k).filter(x=>!x.done&&parseHM(x.at||"")!==null)) items.push({key:`${k}-st-${x.id}`,at:at(parseHM(x.at)),title:`Сторис ${proj(x.project).name} · ${x.at}`,body:String(x.text).slice(0,110)});
   return items.filter(x=>new Date(x.at)>new Date(Date.now()-60000));
 }
 function syncReminders(force){

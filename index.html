@@ -676,6 +676,34 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .diag li.bad{color:var(--warn);font-weight:700}
 .diag-pre{font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2);padding:8px;border-radius:10px;max-height:200px;overflow:auto}
 .care-row.couple .label{color:#E5677D}
+.fy-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;margin:0 -2px;scroll-snap-type:x proximity}
+.fy-row::-webkit-scrollbar{display:none}
+.fy{position:relative;flex:none;width:104px;border:1.5px solid transparent;border-radius:18px;padding:10px 8px;display:grid;justify-items:center;gap:3px;text-align:center;cursor:pointer;font-family:var(--body);color:var(--ink);background:color-mix(in srgb,var(--surface) 86%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 4px 14px rgba(30,27,46,.08);scroll-snap-align:start}
+.fy b{font-size:13px;line-height:1.2}
+.fy small{font-size:11.5px;color:var(--muted);line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fy.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent-soft) 85%,transparent)}
+.fy-dot{position:absolute;top:8px;right:10px;width:9px;height:9px;border-radius:50%;background:#E5677D;box-shadow:0 0 0 2px var(--surface)}
+.fy-open>*{margin-top:4px!important;animation:fyIn .25s ease}
+@keyframes fyIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.hero-mini{margin:4px 0 0;font-size:12.5px;font-weight:700;color:var(--muted)}
+#splash{position:fixed;inset:0;z-index:100;display:grid;place-items:center;align-content:center;gap:18px;background:radial-gradient(circle at 50% 38%,#FFF6E0 0,#E9E4FF 45%,#C9C0FF 100%);transition:opacity .45s,transform .45s}
+#splash.night{background:radial-gradient(circle at 50% 38%,#3B2F8F 0,#1E1A4D 55%,#120F33 100%)}
+#splash.out{opacity:0;transform:scale(1.06);pointer-events:none}
+.sp-sky{position:absolute;inset:0}
+.sp-sky i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:tw 1.6s ease-in-out infinite}
+.sp-stage{position:relative;width:180px;height:190px}
+.sp-ground{position:absolute;left:20px;right:20px;bottom:6px;height:16px;border-radius:50%;background:rgba(30,27,46,.14)}
+.sp-seed{position:absolute;left:50%;bottom:14px;width:22px;height:16px;margin-left:-11px;border-radius:50%;background:#B07A47;animation:seedIn .5s cubic-bezier(.3,1.5,.5,1) both,seedOut .2s .75s forwards}
+.sp-bari{position:absolute;left:50%;bottom:10px;transform-origin:50% 100%;margin-left:-75px;animation:bariUp .8s .75s cubic-bezier(.25,1.6,.45,1) both}
+.sp-text{display:grid;justify-items:center;gap:4px;animation:spText .5s 1.2s ease both}
+.sp-text b{font-family:var(--display);font-weight:900;font-size:34px;letter-spacing:.04em;color:#5B4BDB}
+.sp-text span{font-weight:700;font-size:16px;color:#4A4466;display:flex;gap:6px;align-items:center}
+#splash.night .sp-text b{color:#C9C2FF}
+#splash.night .sp-text span{color:#E6E2FF}
+@keyframes seedIn{from{transform:translateY(-140px)}to{transform:none}}
+@keyframes seedOut{to{transform:scale(0);opacity:0}}
+@keyframes bariUp{0%{transform:scale(.05,.05);opacity:0}60%{transform:scale(1.08,.92);opacity:1}80%{transform:scale(.96,1.05)}100%{transform:none;opacity:1}}
+@keyframes spText{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1066,6 +1094,7 @@ async function dbStore(db){
 
 /* ---------- render ---------- */
 function render(){
+  if(typeof applyMotionPref==="function") applyMotionPref();
   try{window.bariLvl=levelOf(xpTotal()).n;}catch(e){window.bariLvl=3;}
   if(typeof applyTheme==="function"&&!(obDraft&&obDraft.previewTheme&&!document.getElementById("sheet").hidden)) applyTheme();
   mountCityBg(todayKey());
@@ -1165,6 +1194,7 @@ function renderToday(){
       <div class="hero-text">
         <span class="date">${WD_FULL[now.getDay()]}, ${nice(k)} · <span class="hours">${fmtHM(sch.nowM)}</span></span>
         ${note}
+        ${work.length?`<p class="hero-mini">Осталось ${open.length} · ушло ${fact>=1?fmtMin(fact):"0 мин"} · ${open.length?`свободна с ${fmtHM(live.end)}`:"всё сделано"}</p>`:""}
       </div>
       <div class="ring ${ringCls}">${ringSvg(total,doneH,lim)}<div class="ring-c"><b class="hours">${fmtH(doneH)}</b><span>из ${fmtH(total)}</span></div></div>
     </div>
@@ -1173,24 +1203,14 @@ function renderToday(){
     ${blk?`<div class="banner"><span class="tile" style="--pc:var(${proj(blk.project).color})">${ic("tent")}</span><div><b>${esc(blk.title)}</b><br>${esc(blk.note||"")} · до ${nice(blk.to)}</div></div>`:""}
     ${!blk&&nextBlk&&daysTo<=7?`<div class="banner soon"><span class="tile" style="--pc:var(${proj(nextBlk.project).color})">${ic("tent")}</span><div><b>${esc(nextBlk.title)}</b> через ${daysTo} ${plural(daysTo,"день","дня","дней")} (${nice(nextBlk.from)}–${nice(nextBlk.to)}). Всё, что можно, подготовь заранее.</div></div>`:""}
     ${placesFor(k).length?`<div class="places">${placesFor(k).map(pl=>`<div class="place-card" style="--pc:var(${proj(pl.project).color})"><span class="tile">${ic("pin")}</span><div><span class="label">Сегодня я в</span><b>${esc(proj(pl.project).name)}</b>${pl.time||pl.note?`<small>${[pl.time,pl.note].filter(Boolean).map(esc).join(" · ")}</small>`:""}</div></div>`).join("")}</div>`:""}
+    ${motionCard()}
     ${notifyCard()}
-    ${moodCard(k)}
-    ${quoteCard(k)}
-    ${cityDayCard(k)}
-    ${isOwner()?workCard(k):nicheCard(k)}
-    ${ideasCard()}
-    ${linksCard()}
-    <div class="stats">
-      <div class="stat"><b class="hours">${open.length}</b><span>${plural(open.length,"задача осталась","задачи осталось","задач осталось")}</span></div>
-      <div class="stat"><b class="hours">${fact>=1?fmtMin(fact):"0"}</b><span>реально ушло сегодня</span></div>
-      <div class="stat"><b class="hours">${open.length?fmtHM(live.end):"сейчас"}</b><span>свободна с</span></div>
-    </div>
+    ${forYouHtml(k)}
     ${overdue.length?`<h2>${ic("reset")}Хвосты<span class="count">${overdue.length}</span></h2><div class="list">${overdue.map(t=>taskRow(t,true)).join("")}</div>
       <div style="margin-top:10px"><button class="mini-btn" id="moveOverdue">${ic("right")}Перенести все на сегодня</button></div>`:""}
     <h2>${ic("timer")}Блоки дня<span class="count hours">${esc(settings.dayStart)}–${esc(settings.dayEnd)} · ${fmtH(total)} / ${fmtH(lim)}</span></h2>
     ${sch.rows.length?`<div class="tl">${tl}</div>${mcp?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="mini-btn" data-cal="${k}">${ic("cal")}В Google Календарь</button><button class="mini-btn" data-cal="${addDays(k,1)}">${ic("cal")}Завтра в календарь</button></div>`:""}<p class="tip" style="margin-top:8px;font-size:13px">Нажимай ${ic("play")} когда начинаешь задачу: так видно, сколько она реально занимает.</p>`:(work.length?"":`<div class="empty"><span class="tile">${ic("sun")}</span>Нажми «Добавить», чтобы поставить задачу на сегодня.</div>`)}
     ${habitsCard(k)}
-    ${careCard(k)}
     <h2 style="color:var(--home)">${ic("heart")}Для себя и дома</h2>
     <div class="list home-list">${home.length?home.map(t=>taskRow(t)).join(""):`<div class="empty"><span class="tile" style="--pc:var(--home)">${ic("heart")}</span>Сегодня ничего не запланировано. Просто отдыхай.</div>`}</div>
     ${settings.book?`<p class="tip" style="margin-top:10px;display:flex;gap:8px;align-items:center">${ic("book")}Читаю сейчас: <b style="color:var(--ink)">${esc(settings.book)}</b></p>`:""}
@@ -1275,7 +1295,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено в плане":"ждёт Claude"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("pin")}Где я бываю</h2>
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
@@ -1687,7 +1707,7 @@ function sceneSvg(k,opts={}){
   </svg>`;
 }
 function particlesHtml(){
-  const se=seasonOf(); if(matchMedia("(prefers-reduced-motion: reduce)").matches) return "";
+  const se=seasonOf(); if(reducedMotion()) return "";
   const n=8, glyph={autumn:"leaf",winter:"snow",spring:"petal",summer:"spark"}[se];
   return `<div class="particles p-${glyph}" aria-hidden="true">${Array.from({length:n},(_,i)=>`<i style="left:${(i*13+7)%100}%;animation-delay:${(i*1.3)%8}s;animation-duration:${8+(i%4)*2}s"></i>`).join("")}</div>`;
 }
@@ -2083,6 +2103,35 @@ function bindExtras(){
 }
 
 
+
+/* motion: respects the phone's «Reduce motion», unless the user asked to bring BARI to life */
+function reducedMotion(){try{return matchMedia("(prefers-reduced-motion: reduce)").matches&&settings.motion!=="on";}catch(e){return false;}}
+function applyMotionPref(){
+  if(settings.motion!=="on"||applyMotionPref.done) return; applyMotionPref.done=true;
+  for(const sh of document.styleSheets){let rules;try{rules=sh.cssRules;}catch(e){continue;}
+    for(let i=rules.length-1;i>=0;i--){const r=rules[i];if(r.media&&/prefers-reduced-motion/.test(r.media.mediaText)){try{sh.deleteRule(i);}catch(e){}}}}
+}
+function motionCard(){
+  let sys=false;try{sys=matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
+  if(!sys||settings.motion) return "";
+  return `<section class="card notif-card"><div class="cc-top">${bari({mood:"sleep",size:54})}<div><span class="label">BARI стоит на месте?</span><p style="margin:2px 0 0;font-size:14px;line-height:1.45">На телефоне включено «Уменьшение движения», поэтому все анимации выключены. Могу всё равно оживить BARI и город — только в этом приложении.</p></div></div>
+    <div class="row" style="margin-top:8px;display:flex;gap:8px"><button class="primary" data-motion="on">${ic("spark")}Оживить BARI</button><button class="ghost" data-motion="off">Оставить так</button></div></section>`;
+}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-motion]");if(!b)return;const v=b.dataset.motion;store.saveSettings({...settings,motion:v});if(v==="on"){applyMotionPref();toast("BARI ожил! 🎉");}});
+
+/* ---------- splash: BARI sprouts when the app opens ---------- */
+function showSplash(){
+  try{if(sessionStorage.getItem("bari-splash"))return;sessionStorage.setItem("bari-splash","1");}catch(e){}
+  if(reducedMotion()) return;
+  const hr=new Date().getHours(), j=journeyFor(todayKey()), lg=localGreet(j.lang,hr), night=hr<6||hr>=21;
+  const el=document.createElement("div"); el.id="splash"; el.className=night?"night":"";
+  el.innerHTML=`<div class="sp-sky">${night?Array.from({length:14},(_,i)=>`<i style="left:${(i*37)%100}%;top:${(i*53)%60}%;animation-delay:${(i%5)*.2}s"></i>`).join(""):""}</div>
+    <div class="sp-stage"><div class="sp-seed"></div><div class="sp-bari">${bari({mood:"joy",wave:true,size:150,prop:PROPS.spark})}</div><div class="sp-ground"></div></div>
+    <div class="sp-text"><b>BARI</b><span>${esc(lg.text)}${flag(j.country,22)?` ${flag(j.country,22)}`:""}</span></div>`;
+  document.body.appendChild(el);
+  const done=()=>{el.classList.add("out");setTimeout(()=>el.remove(),500);};
+  el.onclick=done; setTimeout(done,2300);
+}
 /* BARI outfits: seasons + quoted authors */
 const SCARF=(c1,c2)=>`<path d="M42 146 Q100 170 158 146 L160 158 Q100 184 40 158Z" fill="${c1}"/><path d="M60 156 L64 163 M80 162 L82 170 M120 162 L118 170 M140 156 L136 163" stroke="${c2}" stroke-width="4" stroke-linecap="round"/><path d="M52 156 L44 192 L58 194 L64 160Z" fill="${c1}"/><path d="M47 180 L59 182 M49 170 L61 172" stroke="${c2}" stroke-width="3.5"/>`;
 const OUTFIT={
@@ -2749,7 +2798,7 @@ function openBook(b){
 /* ---------- BARI life: boing, bursts, tickle, petting, eyes follow ---------- */
 const FX_SHAPES={heart:`<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z" fill="#FF7B86"/>`,star:`<path d="M12 2l2.6 6.6L21 9.5l-5 4.6 1.4 6.9L12 17.6 6.6 21l1.4-6.9-5-4.6 6.4-.9z" fill="#FFD166"/>`,leaf:`<path d="M4 20C4 10 10 4 20 4c0 10-6 16-16 16z" fill="#9BD84A"/>`};
 function burst(x,y,kind="mix",n=9){
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if(reducedMotion()) return;
   const kinds=kind==="mix"?["heart","star","leaf"]:[kind];
   for(let i=0;i<n;i++){const el=document.createElement("span");el.className="fx-p";const a=(Math.PI*2*i/n)+Math.random()*.5, d=50+Math.random()*50;
     el.style.left=x+"px";el.style.top=y+"px";el.style.setProperty("--dx",Math.cos(a)*d+"px");el.style.setProperty("--dy",(Math.sin(a)*d-40)+"px");el.style.setProperty("--r",(Math.random()*120-60)+"deg");
@@ -2785,7 +2834,7 @@ document.addEventListener("pointermove",ev=>{
 window.bariX=window.bariX||0; window.bariFlip=1;
 function placeBari(){const h=document.querySelector(".city-hero");if(h){h.style.setProperty("--bx",window.bariX+"px");h.style.setProperty("--flip",window.bariFlip);}}
 const BARI_ACTS=[
-  {k:"walk",w:4},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
+  {k:"walk",w:6},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
 ];
 const DRINKS={
   "Италия":{cup:"espresso",l:["В Италии кофе у стойки дешевле, чем за столиком. Пьют стоя, за минуту.","Капучино итальянцы пьют только утром. После обеда — эспрессо.","В Неаполе есть обычай caffè sospeso: платишь за два кофе, второй — для незнакомца.","Гейзерную кофеварку «мока» придумал Альфонсо Биалетти в 1933 году."]},
@@ -2802,7 +2851,7 @@ const DRINKS={
 };
 const ACT_LINES={tea:["Чай с молоком — по-казахски!","Пауза на чай ☕"],read:["Читаю про наш город…","Ещё одну страничку!"],wave:["Привет-привет!","Я тут!"]};
 function bariAct(){
-  if(document.hidden||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if(document.hidden||reducedMotion()) return;
   const btn=document.getElementById("bariBtn"), hero=document.querySelector(".city-hero"), st=window.bariStateNow;
   if(!btn||!hero||!st||st.mood==="sleep"||!document.getElementById("sheet").hidden) return;
   const bub=document.getElementById("bariBubble"); if(bub&&!bub.hidden) return;
@@ -2831,7 +2880,7 @@ function bariAct(){
   }
   if(svg){svg.classList.remove("hop","peek","wiggle");void svg.getBoundingClientRect();svg.classList.add(act);setTimeout(()=>svg.classList.remove(act),1400);}
 }
-(function loop(){setTimeout(()=>{bariAct();loop();},9000+Math.random()*6000);})();
+(function loop(){setTimeout(()=>{bariAct();loop();},6000+Math.random()*4000);})();
 
 /* ---------- flags (simplified, 30x20) ---------- */
 const V3=(a,b,c)=>`<rect width="10" height="20" fill="${a}"/><rect x="10" width="10" height="20" fill="${b}"/><rect x="20" width="10" height="20" fill="${c}"/>`;
@@ -2922,7 +2971,7 @@ function localGreet(lang,hr){
 /* ---------- gender and relationship ---------- */
 const genderOf=()=>settings.gender||(isOwner()?"f":"");
 const relOf=()=>settings.rel||(isOwner()?"married":"");
-const G_PAIRS=[["сделала","сделал"],["прочитала","прочитал"],["дочитала","дочитал"],["успела","успел"],["стеснялась","стеснялся"],["устала","устал"],["закончила","закончил"],["начала в","начал в"],["готова","готов"],["обязана","обязан"],["благодарна","благодарен"],["ты сама","ты сам"],["выложила","выложил"]];
+const G_PAIRS=[["сделала","сделал"],["прочитала","прочитал"],["дочитала","дочитал"],["успела","успел"],["стеснялась","стеснялся"],["устала","устал"],["закончила","закончил"],["начала в","начал в"],["готова","готов"],["обязана","обязан"],["благодарна","благодарен"],["ты сама","ты сам"],["выложила","выложил"],["свободна","свободен"]];
 const G_RX=G_PAIRS.map(([f,m])=>[new RegExp(`(^|[^а-яёА-ЯЁ])(${f})(?=$|[^а-яёА-ЯЁ])`,"gi"),m]);
 function gx(str){
   if(genderOf()!=="m"||!str) return str;
@@ -2941,6 +2990,27 @@ const PARTNER=()=>{const g=genderOf(),r=relOf();
   if(r==="engaged") return g==="f"?"С женихом":g==="m"?"С невестой":"Для вас двоих";
   return g==="f"?"С мужем":g==="m"?"С женой":"Для вас двоих";};
 const CARE_COUPLE=["Вечер без телефонов: оба кладут их в другую комнату на час.","Приготовьте ужин вместе — каждый отвечает за одно блюдо.","Вопрос вечера: «Что тебя сегодня порадовало?» — и выслушать до конца.","Прогулка на 30 минут без дел и списков.","Напиши короткую записку со спасибо за конкретную мелочь.","Выберите вместе фильм, который давно хотели посмотреть.","Спланируйте одно приятное дело на выходные — только вдвоём.","Вспомните вместе лучший день, который у вас был, и почему.","Утренний чай вместе, пока все спят, — 10 минут тишины.","Сделайте фото вдвоём просто так, без повода.","Обсудите одну мечту на год — и первый маленький шаг к ней.","Поиграйте в настольную игру или в «города»."];
+
+/* «Для тебя» — compact tiles instead of a long scroll */
+let forYouOpen=null;
+function forYouHtml(k){
+  const d=(typeof dayDoc==="function"?dayDoc(k):{})||{}, j=journeyFor(k), q=quoteOfDay(k), ideasN=Object.values(ideas).filter(x=>x&&!x.used).length;
+  const T=[
+    {id:"mood",g:"heart",t:"Настроение",s:d.mood?(MOODS.find(m=>m[0]===d.mood)||[])[1]||"Отмечено":"Как ты сегодня?",dot:!d.mood,html:()=>moodCard(k)},
+    {id:"quote",g:"book2",t:"Совет дня",s:q.a.split(" ").slice(-1)[0],html:()=>quoteCard(k)},
+    {id:"city",flag:j.country,t:"Город дня",s:j.city,html:()=>cityDayCard(k)},
+    {id:"work",g:"spark2",t:isOwner()?"Для работы":"Идеи",s:isOwner()?"Инфоповоды":"Для твоей сферы",html:()=>isOwner()?workCard(k):nicheCard(k)},
+    {id:"care",g:"flower",t:"Забота",s:hasKids()?"Дом, ты и дети":"Для себя и дома",html:()=>careCard(k)},
+    {id:"ideas",g:"idea2",t:"Копилка",s:ideasN?`${ideasN} ${plural(ideasN,"идея","идеи","идей")}`:"Записать идею",html:()=>ideasCard()},
+    {id:"links",g:"bus",t:"Ссылки",s:"Быстрый доступ",html:()=>linksCard()}
+  ].filter(x=>x.id!=="work"||isOwner()||nicheOf());
+  if(forYouOpen===null&&!d.mood) forYouOpen="mood";
+  const open=T.find(x=>x.id===forYouOpen);
+  return `<h2>${ic("spark")}Для тебя</h2>
+    <div class="fy-row" role="tablist">${T.map(x=>`<button class="fy ${x.id===forYouOpen?"on":""}" data-fy="${x.id}" aria-expanded="${x.id===forYouOpen}">${x.flag?flag(x.flag,26):glyph(x.g,28)}${x.dot?`<i class="fy-dot"></i>`:""}<b>${esc(x.t)}</b><small>${esc(x.s||"")}</small></button>`).join("")}</div>
+    ${open?`<div class="fy-open">${open.html()}</div>`:""}`;
+}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-fy]");if(!b)return;forYouOpen=forYouOpen===b.dataset.fy?"":b.dataset.fy;render();});
 /* ---------- onboarding: first login for a new person ---------- */
 document.addEventListener("click",e=>{if(e.target.closest?.("#obEdit"))openOnboarding(true);});
 const OB_COLORS=["--p-alpha","--p-columbus","--p-blog","--p-burka","--p-other"], OB_ICONS=["star","plane","mic","coffee","target"];
@@ -3575,6 +3645,7 @@ async function startApp(sb,session){
   render();
 }
 render();
+try{showSplash();}catch(e){}
 fetch("content/fixes.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{if(j){window.BARI_FIXES=j;try{render();}catch(e){}}}).catch(()=>{});
 (async()=>{
   if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js");}catch(e){}}

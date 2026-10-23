@@ -494,6 +494,11 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+.gen-card{background:var(--surface-2);border-radius:16px;padding:14px;display:grid;gap:8px;justify-items:start}
+.gen-card p{margin:0;line-height:1.5;font-size:15px}
+.gen-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.gen-btn{display:grid;justify-items:center;gap:4px;padding:12px 6px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+
 .stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
 .stamp{opacity:1;filter:none;display:grid;justify-items:center;gap:2px;padding:10px 6px;border-radius:50%;aspect-ratio:1;align-content:center;border:2.5px dashed var(--accent);background:var(--accent-soft);color:var(--ink);font:inherit;cursor:pointer;transform:rotate(var(--r,0deg))}
 .stamp b{font-size:12.5px;line-height:1.1;text-align:center}.stamp small{font-size:10.5px;color:var(--muted)}
@@ -2084,7 +2089,7 @@ function careCard(k){
     ${PARTNER()?`<div class="care-row couple">${glyph("heart",34)}<div><span class="label">${PARTNER()}</span><p>${esc(pick(CARE_COUPLE,9))}</p></div></div>`:""}
     <div class="care-row self">${glyph(["tea","flower","espresso","olive"][((n%4)+4)%4],34)}<div><span class="label">Для себя</span><p>${esc(pick(CARE_SELF,5))}</p>${selfT?`<button class="mini-btn" data-care="${selfT.id}" ${selfT.done?"disabled":""}>${ic("check")}${selfT.done?"Сделала":"Сделала"}</button>`:""}</div></div>
     <div class="care-row home">${ic("clean")}<div><span class="label">Лайфхак для дома</span><p>${esc(pick(CARE_HOME,7))}</p></div></div>
-    <button class="mini-btn" id="careMore">${ic("reset")}Другие идеи</button>
+    <div class="row"><button class="mini-btn" id="careMore">${ic("reset")}Другие идеи</button><button class="mini-btn" data-genopen>${ic("spark")}Генератор идей</button></div>
   </section>`;
 }
 function bindDayCards(){
@@ -3930,11 +3935,101 @@ async function openStamp(city){
 }
 document.addEventListener("click",e=>{const b=e.target.closest?.("[data-stamp]");if(b)openStamp(b.dataset.stamp);});
 
+/* ---------- idea generator: for two, with kids, for yourself, for content ---------- */
+const GI=(t,tags)=>({t,tags});
+const GEN_COUPLE=[
+ GI("Вечер без телефонов: оба кладёте их в другую комнату на час и просто разговариваете.","h q"),
+ GI("Приготовьте ужин вместе: каждый отвечает за одно блюдо, а потом оцениваете друг друга, как в кулинарном шоу.","h"),
+ GI("36 вопросов для сближения: по очереди задавайте вопросы, на которые раньше не отвечали друг другу.","h r"),
+ GI("Пересмотрите ваши первые фото вместе и вспомните, что тогда чувствовали.","h r q"),
+ GI("Прогулка по городу без цели: на каждом перекрёстке по очереди выбираете, куда свернуть.","o"),
+ GI("Завтрак в кафе в выходной, пока город ещё спит.","o r"),
+ GI("Устройте домашний кинотеатр: плед, чай, фильм, который выбирает тот, кто обычно уступает.","h"),
+ GI("Напишите друг другу по три вещи, за которые благодарны на этой неделе, и обменяйтесь записками.","h r q"),
+ GI("Сыграйте в настольную игру на желание: проигравший готовит завтрак.","h"),
+ GI("Поездка на закат за город — хотя бы на час.","o r"),
+ GI("Сходите вместе туда, где ни один из вас не был: новый музей, выставка, парк.","o"),
+ GI("Танцы на кухне под песню, которая была у вас «вашей».","h r q"),
+ GI("Совместная тренировка или пробежка — и чай после.","o"),
+ GI("Составьте вдвоём список мечт на год и выберите одну, которую сделаете в этом месяце.","h"),
+ GI("Массаж плеч по очереди по 10 минут — без разговоров о работе.","h r q"),
+ GI("Пикник дома на полу: плед, фрукты, свечи.","h r"),
+ GI("Вечер воспоминаний: расскажите друг другу историю из детства, которую ещё не рассказывали.","h q"),
+ GI("Поход в кафе с кухней страны, где сейчас BARI.","o")
+];
+const GEN_KID={
+ "2-4":[GI("Тесто из муки, соли и воды: лепите фигурки зверей, а потом сушите и раскрашиваете.","h e"),GI("Сенсорная коробка: крупа, ложки, маленькие игрушки — искать «клад».","h q"),GI("Мыльные пузыри на балконе или во дворе: кто поймает больше.","o q"),GI("Чтение книжки с разными голосами для каждого героя.","h e q"),GI("Помощник на кухне: помыть овощи, разложить салфетки — малыши это обожают.","h q"),GI("Прятки с игрушкой: прячешь любимого мишку, ребёнок ищет по подсказкам «тепло — холодно».","h q"),GI("Рисование пальчиковыми красками на большом листе на полу.","h e"),GI("Прогулка «найди цвет»: ищете на улице всё красное, потом всё жёлтое.","o e"),GI("Танцы под детские песни с остановками: музыка стоп — замри!","h q")],
+ "5-7":[GI("Кафе дома: ребёнок — официант, принимает заказ и «рисует» меню.","h e"),GI("Квест по квартире с записками-подсказками и сюрпризом в конце.","h"),GI("Испеките вместе печенье и украсьте глазурью.","h"),GI("Сделайте кормушку для птиц из бутылки и повесьте во дворе.","o e"),GI("Театр теней: фонарик, стена и фигурки из рук.","h q"),GI("Научный опыт: сода + уксус = вулкан.","h e q"),GI("Собрать гербарий на прогулке и подписать листья.","o e"),GI("Выучите 3 слова на языке страны, где сейчас BARI, и придумайте с ними сценку.","h e q"),GI("Лото или мемори своими руками из картона.","h e")],
+ "8-12":[GI("Снимите вместе мини-фильм на телефон: сценарий, роли, монтаж.","h e"),GI("Соберите пазл на 500 деталей за вечер.","h"),GI("Велопрогулка с остановкой на мороженое.","o"),GI("Приготовьте ужин по рецепту, который выбрал ребёнок, — он шеф, ты помощник.","h e"),GI("Настольная игра на стратегию: шахматы, «Каркассон», «Монополия».","h"),GI("Спросите: «Что было самым интересным за неделю?» — и слушайте, не перебивая.","h q"),GI("Мини-проект: вместе выращиваете растение и ведёте дневник роста.","h e"),GI("Поход в музей с заданием найти 5 необычных экспонатов.","o e"),GI("Вечер вопросов «А что, если…?» — фантазируете вместе.","h q")],
+ "13+":[GI("Предложи подростку выбрать фильм или сериал — и посмотрите вместе без комментариев «в наше время».","h"),GI("Совместная готовка нового блюда по видео из интернета.","h"),GI("Прогулка вдвоём с кофе или чаем: без нотаций, просто разговор.","o q"),GI("Спроси совета у подростка в том, в чём он разбирается лучше: телефон, игры, музыка.","h q"),GI("Поездка за город на целый день: план составляет подросток.","o"),GI("Вместе запишите цели на месяц и раз в неделю сверяйтесь.","h e"),GI("Спортивный вызов: кто больше отжиманий или шагов за неделю.","o"),GI("Помоги с хобби: купите вместе материалы или сходите на мастер-класс.","o e")]
+};
+const GEN_SELF=[GI("10 минут тишины с чаем — без телефона.","q"),GI("Маска для лица и любимая музыка.","q e"),GI("Прогулка одной, с подкастом или аудиокнигой.","q o"),GI("Ванна или долгий душ и ранний сон.","e"),GI("Запиши 3 вещи, за которые благодарна сегодня.","q"),GI("Выпей воды и сделай растяжку — 5 минут.","q"),GI("Новая книга на вечер: 20 страниц в кровати.","e"),GI("Кофе в любимом кафе одной — просто посидеть.","w o"),GI("Разбери одну полку или ящик — станет легче дышать.","q"),GI("Уроки BARI: 5 минут про город недели.","q"),GI("Мастер-класс или новое хобби в выходной.","w"),GI("Встреча с подругой без детей и без спешки.","w o"),GI("Выключи уведомления на вечер.","e q"),GI("Приготовь себе что-то вкусное «просто так».","e")];
+const GEN_TAGS={couple:[["all","Любые"],["h","Дома"],["o","Вне дома"],["q","За 15 минут"],["r","Романтика"]],kid:[["all","Любые"],["h","Дома"],["o","На улице"],["q","Без подготовки"],["e","Развивающие"]],self:[["all","Любые"],["q","10 минут"],["e","Вечер"],["w","Выходной"],["o","Вне дома"]]};
+const CFORMATS=[
+ {f:"Рилс «А вы знали?»",how:"Первые 2 секунды — факт крупным текстом. Дальше мостик: «А теперь — что это значит для {aud}». В конце — призыв написать в директ."},
+ {f:"Карусель «Факт → вывод»",how:"Слайд 1 — факт. Слайды 2–4 — что из этого следует для {aud}. Последний слайд — как {proj} помогает и куда писать."},
+ {f:"Сторис-квиз",how:"Сторис 1 — вопрос по факту с двумя вариантами. Сторис 2 — ответ. Сторис 3 — связь с {proj} и стикер-вопрос."},
+ {f:"Рилс «Там и у нас»",how:"Покажи, как это устроено там, и как у нас. Финал: где {proj} делает жизнь {aud} проще."},
+ {f:"Пост-история",how:"Расскажи факт как историю от первого лица и закончи вопросом к подписчикам — так растут комментарии."},
+ {f:"POV-рилс",how:"POV: {aud_one} узнаёт этот факт. Реакция → вывод → мягкий призыв к {proj}."},
+ {f:"Рилс «3 вывода»",how:"Факт на экране, затем 3 коротких вывода для {aud}. Каждый вывод — отдельный кадр 2–3 секунды."}
+];
+const AUD={smm:["предпринимателей","предприниматель"],teach:["родителей и учеников","родитель"],biz:["ваших клиентов","клиент"],beauty:["ваших клиенток","клиентка"],it:["пользователей","пользователь"],creative:["подписчиков","подписчик"],student:["студентов","студент"],mom:["мам","мама"],office:["коллег","коллега"],driver:["пассажиров","пассажир"],med:["пациентов","пациент"],build:["заказчиков","заказчик"],sales:["покупателей","покупатель"],sport:["тех, кто тренируется","спортсмен"],oil:["коллег","коллега"],finance:["клиентов","клиент"],gov:["граждан","житель"],other:["подписчиков","подписчик"]};
+let genTab=null, genTag="all", genSeed=Math.floor(Math.random()*1000), genSrc="city", genProj=null;
+const genTabs=()=>[PARTNER()?["couple",PARTNER()]:null,hasKids()?["kid",isOwner()?"С дочкой":"С ребёнком"]:null,["self","Для себя"],["content","Для контента"]].filter(Boolean);
+function genPick(list){const L=genTag==="all"?list:list.filter(x=>x.tags.split(" ").includes(genTag));return L.length?L[genSeed%L.length]:null;}
+function countryIdea(kind){const j=journeyFor(todayKey());return kind==="couple"?`Вечер страны «${j.country}»: ужин с блюдом оттуда (халяльный вариант), мелодия ${j.city} в BARI и фильм об этой стране.`:`День «${j.country}» дома: простое блюдо вместе, 3 слова на языке страны и мелодия города ${j.city} в BARI.`;}
+function contentIdea(){
+  const k=todayKey(), j=journeyFor(k), P=workProjects(), p=P.find(x=>x.id===genProj)||P[0], n=nicheOf(), a=AUD[n?.id||(isOwner()?"teach":"other")]||AUD.other;
+  const d=dayInfo(k), mc=(()=>{try{return codeOfDay(k);}catch(e){return null;}})(), q=quoteOfDay(k);
+  const its=(()=>{try{return Object.entries(itemInfo(j)?.items||{});}catch(e){return [];}})(), it=its.length?its[genSeed%its.length]:null;
+  const src={city:d?.fact?`Факт дня о городе ${j.city}: ${d.fact}`:it?`${j.city} · ${it[0]}: ${it[1].text||""}`:`Город недели — ${j.city}, ${j.country}`,mura:mc?`Статья «Мұра»: ${mc.kz} — ${mc.ru}`:"",quote:q?`Цитата: «${q.q}» — ${q.a}`:"",niche:""}[genSrc]||"";
+  const ni=nicheIdeas[n?.id]&&nicheIdeas[n?.id].items||[];
+  if(genSrc==="niche"&&ni.length){const x=ni[genSeed%ni.length];return {head:x.t,src:"Идея для твоей сферы",f:CFORMATS[genSeed%CFORMATS.length].f,how:`${x.why||""} ${x.step?"Первый шаг: "+x.step:""}`.trim(),proj:p};}
+  const F=CFORMATS[genSeed%CFORMATS.length], pn=p?p.name:"твой проект";
+  return {head:F.f,src:src||`Город недели — ${j.city}`,f:F.f,how:F.how.replace(/\{aud\}/g,a[0]).replace(/\{aud_one\}/g,a[1]).replace(/\{proj\}/g,pn),proj:p};
+}
+function openGen(){
+  const tabs=genTabs(); if(!genTab||!tabs.some(t=>t[0]===genTab)) genTab=tabs[0][0];
+  let body="";
+  if(genTab==="content"){
+    const P=workProjects(); if(!genProj) genProj=P[0]?.id;
+    const c=contentIdea();
+    body=`<span class="label">Проект</span><div class="cat-chips">${P.map(p=>`<button class="pick-c ${genProj===p.id?"on":""}" data-gproj="${p.id}">${esc(p.name)}</button>`).join("")}</div>
+      <span class="label">От чего оттолкнуться</span><div class="cat-chips">${[["city","Факт о городе"],["mura","Мұра"],["quote","Цитата дня"],["niche","Идеи для сферы"]].map(([k,n])=>`<button class="pick-c ${genSrc===k?"on":""}" data-gsrc="${k}">${n}</button>`).join("")}</div>
+      <div class="gen-card"><span class="label">${esc(c.src)}</span><b>${esc(c.head)}</b><p><b>Как использовать в «${esc(c.proj?.name||"проекте")}»:</b> ${esc(c.how)}</p></div>
+      <div class="row"><button class="primary" id="genNext">${ic("reset")}Ещё идея</button><button class="ghost" id="genSave">${ic("idea")}В копилку</button>${studioOn()?`<button class="ghost" id="genPiece">В «Контент»</button>`:""}</div>`;
+  } else {
+    let list=genTab==="couple"?GEN_COUPLE:genTab==="self"?GEN_SELF:(GEN_KID[settings.kidAge||"5-7"]||GEN_KID["5-7"]);
+    if(genTab!=="self") list=list.concat([GI(countryIdea(genTab),"h")]);
+    const x=genPick(list);
+    body=`${genTab==="kid"?`<span class="label">Возраст</span><div class="cat-chips">${[["2-4","2–4 года"],["5-7","5–7 лет"],["8-12","8–12 лет"],["13+","13+"]].map(([k,n])=>`<button class="pick-c ${(settings.kidAge||"5-7")===k?"on":""}" data-gage="${k}">${n}</button>`).join("")}</div>`:""}
+      <span class="label">Какой запрос</span><div class="cat-chips">${GEN_TAGS[genTab].map(([k,n])=>`<button class="pick-c ${genTag===k?"on":""}" data-gtag="${k}">${n}</button>`).join("")}</div>
+      <div class="gen-card">${glyph(genTab==="couple"?"heart":genTab==="kid"?"gelato":"tea",40)}<p>${x?esc(gx(x.t)):"Под этот запрос идей нет — выбери другой."}</p></div>
+      <div class="row"><button class="primary" id="genNext">${ic("reset")}Ещё идея</button>${x?`<button class="ghost" id="genTask">${ic("plus")}В план на сегодня</button>`:""}</div>`;
+  }
+  openSheet(`<div class="studio"><h3 style="margin:0">Генератор идей</h3><div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${genTab===k?"on":""}" data-gtab="${k}">${esc(n)}</button>`).join("")}</div>${body}<button class="ghost" id="genClose">Закрыть</button></div>`);
+  const g=i=>document.getElementById(i), q=(sel,fn)=>document.querySelectorAll("#sheetIn "+sel).forEach(b=>b.onclick=()=>fn(b));
+  g("genClose").onclick=closeSheet;
+  q("[data-gtab]",b=>{genTab=b.dataset.gtab;genTag="all";openGen();});
+  q("[data-gtag]",b=>{genTag=b.dataset.gtag;genSeed++;openGen();});
+  q("[data-gage]",async b=>{await store.saveSettings({...settings,kidAge:b.dataset.gage});openGen();});
+  q("[data-gproj]",b=>{genProj=b.dataset.gproj;openGen();});
+  q("[data-gsrc]",b=>{genSrc=b.dataset.gsrc;genSeed++;openGen();});
+  g("genNext").onclick=()=>{genSeed++;sfx("blip");openGen();};
+  const gs=g("genSave"); if(gs) gs.onclick=async()=>{const c=contentIdea();await store.saveDoc("ideas",uid(),{text:`${c.head}. ${c.src}. ${c.how}`,project:c.proj?.id||"",createdAt:new Date().toISOString(),used:false});toast("Идея в копилке");};
+  const gp=g("genPiece"); if(gp) gp.onclick=async()=>{const c=contentIdea();await sSave("pieces",uid(),{title:c.head,project:c.proj?.id,stage:"idea",due:"",brief:`${c.src}\n${c.how}`,shots:"",cap:""});toast("Карточка добавлена в «Контент»");};
+  const gt=g("genTask"); if(gt) gt.onclick=async()=>{const txt=gt.closest(".studio").querySelector(".gen-card p").textContent;await store.saveTask({id:uid(),title:txt.length>70?txt.slice(0,68)+"…":txt,project:"house",stage:"me",date:todayKey(),hours:1,done:false,piece:uid(),time:"",note:txt});toast("Добавила в «Для себя и дома»");};
+}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-genopen]");if(b){if(b.dataset.gt)genTab=b.dataset.gt;genTag="all";openGen();}});
+function genTeaser(){return `<section class="card"><div class="cd-head"><span class="label">Генератор идей</span></div><p class="tip" style="margin:0 0 10px">Выбери запрос — BARI подскажет идею. Нажимай «Ещё», пока не понравится.</p><div class="gen-grid">${genTabs().map(([k,n])=>`<button class="gen-btn" data-genopen data-gt="${k}">${glyph(k==="couple"?"heart":k==="kid"?"gelato":k==="self"?"tea":"spark2",30)}<b>${esc(n)}</b></button>`).join("")}</div></section>`;}
+
 let forYouOpen=null;
 function forYouHtml(k){
   const d=(typeof dayDoc==="function"?dayDoc(k):{})||{}, j=journeyFor(k), q=quoteOfDay(k), ideasN=Object.values(ideas).filter(x=>x&&!x.used).length;
   const T=[
     {id:"mood",g:"heart",t:"Настроение",s:d.mood?(MOODS.find(m=>m[0]===d.mood)||[])[1]||"Отмечено":"Как ты сегодня?",dot:!d.mood,html:()=>moodCard(k)},
+    {id:"gen",g:"spark2",t:"Генератор",s:"Идеи под запрос",html:()=>genTeaser()},
     {id:"quote",g:"book2",t:"Совет дня",s:q.a.split(" ").slice(-1)[0],html:()=>quoteCard(k)},
     {id:"city",flag:j.country,t:"Город дня",s:j.city,html:()=>cityDayCard(k)},
     {id:"work",g:"spark2",t:isOwner()?"Для работы":"Идеи",s:isOwner()?"Инфоповоды":"Для твоей сферы",html:()=>isOwner()?workCard(k):nicheCard(k)},

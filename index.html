@@ -621,6 +621,18 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .login-card{width:min(380px,100%);display:grid;justify-items:center;gap:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:28px;padding:28px 22px;box-shadow:var(--shadow)}
 .login-h{font-family:var(--display);font-weight:700;font-size:30px;margin:4px 0 0;color:var(--accent)}
 .login-card input{width:100%}
+.login-card input[type=email],.login-card input[type=password],.login-card input[type=text]{font:600 16px var(--body);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-sizing:border-box}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;background:var(--surface-2);border-radius:14px;padding:4px;margin-top:6px}
+.auth-tabs button{border:0;background:none;border-radius:11px;padding:10px;font:700 15px var(--body);color:var(--muted);cursor:pointer}
+.auth-tabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);box-shadow:0 2px 8px rgba(30,27,46,.1)}
+.auth-h{margin:6px 0 0;font-family:var(--display);font-size:20px}
+.auth-hint{margin:2px 0 0;text-align:center;font-size:14px;line-height:1.45;color:var(--muted)}
+.auth-msg{text-align:center;font-size:14px;font-weight:600;color:var(--warn);margin:4px 0 0;min-height:1em;line-height:1.4}
+.auth-msg.ok{color:var(--ok)}
+.pass-wrap{position:relative}
+#login:not([hidden]) ~ .fab,#login:not([hidden]) ~ .tabbar{display:none!important}
+.pass-wrap input{padding-right:46px!important}
+.pass-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);padding:6px;cursor:pointer}
 </style>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -1193,7 +1205,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено в плане":"ждёт Claude"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div></div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div>${window.sbClient?`<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("pin")}Где я бываю</h2>
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
@@ -2719,23 +2731,74 @@ async function seedIfEmpty(sb,uid){
     for(let i=0;i<rows.length;i+=200){await sb.from("docs").upsert(rows.slice(i,i+200));}
   }catch(e){console.error(e);}
 }
-function showLogin(sb,msg){
+const AUTH_ERR=m=>{m=String(m||"");
+  if(/Invalid login/i.test(m)) return "Неверная почта или пароль. Если ты здесь впервые — открой вкладку «Регистрация».";
+  if(/already registered|already exists/i.test(m)) return "Такая почта уже зарегистрирована. Открой вкладку «Вход».";
+  if(/Password should be|at least 6/i.test(m)) return "Пароль слишком короткий: нужно минимум 6 символов.";
+  if(/valid email|invalid format|Unable to validate email/i.test(m)) return "Проверь почту: похоже, в адресе опечатка.";
+  if(/Email not confirmed/i.test(m)) return "Почта ещё не подтверждена. Найди письмо от Supabase и нажми ссылку в нём.";
+  if(/rate limit|too many/i.test(m)) return "Слишком много попыток. Подожди пару минут и попробуй снова.";
+  if(/fetch|network/i.test(m)) return "Нет связи с сервером. Проверь интернет.";
+  return m;};
+const APP_URL=()=>location.origin+location.pathname;
+function showLogin(sb,msg,mode){
+  mode=mode||(localStorage.getItem("bari-was-here")?"in":"up");
   const box=document.getElementById("login"); box.hidden=false;
   document.querySelector(".wrap").hidden=true; document.querySelector(".tabbar").hidden=true; document.getElementById("fab").hidden=true;
-  box.innerHTML=`<div class="login-card">${bari({mood:"happy",wave:true,size:140})}
-    <h1 class="login-h">BARI</h1><p class="tip" style="text-align:center">Бәрі бір жерде. Бір қадамнан.</p>
-    <form id="loginForm" class="field" style="width:100%">
-      <label class="label" for="lEmail">Почта</label><input id="lEmail" type="email" autocomplete="email" required>
-      <label class="label" for="lPass">Пароль</label><input id="lPass" type="password" autocomplete="current-password" minlength="6" required>
-      <button class="primary" type="submit" style="margin-top:8px">Войти</button>
-      <button class="ghost" type="button" id="lSignup">Первый раз: создать аккаунт</button>
-      <p class="tip" id="lMsg" style="text-align:center">${esc(msg||"")}</p>
+  const T={in:["Вход","С возвращением! Введи почту и пароль, которые указывала при регистрации.","Войти","current-password"],
+           up:["Регистрация","Впервые здесь? Придумай пароль — минимум 6 символов. Письма подтверждать не нужно.","Создать аккаунт","new-password"],
+           reset:["Забыла пароль","Введи почту — пришлём письмо со ссылкой. Нажми её, и BARI попросит новый пароль.","Прислать ссылку",""]}[mode];
+  box.innerHTML=`<div class="login-card">${bari({mood:mode==="reset"?"think":"happy",wave:mode!=="reset",size:120})}
+    <h1 class="login-h">BARI</h1><p class="tip" style="text-align:center;margin:0">Бәрі бір жерде — всё в одном месте</p>
+    ${mode!=="reset"?`<div class="auth-tabs" role="tablist"><button type="button" role="tab" aria-selected="${mode==="in"}" data-mode="in">Вход</button><button type="button" role="tab" aria-selected="${mode==="up"}" data-mode="up">Регистрация</button></div>`:`<h2 class="auth-h">${T[0]}</h2>`}
+    <p class="auth-hint">${T[1]}</p>
+    <form id="loginForm" class="field" style="width:100%" novalidate>
+      <label class="label" for="lEmail">Почта</label><input id="lEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@mail.com" value="${esc(localStorage.getItem("bari-email")||"")}">
+      ${mode!=="reset"?`<label class="label" for="lPass">Пароль</label><div class="pass-wrap"><input id="lPass" type="password" autocomplete="${T[3]}" placeholder="${mode==="up"?"Минимум 6 символов":"Твой пароль"}"><button type="button" class="pass-eye" id="lEye" aria-label="Показать пароль">${ic("eye")}</button></div>`:""}
+      ${mode==="up"?`<label class="label" for="lPass2">Пароль ещё раз</label><input id="lPass2" type="password" autocomplete="new-password" placeholder="Повтори пароль">`:""}
+      <button class="primary" type="submit" style="margin-top:8px">${T[2]}</button>
+      ${mode==="in"?`<button class="ghost" type="button" data-mode="reset">Забыла пароль?</button>`:""}
+      ${mode==="reset"?`<button class="ghost" type="button" data-mode="in">← Назад ко входу</button>`:""}
+      <p class="auth-msg" id="lMsg" role="status">${esc(msg||"")}</p>
     </form></div>`;
-  const val=()=>({email:document.getElementById("lEmail").value.trim(),password:document.getElementById("lPass").value});
-  const say=t=>document.getElementById("lMsg").textContent=t;
-  document.getElementById("loginForm").onsubmit=async e=>{e.preventDefault();say("Вхожу…");const {error}=await sb.auth.signInWithPassword(val());if(error)say(error.message.includes("Invalid")?"Неверная почта или пароль.":error.message);};
-  document.getElementById("lSignup").onclick=async()=>{const v=val();if(!v.email||v.password.length<6){say("Введи почту и пароль от 6 символов.");return;}say("Создаю аккаунт…");const {data,error}=await sb.auth.signUp(v);if(error)say(error.message);else if(!data.session)say("Проверь почту и подтверди адрес, потом войди.");};
+  const say=(t,ok)=>{const el=document.getElementById("lMsg");el.textContent=t;el.classList.toggle("ok",!!ok);};
+  box.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>showLogin(sb,"",b.dataset.mode));
+  const eye=document.getElementById("lEye"); if(eye) eye.onclick=()=>{const i=document.getElementById("lPass");i.type=i.type==="password"?"text":"password";};
+  document.getElementById("loginForm").onsubmit=async e=>{
+    e.preventDefault();
+    const email=document.getElementById("lEmail").value.trim(), pass=document.getElementById("lPass")?.value||"";
+    if(!/^\S+@\S+\.\S+$/.test(email)){say("Введи почту, например name@mail.com.");return;}
+    try{localStorage.setItem("bari-email",email);}catch(_){}
+    const btn=e.target.querySelector(".primary"); btn.disabled=true;
+    try{
+      if(mode==="in"){say("Вхожу…");const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)say(AUTH_ERR(error.message));else{try{localStorage.setItem("bari-was-here","1");}catch(_){}}}
+      else if(mode==="up"){
+        if(pass.length<6){say("Пароль слишком короткий: нужно минимум 6 символов.");return;}
+        if(pass!==document.getElementById("lPass2").value){say("Пароли не совпадают. Введи ещё раз.");return;}
+        say("Создаю аккаунт…");const {data,error}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:APP_URL()}});
+        if(error) say(AUTH_ERR(error.message));
+        else if(!data.session) say("Почти готово: мы отправили письмо. Открой его и нажми ссылку, потом вернись сюда и войди.",true);
+        else {try{localStorage.setItem("bari-was-here","1");}catch(_){}}
+      } else {
+        say("Отправляю письмо…");const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:APP_URL()});
+        say(error?AUTH_ERR(error.message):"Письмо отправлено. Проверь почту (и папку «Спам») и нажми ссылку в письме.",!error);
+      }
+    } finally {btn.disabled=false;}
+  };
 }
+function showNewPassword(sb){
+  const box=document.getElementById("login"); box.hidden=false;
+  document.querySelector(".wrap").hidden=true; document.querySelector(".tabbar").hidden=true; document.getElementById("fab").hidden=true;
+  box.innerHTML=`<div class="login-card">${bari({mood:"wink",size:110})}<h2 class="auth-h">Новый пароль</h2><p class="auth-hint">Придумай новый пароль — минимум 6 символов.</p>
+    <form id="npForm" class="field" style="width:100%"><input id="np1" type="password" autocomplete="new-password" placeholder="Новый пароль"><input id="np2" type="password" autocomplete="new-password" placeholder="Ещё раз"><button class="primary" type="submit">Сохранить и войти</button><p class="auth-msg" id="npMsg"></p></form></div>`;
+  document.getElementById("npForm").onsubmit=async e=>{e.preventDefault();const a=document.getElementById("np1").value,b=document.getElementById("np2").value,m=document.getElementById("npMsg");
+    if(a.length<6){m.textContent="Нужно минимум 6 символов.";return;} if(a!==b){m.textContent="Пароли не совпадают.";return;}
+    const {error}=await sb.auth.updateUser({password:a}); if(error){m.textContent=AUTH_ERR(error.message);return;}
+    try{localStorage.setItem("bari-was-here","1");}catch(_){}
+    location.replace(APP_URL());};
+}
+
+document.addEventListener("click",async e=>{if(e.target.closest?.("#logoutBtn")&&window.sbClient){if(confirm("Выйти из аккаунта на этом устройстве?")){await window.sbClient.auth.signOut();}}});
 async function startApp(sb,session){
   document.getElementById("login").hidden=true; document.querySelector(".wrap").hidden=false; document.querySelector(".tabbar").hidden=false;
   const uid=session.user.id;
@@ -2752,7 +2815,10 @@ render();
   const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}});
   const {data:{session}}=await sb.auth.getSession();
   let started=false;
-  sb.auth.onAuthStateChange((ev,s)=>{if(s&&!started){started=true;startApp(sb,s);} if(ev==="SIGNED_OUT"){location.reload();}});
+  window.sbClient=sb;
+  const recovery=/type=recovery/.test(location.hash);
+  sb.auth.onAuthStateChange((ev,s)=>{if(ev==="PASSWORD_RECOVERY"){showNewPassword(sb);return;} if(s&&!started&&!recovery){started=true;try{localStorage.setItem("bari-was-here","1");}catch(_){}startApp(sb,s);} if(ev==="SIGNED_OUT"){location.reload();}});
+  if(recovery){showNewPassword(sb);return;}
   if(session){started=true;await startApp(sb,session);} else showLogin(sb);
   setInterval(()=>{if(view==="today"&&document.getElementById("sheet").hidden) render();},30000);
 })();

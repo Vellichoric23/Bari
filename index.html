@@ -640,6 +640,11 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .ni small{font-size:12.5px;color:var(--accent);font-weight:700}
 .notif-card{margin-top:12px;border:1.5px solid var(--accent)!important}
 .notif-card .row{display:flex;gap:8px}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.sw{border:0;background:none;display:grid;justify-items:center;gap:3px;cursor:pointer;padding:0;font-family:var(--body);color:var(--ink)}
+.sw i{width:34px;height:34px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--surface),0 0 0 3px transparent;transition:box-shadow .15s}
+.sw.on i{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c)}
+.sw small{font-size:11px;font-weight:700;color:var(--muted)}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1030,6 +1035,7 @@ async function dbStore(db){
 
 /* ---------- render ---------- */
 function render(){
+  if(typeof applyTheme==="function"&&!(obDraft&&obDraft.previewTheme&&!document.getElementById("sheet").hidden)) applyTheme();
   mountCityBg(todayKey());
   for(const v of ["today","week","rhythm","me","code","lib"]){
     document.getElementById("view-"+v).hidden=v!==view;
@@ -2109,7 +2115,8 @@ const QUOTES=[
   {q:"Красота спасёт мир.",ru:"",a:"Фёдор Достоевский",s:"роман «Идиот»",tip:"Сними сегодня одну красивую сторис просто так, без продажи."},
   {q:"Я знаю, что ничего не знаю.",ru:"",a:"Сократ",s:"по «Апологии Сократа» Платона",tip:"Задай вопрос, который давно стеснялась задать клиенту."}
 ];
-const quoteOfDay=k=>QUOTES[((Math.floor((fromKey(k)-new Date(2026,0,1))/864e5)%QUOTES.length)+QUOTES.length)%QUOTES.length];
+const userSeed=()=>{const s=String(window.sbUserId||settings.name||"");let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;};
+const quoteOfDay=k=>QUOTES[((Math.floor((fromKey(k)-new Date(2026,0,1))/864e5)+userSeed())%QUOTES.length+QUOTES.length)%QUOTES.length];
 const CODE_CATS={dastur:["Дәстүр","Традиции","flower"],oner:["Өнер","Искусство","yurt"],tagam:["Тағам","Еда","bun"],tulga:["Тұлғалар","Личности","book2"],soz:["Сөз","Слова и мудрость","tea"]};
 const CODE=[
   {id:"tusau",c:"dastur",kz:"Тұсаукесер",ru:"Разрезание пут",g:"flower",t:"Обряд, который проводят, когда малыш делает первые шаги. Ножки ребёнка связывают пёстрой верёвкой (ала жіп), и уважаемый, энергичный человек разрезает её — чтобы ребёнок твёрдо стоял на ногах и шёл по жизни уверенно.",blog:"Рилс: какой смысл спрятан в «ала жіп» и почему разрезать путы зовут именно энергичного человека.",kid:"«Когда ты была маленькой и делала первые шажочки, мы праздновали — чтобы ты всегда шла смело»."},
@@ -2520,6 +2527,23 @@ function openLegend(i){
   document.getElementById("legClose").onclick=closeSheet;
 }
 
+
+/* ---------- colour themes ---------- */
+const THEMES=[
+  {id:"violet",n:"BARI",l:["#5B4BDB","#ECE9FD"],d:["#9A8CFF","#2A2550"]},
+  {id:"mint",n:"Мята",l:["#138A72","#DDF3EC"],d:["#4FD1B0","#163A32"]},
+  {id:"sky",n:"Небо",l:["#2F78D6","#E1ECFB"],d:["#7DB3FF","#1B2B45"]},
+  {id:"coral",n:"Коралл",l:["#D9534F","#FCE4E2"],d:["#FF8A80","#3D1F1E"]},
+  {id:"rose",n:"Роза",l:["#C2527F","#FBE8F0"],d:["#F08DB5","#3A1F2C"]},
+  {id:"honey",n:"Мёд",l:["#B7791F","#FBF0DC"],d:["#F3BE5E","#3A2C14"]},
+  {id:"ink",n:"Графит",l:["#3D3A4F","#ECEBF1"],d:["#CFCBE0","#2A2836"]}
+];
+function applyTheme(id){
+  const t=THEMES.find(x=>x.id===(id||settings.theme))||THEMES[0];
+  let el=document.getElementById("themeVars"); if(!el){el=document.createElement("style");el.id="themeVars";document.head.appendChild(el);}
+  const css=t.id==="violet"?"":`:root{--accent:${t.l[0]};--accent-soft:${t.l[1]}}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--accent:${t.d[0]};--accent-soft:${t.d[1]}}}:root[data-theme="dark"]{--accent:${t.d[0]};--accent-soft:${t.d[1]}}`;
+  if(el.textContent!==css) el.textContent=css;
+}
 /* ---------- onboarding: first login for a new person ---------- */
 document.addEventListener("click",e=>{if(e.target.closest?.("#obEdit"))openOnboarding(true);});
 const OB_COLORS=["--p-alpha","--p-columbus","--p-blog","--p-burka","--p-other"], OB_ICONS=["star","plane","mic","coffee","target"];
@@ -2530,6 +2554,7 @@ function openOnboarding(edit,back){
   while(names.length<5) names.push("");
   openSheet(`<div class="ci-sheet ob">
     <div class="ob-top">${bari({mood:"joy",wave:true,size:96,prop:PROPS.spark})}<div>${isOwner()&&edit?"":`<span class="label">Шаг 1 из 3</span>`}<h3 style="margin:0">${edit?"О себе":"Привет! Я BARI"}</h3><p class="tip" style="margin:4px 0 0">${edit?"Поменяй, что нужно.":"«Бәрі» по-казахски — «всё». Здесь всё в одном месте: дела, дом, ты сама и немного мира каждый день. Давай познакомимся."}</p></div></div>
+    <div><span class="label">Цвет приложения</span><div class="swatches">${THEMES.map(t=>`<button class="sw ${((obDraft&&obDraft.theme)||settings.theme||"violet")===t.id?"on":""}" data-theme-pick="${t.id}" style="--c:${t.l[0]}" aria-label="${esc(t.n)}"><i></i><small>${esc(t.n)}</small></button>`).join("")}</div></div>
     <label>Как тебя зовут?<input id="obName" value="${esc(back&&obDraft.base?obDraft.base.name:edit?userName():"")}" placeholder="Имя" autocomplete="given-name"></label>
     <div><span class="label">Твои проекты или сферы — до 5</span><p class="tip" style="margin:2px 0 6px">Работа, клиенты, учёба, хобби. Дом, книги и выпечка уже есть.</p>
       <div class="ob-projects">${names.slice(0,5).map((n,i)=>`<input class="ob-p" data-i="${i}" value="${esc(n)}" placeholder="${["Например, работа","Учёба","Хобби","Клиент","Ещё"][i]}" style="border-left:6px solid var(${OB_COLORS[i]})">`).join("")}</div></div>
@@ -2539,6 +2564,7 @@ function openOnboarding(edit,back){
     <div><span class="label">Есть дети?</span><div class="ob-kids"><button class="pick-c ${hasKids()?"on":""}" data-kids="1">Да</button><button class="pick-c ${!hasKids()?"on":""}" data-kids="0">Нет</button></div><p class="tip" style="margin:4px 0 0">Тогда BARI будет предлагать идеи, чем заняться вместе.</p></div>
     <button class="primary" id="obSave">${isOwner()&&edit?ic("check")+"Сохранить":"Дальше"}</button></div>`);
   let kids=back&&obDraft.base?obDraft.base.kids:hasKids(), cont=back&&obDraft.base?obDraft.base.content:contentMode();
+  document.querySelectorAll("[data-theme-pick]").forEach(b=>b.onclick=()=>{obDraft.theme=b.dataset.themePick;obDraft.previewTheme=true;applyTheme(obDraft.theme);document.querySelectorAll("[data-theme-pick]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-cont]").forEach(b=>b.onclick=()=>{cont=b.dataset.cont==="1";document.querySelectorAll("[data-cont]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-kids]").forEach(b=>b.onclick=()=>{kids=b.dataset.kids==="1";document.querySelectorAll("[data-kids]").forEach(z=>z.classList.toggle("on",z===b));});
   document.getElementById("obSave").onclick=()=>{
@@ -2547,7 +2573,7 @@ function openOnboarding(edit,back){
     if(!projects.length) projects.push({id:"work",name:"Работа",color:OB_COLORS[0],icon:OB_ICONS[0]});
     const homes=(settings.projects||[]).filter(p=>p.kind==="home");
     obDraft.names=list;
-    obDraft.base={name:document.getElementById("obName").value.trim(),kids,content:cont,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)};
+    obDraft.base={theme:obDraft.theme||settings.theme||"violet",name:document.getElementById("obName").value.trim(),kids,content:cont,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)};
     if(isOwner()&&edit){store.saveSettings({...settings,...obDraft.base});closeSheet();toast("Сохранила!");return;}
     obStep2(edit);
   };
@@ -2722,7 +2748,6 @@ function nicheCard(k){
     ${pick.length?`<div class="ni-list">${pick.map(x=>`<div class="ni"><b>${esc(x.t||"")}</b>${x.why?`<span class="tip">${esc(x.why)}</span>`:""}${x.step?`<small>Первый шаг: ${esc(x.step)}</small>`:""}</div>`).join("")}</div>`
       :data===false?`<p class="tip" style="margin:0">BARI собирает идеи для твоей сферы — они появятся в понедельник.</p>`:`<p class="tip" style="margin:0">Загружаю идеи…</p>`}
     ${occ.length?`<span class="label" style="margin-top:6px">Поводы впереди</span><div class="ni-list">${occ.map(o=>`<div class="ni"><b>${esc(o.t)}</b><span class="tip">${esc(new Date(o.d).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}))}${o.idea?` — ${esc(o.idea)}`:""}</span></div>`).join("")}</div>`:""}
-    <div class="row" style="margin-top:8px"><button class="mini-btn" data-ni-copy="${esc(ask)}">${ic("chat")}Скопировать запрос для Claude</button></div>
   </section>`;
 }
 document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-ni-copy]");if(!b)return;try{await navigator.clipboard.writeText(b.dataset.niCopy);toast("Скопировано. Вставь в чат с Claude — получишь идеи под тебя.");}catch(_){toast("Не получилось скопировать.");}});
@@ -3114,7 +3139,7 @@ function showNewPassword(sb){
 document.addEventListener("click",async e=>{if(e.target.closest?.("#logoutBtn")&&window.sbClient){if(confirm("Выйти из аккаунта на этом устройстве?")){await window.sbClient.auth.signOut();}}});
 async function startApp(sb,session){
   document.getElementById("login").hidden=true; document.querySelector(".wrap").hidden=false; document.querySelector(".tabbar").hidden=false;
-  const uid=session.user.id;
+  const uid=session.user.id; window.sbUserId=uid;
   await seedIfEmpty(sb,uid);
   const db=makeDb(sb,uid);
   store=await dbStore(db); setStatus("");

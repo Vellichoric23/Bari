@@ -638,6 +638,8 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .ni{display:grid;gap:2px;background:color-mix(in srgb,var(--surface-2) 70%,transparent);border-radius:12px;padding:8px 12px}
 .ni b{font-size:14.5px;line-height:1.35}
 .ni small{font-size:12.5px;color:var(--accent);font-weight:700}
+.notif-card{margin-top:12px;border:1.5px solid var(--accent)!important}
+.notif-card .row{display:flex;gap:8px}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -959,8 +961,9 @@ async function sendDayToCalendar(k,btn){
 async function startTrack(t){
   for(const o of tasks.filter(x=>x.startedAt&&x.id!==t.id)) await store.saveTask({...o,spentMin:Math.round(spentTotal(o)*10)/10,startedAt:""});
   await store.saveTask({...t,startedAt:new Date().toISOString()});
+  window.bariOnTrack?.(t,true);
 }
-async function stopTrack(t,extra={}){await store.saveTask({...t,spentMin:Math.round(spentTotal(t)*10)/10,startedAt:"",...extra});}
+async function stopTrack(t,extra={}){await store.saveTask({...t,spentMin:Math.round(spentTotal(t)*10)/10,startedAt:"",...extra});window.bariOnTrack?.(t,false);}
 function stageStats(){
   const since=addDays(todayKey(),-30), g={};
   for(const t of workTasks(tasks)) if(t.done&&t.date>=since&&(Number(t.spentMin)||0)>0.5){const s=g[t.stage]||(g[t.stage]={n:0,fact:0,plan:0});s.n++;s.fact+=Number(t.spentMin);s.plan+=planMin(t);}
@@ -1040,6 +1043,7 @@ function render(){
   if(view==="code") renderCode();
   if(view==="lib") renderLib();
   checkNewBadges();
+  if(typeof syncReminders==="function") syncReminders();
 }
 
 function taskRow(t,showDate){
@@ -1128,6 +1132,7 @@ function renderToday(){
     ${blk?`<div class="banner"><span class="tile" style="--pc:var(${proj(blk.project).color})">${ic("tent")}</span><div><b>${esc(blk.title)}</b><br>${esc(blk.note||"")} · до ${nice(blk.to)}</div></div>`:""}
     ${!blk&&nextBlk&&daysTo<=7?`<div class="banner soon"><span class="tile" style="--pc:var(${proj(nextBlk.project).color})">${ic("tent")}</span><div><b>${esc(nextBlk.title)}</b> через ${daysTo} ${plural(daysTo,"день","дня","дней")} (${nice(nextBlk.from)}–${nice(nextBlk.to)}). Всё, что можно, подготовь заранее.</div></div>`:""}
     ${placesFor(k).length?`<div class="places">${placesFor(k).map(pl=>`<div class="place-card" style="--pc:var(${proj(pl.project).color})"><span class="tile">${ic("pin")}</span><div><span class="label">Сегодня я в</span><b>${esc(proj(pl.project).name)}</b>${pl.time||pl.note?`<small>${[pl.time,pl.note].filter(Boolean).map(esc).join(" · ")}</small>`:""}</div></div>`).join("")}</div>`:""}
+    ${notifyCard()}
     ${moodCard(k)}
     ${quoteCard(k)}
     ${cityDayCard(k)}
@@ -2723,6 +2728,89 @@ function nicheCard(k){
 document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-ni-copy]");if(!b)return;try{await navigator.clipboard.writeText(b.dataset.niCopy);toast("Скопировано. Вставь в чат с Claude — получишь идеи под тебя.");}catch(_){toast("Не получилось скопировать.");}});
 
 if(!GLYPHS.heart) GLYPHS.heart=`<path d="M12 20s-7.5-4.5-7.5-10A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3c0 5.5-7.5 10-7.5 10z" fill="#FF7B86"/>`;
+/* ---------- notifications: permission, running-task notice, push reminders ---------- */
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+function notifState(){
+  if(!window.sbClient) return "nodb";
+  if(isIOS&&!isStandalone()) return "install";
+  if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window)) return "unsupported";
+  return Notification.permission;
+}
+const b64ToU8=b=>{const p="=".repeat((4-b.length%4)%4),s=atob((b+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from([...s].map(c=>c.charCodeAt(0)));};
+const hashId=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return "s"+h.toString(36);};
+async function subscribePush(){
+  const cfg=window.BARI_CONFIG||{};
+  const reg=await navigator.serviceWorker.ready;
+  const r=await fetch(`${cfg.supabaseUrl}/functions/v1/push?key=1`,{headers:{apikey:cfg.supabaseAnonKey}});
+  if(!r.ok) throw new Error("server");
+  const {key}=await r.json();
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(key)});
+  const j=sub.toJSON();
+  await store.saveDoc("push",hashId(j.endpoint),{...j,ua:navigator.userAgent.slice(0,120),created:new Date().toISOString()});
+  try{localStorage.setItem("bari-push","1");}catch(e){}
+}
+async function enableNotifications(){
+  try{
+    const p=await Notification.requestPermission();
+    if(p!=="granted"){toast("Уведомления не разрешены. Их можно включить в настройках телефона.");render();return;}
+    try{await subscribePush();toast("Готово! Я буду напоминать о задачах, даже когда BARI закрыт.");}
+    catch(e){toast("Уведомления включены на экране. Напоминания в фоне заработают, когда будет настроен сервер.");}
+    syncReminders(true); render();
+  }catch(e){toast("Не получилось включить уведомления.");}
+}
+function notifyCard(){
+  const st=notifState();
+  if(st==="granted"||st==="nodb"||st==="unsupported") return "";
+  let dismissed=false; try{dismissed=localStorage.getItem("bari-notif-later")===todayKey();}catch(e){}
+  if(dismissed) return "";
+  const body=st==="install"?`Чтобы я могла напоминать о задачах, сначала добавь BARI на экран «Домой»: «Поделиться» → «На экран Домой», и открой его оттуда.`
+    :st==="denied"?`Уведомления выключены. Включи их в настройках телефона: Настройки → Уведомления → BARI.`
+    :`Разреши уведомления — я напомню, когда пора начинать задачу, спрошу «сделала?» и покажу, какая задача идёт, даже если BARI свёрнут.`;
+  return `<section class="card notif-card"><div class="cc-top">${bari({mood:"wink",size:54})}<div><span class="label">Уведомления</span><p style="margin:2px 0 0;font-size:14px;line-height:1.45">${body}</p></div></div>
+    <div class="row" style="margin-top:8px">${st==="default"?`<button class="primary" id="notifOn">${ic("check")}Разрешить</button>`:""}<button class="ghost" id="notifLater">Позже</button></div></section>`;
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest?.("#notifOn")) enableNotifications();
+  if(e.target.closest?.("#notifLater")){try{localStorage.setItem("bari-notif-later",todayKey());}catch(_){}render();}
+});
+/* «Идёт задача» — stays in the notification shade while a task runs */
+const hm=m=>{m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");};
+window.bariOnTrack=async(t,on)=>{
+  if(notifState()!=="granted") return;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    (await reg.getNotifications({tag:"running"})).forEach(n=>n.close());
+    if(!on) return;
+    const now=new Date(), nowM=now.getHours()*60+now.getMinutes(), left=Math.max(5,planMin(t)-spentTotal(t));
+    await reg.showNotification(`▶ Идёт: ${t.title}`,{body:`${proj(t.project).name} · начала в ${hm(nowM)} · по плану до ${hm(nowM+left)}`,tag:"running",requireInteraction:true,silent:true,icon:"icons/icon-192.png",badge:"icons/icon-192.png",data:{url:"./"}});
+  }catch(e){}
+};
+/* reminders for the server: start of each block, «сделала?» at its planned end, morning summary */
+let remindLast={};
+function buildReminders(k){
+  const sc=daySchedule(k,false), base=fromKey(k), at=m=>{const d=new Date(base);d.setHours(0,0,0,0);d.setMinutes(Math.round(m));return d.toISOString();};
+  const items=[], open=sc.rows.filter(r=>!r.t.done);
+  if(open.length) items.push({key:k+"-morning",at:at(sc.ds-10),title:`${userName()?userName()+", д":"Д"}оброе утро!`,body:`Сегодня ${open.length} ${plural(open.length,"задача","задачи","задач")}. Первая: «${open[0].t.title}» в ${hm(open[0].start)}.`});
+  for(const r of open){
+    items.push({key:`${k}-${r.t.id}-s-${Math.round(r.start)}`,at:at(r.start),title:`Пора: ${r.t.title}`,body:`${proj(r.t.project).name} · до ${hm(r.start+r.dur)}. Нажми ▶ в BARI, когда начнёшь.`});
+    items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:`Уже ${hm(r.start+r.dur)}. Сделала?`,body:`«${r.t.title}» — отметь ✓ или перенеси.`});
+  }
+  return items.filter(x=>new Date(x.at)>new Date(Date.now()-60000));
+}
+function syncReminders(force){
+  if(!window.sbClient||notifState()!=="granted"||!store||!store.saveDoc) return;
+  clearTimeout(syncReminders.t);
+  syncReminders.t=setTimeout(()=>{
+    for(const k of [todayKey(),addDays(todayKey(),1)]){
+      const items=buildReminders(k), sig=JSON.stringify(items);
+      if(!force&&remindLast[k]===sig) continue;
+      remindLast[k]=sig; store.saveDoc("remind",k,{date:k,items,updated:new Date().toISOString()}).catch?.(()=>{});
+    }
+  },1500);
+}
+
 /* ---------- «Я»: 20 minutes of erudition, tied to the city of the week ---------- */
 const TOPICS=[
   {k:"logic",name:"Логика и квиз недели",icon:"idea"},

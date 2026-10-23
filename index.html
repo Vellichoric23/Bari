@@ -675,6 +675,7 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .diag li.ok{color:var(--ok)}
 .diag li.bad{color:var(--warn);font-weight:700}
 .diag-pre{font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2);padding:8px;border-radius:10px;max-height:200px;overflow:auto}
+.care-row.couple .label{color:#E5677D}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1080,6 +1081,7 @@ function render(){
   if(view==="code") renderCode();
   if(view==="lib") renderLib();
   checkNewBadges();
+  if(typeof gxNode==="function") gxNode(document.querySelector("main"));
   if(typeof syncReminders==="function") syncReminders();
 }
 
@@ -1340,7 +1342,7 @@ function renderRhythm(){
 }
 
 /* ---------- sheets ---------- */
-function openSheet(html){document.getElementById("sheetIn").innerHTML=html;document.getElementById("sheet").hidden=false;document.getElementById("scrim").hidden=false;}
+function openSheet(html){document.getElementById("sheetIn").innerHTML=html;if(typeof gxNode==="function")gxNode(document.getElementById("sheetIn"));document.getElementById("sheet").hidden=false;document.getElementById("scrim").hidden=false;}
 function closeSheet(){document.getElementById("sheet").hidden=true;document.getElementById("scrim").hidden=true;sheetMode=null;updatePill();}
 let sheetMode=null;
 document.getElementById("scrim").onclick=closeSheet;
@@ -1513,7 +1515,7 @@ function openAddPlace(){
 
 /* ---------- live tracking ---------- */
 const warned=new Set();
-function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,4000);}
+function toast(msg){const el=document.getElementById("toast");el.textContent=typeof gx==="function"?gx(msg):msg;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,4000);}
 function updatePill(r=tasks.find(t=>t.startedAt)){
   const pill=document.getElementById("timerPill");
   pill.hidden=!r;
@@ -1890,6 +1892,7 @@ function careCard(k){
   return `<section class="card care">
     <div class="care-top">${bari({mood:"happy",size:56})}<p class="care-quote">«${esc(pick(BARI_DAY,0))}»</p></div>
     <div class="care-row kid" ${hasKids()?"":"hidden"}>${glyph(["pizza","flower","bun","apple","tree","gelato","bicycle"][((n%7)+7)%7],34)}<div><span class="label">${isOwner()?"С дочкой":"С ребёнком"}</span><p>${esc(pick(isOwner()?CARE_KID:CARE_KID.filter(x=>!/SMM|сторис|текст|работает|ноутбук/i.test(x)),3))}</p>${kidT?`<button class="mini-btn" data-care="${kidT.id}" ${kidT.done?"disabled":""}>${ic("check")}${kidT.done?"Сделали":"Сделали вместе"}</button>`:""}</div></div>
+    ${PARTNER()?`<div class="care-row couple">${glyph("heart",34)}<div><span class="label">${PARTNER()}</span><p>${esc(pick(CARE_COUPLE,9))}</p></div></div>`:""}
     <div class="care-row self">${glyph(["tea","flower","espresso","olive"][((n%4)+4)%4],34)}<div><span class="label">Для себя</span><p>${esc(pick(CARE_SELF,5))}</p>${selfT?`<button class="mini-btn" data-care="${selfT.id}" ${selfT.done?"disabled":""}>${ic("check")}${selfT.done?"Сделала":"Сделала"}</button>`:""}</div></div>
     <div class="care-row home">${ic("clean")}<div><span class="label">Лайфхак для дома</span><p>${esc(pick(CARE_HOME,7))}</p></div></div>
     <button class="mini-btn" id="careMore">${ic("reset")}Другие идеи</button>
@@ -2496,7 +2499,7 @@ function badgeList(){
     {id:"first",g:"flower",n:"Первый шаг",d:"Закрыть первую задачу",ok:workTasks(tasks).some(t=>t.done)},
     {id:"streak3",g:"apple",n:"Три дня подряд",d:"Уроки 3 дня подряд",ok:st.streak>=3},
     {id:"streak7",g:"mountain",n:"Неделя знаний",d:"Уроки 7 дней подряд",ok:st.streak>=7},
-    ...(hasKids()?[{id:"mama",g:"heart",n:"Мама года",d:isOwner()?"7 вечеров с дочкой":"7 вечеров с детьми",ok:kidN>=7}]:[]),
+    ...(hasKids()?[{id:"mama",g:"heart",n:genderOf()==="m"?"Папа года":"Мама года",d:isOwner()?"7 вечеров с дочкой":"7 вечеров с детьми",ok:kidN>=7}]:[]),
     {id:"ideas",g:"bun",n:"Генератор идей",d:"10 идей в копилке",ok:ideasN>=10},
     {id:"poly",g:"tea",n:"Полиглот",d:"Выучить 15 слов",ok:wordsN>=15},
     {id:"code10",g:"yurt",n:"Знаток кода",d:"10 карточек в Қоржын",ok:codeN>=10},
@@ -2915,6 +2918,29 @@ function localGreet(lang,hr){
   const sameAsRu=lang==="казахский";
   return {text:g[0],sub:`${ru} по-${lang.replace(/ий$/,"и")}${LATIN.test(g[0])||sameAsRu?"":` · ${g[1]}`}`};
 }
+
+/* ---------- gender and relationship ---------- */
+const genderOf=()=>settings.gender||(isOwner()?"f":"");
+const relOf=()=>settings.rel||(isOwner()?"married":"");
+const G_PAIRS=[["сделала","сделал"],["прочитала","прочитал"],["дочитала","дочитал"],["успела","успел"],["стеснялась","стеснялся"],["устала","устал"],["закончила","закончил"],["начала в","начал в"],["готова","готов"],["обязана","обязан"],["благодарна","благодарен"],["ты сама","ты сам"],["выложила","выложил"]];
+const G_RX=G_PAIRS.map(([f,m])=>[new RegExp(`(^|[^а-яёА-ЯЁ])(${f})(?=$|[^а-яёА-ЯЁ])`,"gi"),m]);
+function gx(str){
+  if(genderOf()!=="m"||!str) return str;
+  let out=String(str);
+  for(const [rx,m] of G_RX) out=out.replace(rx,(_,pre,w)=>pre+(w[0]===w[0].toUpperCase()?m[0].toUpperCase()+m.slice(1):m));
+  return out;
+}
+function gxNode(root){
+  if(genderOf()!=="m"||!root) return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  let n; while((n=w.nextNode())){const v=gx(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v;}
+}
+const PARTNER=()=>{const g=genderOf(),r=relOf();
+  if(!r||r==="single"||r==="none") return "";
+  if(r==="dating") return g==="f"?"С парнем":g==="m"?"С девушкой":"Для вас двоих";
+  if(r==="engaged") return g==="f"?"С женихом":g==="m"?"С невестой":"Для вас двоих";
+  return g==="f"?"С мужем":g==="m"?"С женой":"Для вас двоих";};
+const CARE_COUPLE=["Вечер без телефонов: оба кладут их в другую комнату на час.","Приготовьте ужин вместе — каждый отвечает за одно блюдо.","Вопрос вечера: «Что тебя сегодня порадовало?» — и выслушать до конца.","Прогулка на 30 минут без дел и списков.","Напиши короткую записку со спасибо за конкретную мелочь.","Выберите вместе фильм, который давно хотели посмотреть.","Спланируйте одно приятное дело на выходные — только вдвоём.","Вспомните вместе лучший день, который у вас был, и почему.","Утренний чай вместе, пока все спят, — 10 минут тишины.","Сделайте фото вдвоём просто так, без повода.","Обсудите одну мечту на год — и первый маленький шаг к ней.","Поиграйте в настольную игру или в «города»."];
 /* ---------- onboarding: first login for a new person ---------- */
 document.addEventListener("click",e=>{if(e.target.closest?.("#obEdit"))openOnboarding(true);});
 const OB_COLORS=["--p-alpha","--p-columbus","--p-blog","--p-burka","--p-other"], OB_ICONS=["star","plane","mic","coffee","target"];
@@ -2927,6 +2953,8 @@ function openOnboarding(edit,back){
     <div class="ob-top">${bari({mood:"joy",wave:true,size:96,prop:PROPS.spark})}<div>${isOwner()&&edit?"":`<span class="label">Шаг 1 из 3</span>`}<h3 style="margin:0">${edit?"О себе":"Привет! Я BARI"}</h3><p class="tip" style="margin:4px 0 0">${edit?"Поменяй, что нужно.":"«Бәрі» по-казахски — «всё». Здесь всё в одном месте: дела, дом, ты сама и немного мира каждый день. Давай познакомимся."}</p></div></div>
     <div><span class="label">Цвет приложения</span><div class="swatches">${THEMES.map(t=>`<button class="sw ${((obDraft&&obDraft.theme)||settings.theme||"violet")===t.id?"on":""}" data-theme-pick="${t.id}" style="--c:${t.l[0]}" aria-label="${esc(t.n)}"><i></i><small>${esc(t.n)}</small></button>`).join("")}</div></div>
     <label>Как тебя зовут?<input id="obName" value="${esc(back&&obDraft.base?obDraft.base.name:edit?userName():"")}" placeholder="Имя" autocomplete="given-name"></label>
+    <div><span class="label">Пол — чтобы я правильно к тебе обращалась</span><div class="ob-kids">${[["f","Женский"],["m","Мужской"],["","Не указывать"]].map(([v,l])=>`<button class="pick-c ${(obDraft?.base?.gender??genderOf())===v?"on":""}" data-gen="${v}">${l}</button>`).join("")}</div></div>
+    <div><span class="label">Семейное положение</span><div class="ob-kids" style="flex-wrap:wrap">${[["single","Не в отношениях"],["dating","В отношениях"],["engaged","Помолвлен(а)"],["married","В браке"],["none","Не указывать"]].map(([v,l])=>`<button class="pick-c ${(obDraft?.base?.rel??relOf()??"")===v?"on":""}" data-rel="${v}">${l}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Тогда я буду предлагать идеи и для вас двоих. Можно пропустить.</p></div>
     <div><span class="label">Твои проекты или сферы — до 5</span><p class="tip" style="margin:2px 0 6px">Работа, клиенты, учёба, хобби. Дом, книги и выпечка уже есть.</p>
       <div class="ob-projects">${names.slice(0,5).map((n,i)=>`<input class="ob-p" data-i="${i}" value="${esc(n)}" placeholder="${["Например, работа","Учёба","Хобби","Клиент","Ещё"][i]}" style="border-left:6px solid var(${OB_COLORS[i]})">`).join("")}</div></div>
     <div class="row"><label style="flex:1">Начинаю в<input id="obStart" type="time" value="${esc(s.dayStart||"10:00")}"></label><label style="flex:1">Заканчиваю в<input id="obEnd" type="time" value="${esc(s.dayEnd||"18:00")}"></label></div>
@@ -2935,6 +2963,9 @@ function openOnboarding(edit,back){
     <div><span class="label">Есть дети?</span><div class="ob-kids"><button class="pick-c ${hasKids()?"on":""}" data-kids="1">Да</button><button class="pick-c ${!hasKids()?"on":""}" data-kids="0">Нет</button></div><p class="tip" style="margin:4px 0 0">Тогда BARI будет предлагать идеи, чем заняться вместе.</p></div>
     <button class="primary" id="obSave">${isOwner()&&edit?ic("check")+"Сохранить":"Дальше"}</button></div>`);
   let kids=back&&obDraft.base?obDraft.base.kids:hasKids(), cont=back&&obDraft.base?obDraft.base.content:contentMode();
+  let gen=obDraft?.base?.gender??genderOf(), rel=obDraft?.base?.rel??relOf();
+  document.querySelectorAll("[data-gen]").forEach(b=>b.onclick=()=>{gen=b.dataset.gen;document.querySelectorAll("[data-gen]").forEach(z=>z.classList.toggle("on",z===b));});
+  document.querySelectorAll("[data-rel]").forEach(b=>b.onclick=()=>{rel=b.dataset.rel;document.querySelectorAll("[data-rel]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-theme-pick]").forEach(b=>b.onclick=()=>{obDraft.theme=b.dataset.themePick;obDraft.previewTheme=true;applyTheme(obDraft.theme);document.querySelectorAll("[data-theme-pick]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-cont]").forEach(b=>b.onclick=()=>{cont=b.dataset.cont==="1";document.querySelectorAll("[data-cont]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-kids]").forEach(b=>b.onclick=()=>{kids=b.dataset.kids==="1";document.querySelectorAll("[data-kids]").forEach(z=>z.classList.toggle("on",z===b));});
@@ -2944,7 +2975,7 @@ function openOnboarding(edit,back){
     if(!projects.length) projects.push({id:"work",name:"Работа",color:OB_COLORS[0],icon:OB_ICONS[0]});
     const homes=(settings.projects||[]).filter(p=>p.kind==="home");
     obDraft.names=list;
-    obDraft.base={theme:obDraft.theme||settings.theme||"violet",name:document.getElementById("obName").value.trim(),kids,content:cont,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)};
+    obDraft.base={gender:gen,rel,theme:obDraft.theme||settings.theme||"violet",name:document.getElementById("obName").value.trim(),kids,content:cont,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)};
     if(isOwner()&&edit){store.saveSettings({...settings,...obDraft.base});closeSheet();toast("Сохранила!");return;}
     obStep2(edit);
   };
@@ -3202,7 +3233,7 @@ window.bariOnTrack=async(t,on)=>{
     (await reg.getNotifications({tag:"running"})).forEach(n=>n.close());
     if(!on) return;
     const now=new Date(), nowM=now.getHours()*60+now.getMinutes(), left=Math.max(5,planMin(t)-spentTotal(t));
-    await reg.showNotification(`▶ Идёт: ${t.title}`,{body:`${proj(t.project).name} · начала в ${hm(nowM)} · по плану до ${hm(nowM+left)}`,tag:"running",requireInteraction:true,silent:true,icon:"icons/icon-192.png",badge:"icons/icon-192.png",data:{url:"./"}});
+    await reg.showNotification(`▶ Идёт: ${t.title}`,{body:gx(`${proj(t.project).name} · начала в ${hm(nowM)} · по плану до ${hm(nowM+left)}`),tag:"running",requireInteraction:true,silent:true,icon:"icons/icon-192.png",badge:"icons/icon-192.png",data:{url:"./"}});
   }catch(e){}
 };
 /* reminders for the server: start of each block, «сделала?» at its planned end, morning summary */
@@ -3214,11 +3245,11 @@ function buildReminders(k){
   for(const r of open){
     if(r.t.startedAt){
       const st=new Date(r.t.startedAt), left=Math.max(5,planMin(r.t)-(Number(r.t.spentMin)||0)), end=new Date(st.getTime()+left*60000), em=end.getHours()*60+end.getMinutes();
-      items.push({key:`${k}-${r.t.id}-run-${r.t.startedAt}`,at:end.toISOString(),title:`Уже ${hm(em)}. Сделала?`,body:`Время на «${r.t.title}» по плану вышло. Отметь ✓, продли или перенеси.`});
+      items.push({key:`${k}-${r.t.id}-run-${r.t.startedAt}`,at:end.toISOString(),title:gx(`Уже ${hm(em)}. Сделала?`),body:`Время на «${r.t.title}» по плану вышло. Отметь ✓, продли или перенеси.`});
       continue;
     }
     items.push({key:`${k}-${r.t.id}-s-${Math.round(r.start)}`,at:at(r.start),title:`Пора: ${r.t.title}`,body:`${proj(r.t.project).name} · до ${hm(r.start+r.dur)}. Нажми ▶ в BARI, когда начнёшь.`});
-    items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:`Уже ${hm(r.start+r.dur)}. Сделала?`,body:`«${r.t.title}» — отметь ✓ или перенеси.`});
+    items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:gx(`Уже ${hm(r.start+r.dur)}. Сделала?`),body:`«${r.t.title}» — отметь ✓ или перенеси.`});
   }
   return items.filter(x=>new Date(x.at)>new Date(Date.now()-60000));
 }

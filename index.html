@@ -704,6 +704,31 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 @keyframes seedOut{to{transform:scale(0);opacity:0}}
 @keyframes bariUp{0%{transform:scale(.05,.05);opacity:0}60%{transform:scale(1.08,.92);opacity:1}80%{transform:scale(.96,1.05)}100%{transform:none;opacity:1}}
 @keyframes spText{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+svg.bari.r-bow{transform-origin:50% 92%;animation:rBow 2.6s ease-in-out!important}
+@keyframes rBow{0%,100%{transform:none}25%,65%{transform:rotate(16deg) translateY(4px)}}
+svg.bari.r-sip{transform-origin:50% 92%;animation:rSip 2.4s ease-in-out 2!important}
+@keyframes rSip{0%,100%{transform:none}40%,60%{transform:rotate(-7deg)}}
+svg.bari.r-sway{transform-origin:50% 92%;animation:rSway 1.2s ease-in-out 5!important}
+@keyframes rSway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+svg.bari.r-bise{transform-origin:50% 92%;animation:rBise 2.4s ease-in-out!important}
+@keyframes rBise{0%,100%{transform:none}20%{transform:rotate(-12deg) translateX(-6px)}40%{transform:none}60%{transform:rotate(12deg) translateX(6px)}80%{transform:none}}
+svg.bari.r-clap{transform-origin:50% 92%;animation:rClap .35s ease-in-out 14!important}
+@keyframes rClap{0%,100%{transform:scale(1)}50%{transform:scale(1.05,.95) translateY(2px)}}
+svg.bari.r-sleepy{transform-origin:50% 92%;animation:rSleep 2.6s ease-in-out 3!important}
+@keyframes rSleep{0%,100%{transform:scale(1)}50%{transform:scale(1.04,.97)}}
+svg.bari.r-nod{transform-origin:50% 92%;animation:rNod 1.1s ease-in-out 3!important}
+@keyframes rNod{0%,100%{transform:none}40%{transform:rotate(-9deg) translateY(-3px)}}
+svg.bari.r-hop{animation:hop 1.2s ease-in-out 3!important}
+svg.bari.r-wiggle{animation:wiggle 1s ease-in-out 4!important}
+.bari .steam path{animation:steam 2s ease-in-out infinite}
+@keyframes steam{0%{opacity:0;transform:translateY(6px)}50%{opacity:.9}100%{opacity:0;transform:translateY(-8px)}}
+#view-today > h2.col-h{cursor:pointer;user-select:none;-webkit-user-select:none}
+#view-today > h2.col-h::after{content:"";width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin-left:10px;margin-right:4px;transition:transform .2s;flex:none}
+#view-today > h2.col-h.closed::after{transform:rotate(-45deg)}
+#view-today > h2.col-h:not(:has(.count))::after{margin-left:auto}
+#view-today > h2.col-h .count{margin-left:auto}
+#view-today > h2.col-h.closed{opacity:.8}
+.col-hidden{display:none!important}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1111,6 +1136,7 @@ function render(){
   if(view==="lib") renderLib();
   checkNewBadges();
   if(typeof gxNode==="function") gxNode(document.querySelector("main"));
+  if(view==="today"&&typeof applyCollapse==="function") applyCollapse(document.getElementById("view-today"));
   if(typeof syncReminders==="function") syncReminders();
 }
 
@@ -1210,6 +1236,7 @@ function renderToday(){
       <div style="margin-top:10px"><button class="mini-btn" id="moveOverdue">${ic("right")}Перенести все на сегодня</button></div>`:""}
     <h2>${ic("timer")}Блоки дня<span class="count hours">${esc(settings.dayStart)}–${esc(settings.dayEnd)} · ${fmtH(total)} / ${fmtH(lim)}</span></h2>
     ${sch.rows.length?`<div class="tl">${tl}</div>${mcp?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="mini-btn" data-cal="${k}">${ic("cal")}В Google Календарь</button><button class="mini-btn" data-cal="${addDays(k,1)}">${ic("cal")}Завтра в календарь</button></div>`:""}<p class="tip" style="margin-top:8px;font-size:13px">Нажимай ${ic("play")} когда начинаешь задачу: так видно, сколько она реально занимает.</p>`:(work.length?"":`<div class="empty"><span class="tile">${ic("sun")}</span>Нажми «Добавить», чтобы поставить задачу на сегодня.</div>`)}
+    <h2>${ic("check")}Привычки</h2>
     ${habitsCard(k)}
     <h2 style="color:var(--home)">${ic("heart")}Для себя и дома</h2>
     <div class="list home-list">${home.length?home.map(t=>taskRow(t)).join(""):`<div class="empty"><span class="tile" style="--pc:var(--home)">${ic("heart")}</span>Сегодня ничего не запланировано. Просто отдыхай.</div>`}</div>
@@ -2833,7 +2860,64 @@ document.addEventListener("pointermove",ev=>{
 /* BARI's life on the street: walks, sips tea, reads, waves, hops */
 window.bariX=window.bariX||0; window.bariFlip=1;
 function placeBari(){const h=document.querySelector(".city-hero");if(h){h.style.setProperty("--bx",window.bariX+"px");h.style.setProperty("--flip",window.bariFlip);}}
+/* ---------- local rituals: what BARI does in each country, with a fact ---------- */
+const HAND=(g,s=2.1)=>`<g transform="translate(138 116) scale(${s})">${GLYPHS[g]||""}</g>`;
+const RPROP={
+  matcha:`<g transform="translate(70 128) scale(2.6)">${"<path d=\"M3 11h18q-1 9-9 9t-9-9z\" fill=\"#3E5C3A\"/><ellipse cx=\"12\" cy=\"11\" rx=\"9\" ry=\"2\" fill=\"#8BC34A\"/>"}</g>`,
+  heart:`<path transform="translate(146 92) scale(1.3)" d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z" fill="#FF5C8A"/>`,
+  dombyra:`<g transform="translate(150 84) rotate(32)"><ellipse cx="0" cy="44" rx="15" ry="22" fill="#C98F58"/><circle cx="0" cy="40" r="4" fill="#6B4630"/><rect x="-3" y="-34" width="6" height="64" rx="2" fill="#8B5E3C"/><path d="M-1 -34 V60 M1.5 -34 V60" stroke="#F3E3C3" stroke-width=".8"/></g>`,
+  towel:`<path d="M52 64 Q100 18 148 64 L150 76 Q100 46 50 76Z" fill="#FFFFFF" stroke="#D9CFC0" stroke-width="1.5"/><g class="steam" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"><path d="M40 40 q6 -8 0 -16 q-6 -8 0 -16"/><path d="M160 44 q6 -8 0 -16 q-6 -8 0 -16"/></g>`,
+  umbrella:`<g transform="translate(150 22)"><path d="M-46 34 Q0 -22 46 34 Q35 26 23 34 Q12 26 0 34 Q-12 26 -23 34 Q-35 26 -46 34Z" fill="#2B2550"/><path d="M0 34 V100 q0 9 -9 9" stroke="#2B2550" stroke-width="3.5" fill="none" stroke-linecap="round"/></g><g stroke="#8FB8E8" stroke-width="2" stroke-linecap="round" opacity=".8"><path d="M20 30 l-4 10"/><path d="M40 10 l-4 10"/><path d="M180 70 l-4 10"/></g>`,
+  fan:`<g transform="translate(150 104)"><path d="M0 0 L-30 -34 A45 45 0 0 1 30 -34 Z" fill="#E0313F"/><path d="M0 0 L-15 -42 M0 0 L0 -45 M0 0 L15 -42" stroke="#9C1D27" stroke-width="1.5"/></g>`,
+  grapes:`<g transform="translate(150 112)" fill="#7CC23A">${[[0,0],[8,0],[-8,0],[4,7],[-4,7],[0,14],[12,-7],[-12,-7],[0,-7],[6,-14],[-6,-14],[0,-21]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.2"/>`).join("")}</g>`,
+  marigold:`<g transform="translate(150 106)">${[0,45,90,135,180,225,270,315].map(a=>`<ellipse cx="0" cy="-9" rx="5" ry="9" fill="#FF9F1C" transform="rotate(${a})"/>`).join("")}<circle r="6" fill="#F26B1D"/></g>`,
+  pinata:`<g transform="translate(150 70)"><path d="M0 -26 L8 -8 L28 -8 L12 4 L18 24 L0 12 L-18 24 L-12 4 L-28 -8 L-8 -8Z" fill="#FF5C8A"/><circle r="9" fill="#FFD166"/></g>`,
+  flag_ok:"", none:""
+};
+const RITUALS={
+  "Япония":[
+    {a:"bow",p:"none",l:"Кланяюсь. Поклон в Японии — «одзиги»: лёгкий — около 15°, вежливый — 30°, глубокий — 45°. Чем глубже, тем больше уважения."},
+    {a:"sip",p:"matcha",l:"Чайная церемония: перед глотком гость поворачивает чашу, чтобы не пить с её «лицевой» стороны — так проявляют скромность."},
+    {a:"bow",p:"none",l:"В Японии не оставляют чаевых: их могут вернуть, решив, что ты забыл(а) деньги."}],
+  "Южная Корея":[
+    {a:"hop",p:"heart",l:"Это «пальчиковое сердечко» — скрещённые большой и указательный пальцы. Корейцы показывают его на фото и концертах."},
+    {a:"bow",p:"none",l:"В Корее старшим передают вещи двумя руками — так показывают уважение. И принимают тоже двумя."}],
+  "Казахстан":[
+    {a:"bow",p:"none",l:"Приветствую по-казахски: младший первым здоровается со старшим, а мужчины часто прикладывают руку к сердцу."},
+    {a:"sway",p:"dombyra",l:"Играю на домбыре. У неё всего две струны, а на них исполняют целые истории — кюи."},
+    {a:"sip",p:"tea",l:"Пью чай с молоком. Гостю наливают пиалу наполовину: так можно чаще подливать свежий, горячий чай."}],
+  "Италия":[
+    {a:"wiggle",p:"none",l:"Говорю руками, как итальянцы! Пальцы щепоткой вверх — жест «ma che vuoi?», «да что ты хочешь?»."},
+    {a:"walk",p:"none",l:"Это passeggiata — неспешная вечерняя прогулка по центру. Итальянцы выходят «на людей посмотреть и себя показать»."},
+    {a:"sip",p:"espresso",l:"Эспрессо у стойки — al banco: выпил за минуту и пошёл. И дешевле, чем за столиком."}],
+  "Франция":[
+    {a:"bise",p:"none",l:"La bise — приветственные поцелуи в щёку. Сколько раз — зависит от региона: от одного до четырёх!"},
+    {a:"hop",p:"baguette",l:"Несу багет. По французскому указу 1993 года «традиционный» багет — это только мука, вода, соль и дрожжи или закваска."}],
+  "Финляндия":[
+    {a:"sway",p:"towel",l:"Я в сауне! В Финляндии их около трёх миллионов — примерно одна на двоих. Финская сауна — в списке ЮНЕСКО."},
+    {a:"bow",p:"none",l:"Финны ценят личное пространство и тишину. Молчать вместе в Финляндии — нормально и даже уютно."}],
+  "Нидерланды":[
+    {a:"walk",p:"bicycle",l:"Еду на велосипеде! В Нидерландах велосипедов больше, чем жителей."},
+    {a:"hop",p:"tulip",l:"Тюльпаны пришли в Нидерланды в XVI веке, а в XVII луковицы стоили как дом — это называют «тюльпаноманией»."}],
+  "Испания":[
+    {a:"clap",p:"fan",l:"Фламенко! Хлопки — «пальмас» — задают ритм. Фламенко внесено в список ЮНЕСКО в 2010 году."},
+    {a:"sleepy",p:"none",l:"Сиеста — отдых в самые жаркие часы. В больших городах её соблюдают всё реже, но магазины в маленьких ещё закрываются днём."},
+    {a:"hop",p:"grapes",l:"В новогоднюю ночь испанцы съедают 12 виноградин — по одной на каждый удар курантов, на удачу."}],
+  "Греция":[
+    {a:"nod",p:"none",l:"Внимание: в Греции лёгкий кивок вверх с поднятыми бровями значит «нет»!"},
+    {a:"sip",p:"espresso",l:"Фраппе придумали в Салониках в 1957 году, когда не нашлось горячей воды, — взбили растворимый кофе с холодной."}],
+  "Мексика":[
+    {a:"sway",p:"marigold",l:"Бархатцы — цветы Día de Muertos (1–2 ноября). Это день светлой памяти о близких, он в списке ЮНЕСКО."},
+    {a:"hop",p:"pinata",l:"Пиньята! Её разбивают палкой с завязанными глазами, а из неё сыплются сладости."}],
+  "Великобритания":[
+    {a:"sip",p:"tea",l:"Afternoon tea — около 16:00, со сконами и сэндвичами. А мизинчик оттопыривать не принято: это миф об этикете."},
+    {a:"walk",p:"umbrella",l:"Зонтик — лучший друг в Лондоне. Британцы шутят о погоде так часто, что это национальный способ начать разговор."},
+    {a:"bow",p:"none",l:"Встаю в очередь. Британцы славятся аккуратными очередями — даже на автобусной остановке."}]
+};
+function ritualProp(p){return RPROP[p]!==undefined?RPROP[p]:GLYPHS[p]?HAND(p):"";}
+
 const BARI_ACTS=[
+  {k:"ritual",w:6},
   {k:"walk",w:6},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
 ];
 const DRINKS={
@@ -2858,6 +2942,17 @@ function bariAct(){
   const tot=BARI_ACTS.reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, act=BARI_ACTS[0].k;
   for(const x of BARI_ACTS){if((r-=x.w)<0){act=x.k;break;}}
   const svg=btn.querySelector("svg.bari");
+  if(act==="ritual"){
+    const jr0=journeyFor(todayKey()), R=RITUALS[jr0.country]; if(!R||!R.length) return;
+    const r=R[Math.floor(Math.random()*R.length)], prop=ritualProp(r.p);
+    btn.innerHTML=bari({...st,mood:r.a==="sleepy"?"sleep":r.a==="bow"?"happy":"joy",arms:prop&&r.p!=="towel"&&r.p!=="umbrella"?"hold":"down",prop:(r.a==="sleepy"?PROPS.zz:"")+prop});
+    const sv=btn.querySelector("svg.bari");
+    if(r.a==="walk"){const max=Math.max(0,Math.min(hero.clientWidth*0.38,hero.clientWidth-btn.clientWidth-24)),to=window.bariX<-20?0:-Math.round(max*(0.5+Math.random()*0.5));window.bariFlip=to<window.bariX?-1:1;btn.classList.add("walking");window.bariX=to;placeBari();setTimeout(()=>{btn.classList.remove("walking");window.bariFlip=1;placeBari();},2500);}
+    else if(sv){sv.classList.add("r-"+r.a);}
+    if(bub){bub.textContent=gx(r.l);bub.hidden=false;setTimeout(()=>{bub.hidden=true;},7500);}
+    setTimeout(()=>{const b2=document.getElementById("bariBtn");if(b2)b2.innerHTML=bari(window.bariStateNow);},7500);
+    return;
+  }
   if(act==="walk"){
     const max=Math.max(0,Math.min(hero.clientWidth*0.38,hero.clientWidth-btn.clientWidth-24)), to=-Math.round(Math.random()*max);
     if(Math.abs(to-window.bariX)<40) return;
@@ -2991,6 +3086,26 @@ const PARTNER=()=>{const g=genderOf(),r=relOf();
   return g==="f"?"С мужем":g==="m"?"С женой":"Для вас двоих";};
 const CARE_COUPLE=["Вечер без телефонов: оба кладут их в другую комнату на час.","Приготовьте ужин вместе — каждый отвечает за одно блюдо.","Вопрос вечера: «Что тебя сегодня порадовало?» — и выслушать до конца.","Прогулка на 30 минут без дел и списков.","Напиши короткую записку со спасибо за конкретную мелочь.","Выберите вместе фильм, который давно хотели посмотреть.","Спланируйте одно приятное дело на выходные — только вдвоём.","Вспомните вместе лучший день, который у вас был, и почему.","Утренний чай вместе, пока все спят, — 10 минут тишины.","Сделайте фото вдвоём просто так, без повода.","Обсудите одну мечту на год — и первый маленький шаг к ней.","Поиграйте в настольную игру или в «города»."];
 
+
+/* collapsible sections on «Сегодня» */
+const COL_DEFAULT={"Завтра":true};
+let colState={}; try{colState=JSON.parse(localStorage.getItem("bari-collapsed")||"{}");}catch(e){}
+const colKey=h=>(h.dataset.ck||(h.dataset.ck=(h.childNodes.length?[...h.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim():h.textContent.trim()).replace(/\s+/g," ")));
+function applyCollapse(root){
+  if(!root) return;
+  root.querySelectorAll(":scope > h2").forEach(h=>{
+    const key=colKey(h); if(!key) return;
+    const closed=colState[key]!==undefined?colState[key]:!!COL_DEFAULT[key];
+    h.classList.add("col-h"); h.classList.toggle("closed",closed); h.setAttribute("role","button"); h.setAttribute("aria-expanded",String(!closed)); h.tabIndex=0;
+    let n=h.nextElementSibling; while(n&&n.tagName!=="H2"){n.classList.toggle("col-hidden",closed);n=n.nextElementSibling;}
+  });
+}
+document.addEventListener("click",e=>{
+  const h=e.target.closest?.("#view-today > h2.col-h"); if(!h||e.target.closest("button,a")) return;
+  const key=colKey(h), now=!h.classList.contains("closed"); colState[key]=now;
+  try{localStorage.setItem("bari-collapsed",JSON.stringify(colState));}catch(_){}
+  applyCollapse(document.getElementById("view-today"));
+});
 /* «Для тебя» — compact tiles instead of a long scroll */
 let forYouOpen=null;
 function forYouHtml(k){

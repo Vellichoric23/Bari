@@ -1362,13 +1362,13 @@ function renderRhythm(){
   const workT=tpls.filter(t=>!(STAGES[t.stage]?.home)), homeT=tpls.filter(t=>STAGES[t.stage]?.home);
   const groups=s.projects.filter(p=>p.kind!=="home").map(p=>({p,items:workT.filter(t=>t.project===p.id)})).filter(g=>g.items.length);
   document.getElementById("view-rhythm").innerHTML=`
-    <h2>${ic("note")}${isOwner()?"Заметки для Claude":"Заметки"}</h2>
+    ${isOwner()?`<h2>${ic("note")}Заметки для Claude</h2>
     <div class="card">
       <p class="tip">${isOwner()?"Пиши сюда всё новое: изменения в графике, новые задачи, сроки. Потом скажи Claude в чате «посмотри заметки», и он поправит план.":"Пиши сюда всё новое: изменения в графике, задачи, сроки, мысли. Отмечай галочкой, когда учтёшь."}</p>
       <div class="field"><label class="label" for="noteIn">Новая заметка</label><textarea id="noteIn" rows="3" placeholder="Например: с ноября в Columbus по вторникам, а не по средам"></textarea></div>
       <button class="primary" id="addNote">${ic("plus")}Сохранить заметку</button>
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
-    </div>
+    </div>`:""}
     <h2>${ic("heart")}О себе</h2>
     <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
@@ -1432,7 +1432,7 @@ function renderRhythm(){
   document.querySelectorAll("[data-addtpl]").forEach(b=>b.onclick=()=>openAddTpl(b.dataset.addtpl));
   document.querySelectorAll("[data-delplace]").forEach(b=>b.onclick=()=>{const i=Number(b.dataset.delplace);save({...settings,places:settings.places.filter((_,j)=>j!==i)});});
   document.getElementById("addPlace").onclick=openAddPlace;
-  document.getElementById("addNote").onclick=async()=>{const el=document.getElementById("noteIn");const text=el.value.trim();if(!text){el.focus();return;}el.value="";await store.addNote({id:uid(),text,date:todayKey(),done:false});};
+  if(document.getElementById("addNote")) document.getElementById("addNote").onclick=async()=>{const el=document.getElementById("noteIn");const text=el.value.trim();if(!text){el.focus();return;}el.value="";await store.addNote({id:uid(),text,date:todayKey(),done:false});};
   document.querySelectorAll("[data-delnote]").forEach(b=>b.onclick=()=>store.deleteNote(b.dataset.delnote));
   document.getElementById("saveBook").onclick=()=>save({...settings,book:document.getElementById("bookIn").value.trim()});
   document.getElementById("addProj").onclick=()=>{const n=document.getElementById("newProj").value.trim();if(!n)return;const color=COLOR_VARS[settings.projects.filter(p=>p.kind!=="home").length%COLOR_VARS.length];save({...settings,projects:settings.projects.concat({id:"p"+Date.now().toString(36),name:n,color,icon:"star"})});};
@@ -3735,7 +3735,7 @@ const HELP={
     "<b>Регулярные дела</b> — то, что повторяется (каждый день, по понедельникам). Я сама создаю их на две недели вперёд.",
     "<b>Где я бываю</b> — дни в офисе или у клиента, <b>Занятые периоды</b> — отпуск и поездки: туда задачи не встанут.",
     "<b>Сколько реально уходит</b> — когда пользуешься таймером ▶, я считаю настоящее время и предлагаю поправить оценки.",
-    "<b>Заметки</b> — всё новое: изменения в графике, задачи, сроки, мысли."]},
+    "<b>Заметки</b> — для Claude: изменения в графике, задачи, сроки."]},
   me:{t:"Я — 20 минут для себя",m:"joy",i:"spark",p:[
     "<b>Путешествие:</b> каждый месяц я «живу» в новой стране, каждую неделю — в новом городе. Фон, факты, слова и наклейки — всё про этот город. Флажки сверху — маршрут на год.",
     "<b>Урок дня</b> на 5 минут. Тема зависит от дня недели: пн — история, вт — искусство, ср — язык, чт — кино, пт — кухня, сб — книги, вс — квиз недели. Новые уроки появляются каждое утро.",
@@ -3762,7 +3762,7 @@ const HELP={
 };
 const TOUR=["intro","today","add","week","rhythm","me","code","lib","bari"];
 function helpSlide(key,i,n){
-  const h=HELP[key], list=h.p.filter(x=>hasKids()||!/ребёнк|детей|дети/.test(x)||key==="rhythm");
+  const h=HELP[key], list=h.p.filter(x=>(hasKids()||!/ребёнк|детей|дети/.test(x)||key==="rhythm")&&(isOwner()||!x.startsWith("<b>Заметки</b>")));
   return `<div class="help-slide">
     <div class="help-top">${bari({mood:h.m,size:76,wave:key==="intro",outfit:monthLook().o})}<div><span class="label">${n>1?`${i+1} из ${n}`:"Подсказка"}</span><h3>${h.i?ic(h.i):""}${esc(h.t)}</h3></div></div>
     <ul class="help-list">${list.map(x=>`<li>${x}</li>`).join("")}</ul>

@@ -1,0 +1,272 @@
+[
+ {
+  "city": "Хельсинки",
+  "slug": "helsinki",
+  "country": "Финляндия",
+  "lang": "финский"
+ },
+ {
+  "city": "Токио",
+  "slug": "tokio",
+  "country": "Япония",
+  "lang": "японский"
+ },
+ {
+  "city": "Париж",
+  "slug": "parizh",
+  "country": "Франция",
+  "lang": "французский"
+ },
+ {
+  "city": "Алматы",
+  "slug": "almaty",
+  "country": "Казахстан",
+  "lang": "казахский"
+ },
+ {
+  "city": "Амстердам",
+  "slug": "amsterdam",
+  "country": "Нидерланды",
+  "lang": "нидерландский"
+ },
+ {
+  "city": "Мадрид",
+  "slug": "madrid",
+  "country": "Испания",
+  "lang": "испанский"
+ },
+ {
+  "city": "Афины",
+  "slug": "afiny",
+  "country": "Греция",
+  "lang": "греческий"
+ },
+ {
+  "city": "Мехико",
+  "slug": "mehiko",
+  "country": "Мексика",
+  "lang": "испанский"
+ },
+ {
+  "city": "Сеул",
+  "slug": "seul",
+  "country": "Южная Корея",
+  "lang": "корейский"
+ },
+ {
+  "city": "Лондон",
+  "slug": "london",
+  "country": "Великобритания",
+  "lang": "английский"
+ },
+ {
+  "city": "Флоренция",
+  "slug": "florenciya",
+  "country": "Италия",
+  "lang": "итальянский"
+ },
+ {
+  "city": "Рованиеми",
+  "slug": "rovaniemi",
+  "country": "Финляндия",
+  "lang": "финский"
+ },
+ {
+  "city": "Киото",
+  "slug": "kioto",
+  "country": "Япония",
+  "lang": "японский"
+ },
+ {
+  "city": "Лион",
+  "slug": "lion",
+  "country": "Франция",
+  "lang": "французский"
+ },
+ {
+  "city": "Туркестан",
+  "slug": "turkestan",
+  "country": "Казахстан",
+  "lang": "казахский"
+ },
+ {
+  "city": "Гаага",
+  "slug": "gaaga",
+  "country": "Нидерланды",
+  "lang": "нидерландский"
+ },
+ {
+  "city": "Барселона",
+  "slug": "barselona",
+  "country": "Испания",
+  "lang": "испанский"
+ },
+ {
+  "city": "Санторини",
+  "slug": "santorini",
+  "country": "Греция",
+  "lang": "греческий"
+ },
+ {
+  "city": "Оахака",
+  "slug": "oahaka",
+  "country": "Мексика",
+  "lang": "испанский"
+ },
+ {
+  "city": "Кёнджу",
+  "slug": "kendzhu",
+  "country": "Южная Корея",
+  "lang": "корейский"
+ },
+ {
+  "city": "Оксфорд",
+  "slug": "oksford",
+  "country": "Великобритания",
+  "lang": "английский"
+ },
+ {
+  "city": "Венеция",
+  "slug": "veneciya",
+  "country": "Италия",
+  "lang": "итальянский"
+ },
+ {
+  "city": "Турку",
+  "slug": "turku",
+  "country": "Финляндия",
+  "lang": "финский"
+ },
+ {
+  "city": "Осака",
+  "slug": "osaka",
+  "country": "Япония",
+  "lang": "японский"
+ },
+ {
+  "city": "Прованс",
+  "slug": "provans",
+  "country": "Франция",
+  "lang": "французский"
+ },
+ {
+  "city": "Астана",
+  "slug": "astana",
+  "country": "Казахстан",
+  "lang": "казахский"
+ },
+ {
+  "city": "Утрехт",
+  "slug": "utreht",
+  "country": "Нидерланды",
+  "lang": "нидерландский"
+ },
+ {
+  "city": "Севилья",
+  "slug": "sevilya",
+  "country": "Испания",
+  "lang": "испанский"
+ },
+ {
+  "city": "Крит",
+  "slug": "krit",
+  "country": "Греция",
+  "lang": "греческий"
+ },
+ {
+  "city": "Юкатан",
+  "slug": "yukatan",
+  "country": "Мексика",
+  "lang": "испанский"
+ },
+ {
+  "city": "Пусан",
+  "slug": "pusan",
+  "country": "Южная Корея",
+  "lang": "корейский"
+ },
+ {
+  "city": "Эдинбург",
+  "slug": "edinburg",
+  "country": "Великобритания",
+  "lang": "английский"
+ },
+ {
+  "city": "Милан",
+  "slug": "milan",
+  "country": "Италия",
+  "lang": "итальянский"
+ },
+ {
+  "city": "Тампере",
+  "slug": "tampere",
+  "country": "Финляндия",
+  "lang": "финский"
+ },
+ {
+  "city": "Нара",
+  "slug": "nara",
+  "country": "Япония",
+  "lang": "японский"
+ },
+ {
+  "city": "Ницца",
+  "slug": "nicca",
+  "country": "Франция",
+  "lang": "французский"
+ },
+ {
+  "city": "Атырау",
+  "slug": "atyrau",
+  "country": "Казахстан",
+  "lang": "казахский"
+ },
+ {
+  "city": "Роттердам",
+  "slug": "rotterdam",
+  "country": "Нидерланды",
+  "lang": "нидерландский"
+ },
+ {
+  "city": "Валенсия",
+  "slug": "valensiya",
+  "country": "Испания",
+  "lang": "испанский"
+ },
+ {
+  "city": "Дельфы",
+  "slug": "delfy",
+  "country": "Греция",
+  "lang": "греческий"
+ },
+ {
+  "city": "Гвадалахара",
+  "slug": "gvadalahara",
+  "country": "Мексика",
+  "lang": "испанский"
+ },
+ {
+  "city": "Чеджу",
+  "slug": "chedzhu",
+  "country": "Южная Корея",
+  "lang": "корейский"
+ },
+ {
+  "city": "Бат",
+  "slug": "bat",
+  "country": "Великобритания",
+  "lang": "английский"
+ },
+ {
+  "city": "Неаполь",
+  "slug": "neapol",
+  "country": "Италия",
+  "lang": "итальянский"
+ },
+ {
+  "city": "Болонья",
+  "slug": "bolonya",
+  "country": "Италия",
+  "lang": "итальянский"
+ }
+]

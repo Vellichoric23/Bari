@@ -626,6 +626,18 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .add-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .add-head h3{margin:0}
 .add-tip{margin:6px 0 10px;font-size:13.5px;line-height:1.45;color:var(--muted);background:var(--accent-soft);padding:8px 12px;border-radius:12px}
+.ob-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.route-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.rp{position:relative;border:1.5px solid var(--line);background:var(--surface-2);border-radius:16px;padding:10px;display:grid;gap:3px;justify-items:start;text-align:left;cursor:pointer;font-family:var(--body);color:var(--ink)}
+.rp span{font-weight:800;font-size:14px}
+.rp small{font-size:11.5px;color:var(--muted);line-height:1.25}
+.rp.on{border-color:var(--accent);background:var(--accent-soft)}
+.rp-n{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;display:grid;place-items:center}
+.niche-card{margin-top:12px;display:grid;gap:8px}
+.ni-list{display:grid;gap:8px}
+.ni{display:grid;gap:2px;background:color-mix(in srgb,var(--surface-2) 70%,transparent);border-radius:12px;padding:8px 12px}
+.ni b{font-size:14.5px;line-height:1.35}
+.ni small{font-size:12.5px;color:var(--accent);font-weight:700}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1119,7 +1131,7 @@ function renderToday(){
     ${moodCard(k)}
     ${quoteCard(k)}
     ${cityDayCard(k)}
-    ${isOwner()?workCard(k):""}
+    ${isOwner()?workCard(k):nicheCard(k)}
     ${ideasCard()}
     ${linksCard()}
     <div class="stats">
@@ -1217,7 +1229,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено в плане":"ждёт Claude"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button>${window.sbClient?`<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button>${window.sbClient?`<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("pin")}Где я бываю</h2>
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
@@ -1564,6 +1576,7 @@ const JOURNEY=[
 ];
 const JOURNEY_START="2026-10-19";
 function journeyFor(k){
+  if(typeof hasRoute==="function"&&settings&&hasRoute()) return routeJourney(k);
   const ym=k.slice(0,7); let j=JOURNEY[0];
   for(const x of JOURNEY) if(x.from<=ym) j=x;
   const startK=j===JOURNEY[0]?JOURNEY_START:(()=>{const d=new Date(+j.from.slice(0,4),+j.from.slice(5,7)-1,1);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");})();
@@ -1738,7 +1751,7 @@ function mountCityBg(k){
   let bg=document.getElementById("cityBg");
   if(!bg){bg=document.createElement("div");bg.id="cityBg";bg.setAttribute("aria-hidden","true");document.body.prepend(bg);}
   const W=Math.max(400,Math.round(860*innerWidth/Math.max(1,innerHeight)/20)*20);
-  const key=k+"|"+todOf()+"|"+seasonOf()+"|"+W;
+  const key=k+"|"+journeyFor(k).city+"|"+todOf()+"|"+seasonOf()+"|"+W;
   if(bg.dataset.key!==key){bg.dataset.key=key;bg.innerHTML=cityBgSvg(k,W)+particlesHtml();document.documentElement.classList.toggle("city-night",todOf()==="night");}
   if(!mountCityBg.r){mountCityBg.r=1;addEventListener("resize",()=>{clearTimeout(mountCityBg.t);mountCityBg.t=setTimeout(()=>mountCityBg(todayKey()),250);});}
 }
@@ -1896,7 +1909,9 @@ function bindWork(){
 function passportHtml(){
   const counts={}; Object.values(erud).forEach(e=>{if(e&&e.done&&e.city)counts[e.city]=(counts[e.city]||0)+1;});
   const k=todayKey(), cur=journeyFor(k);
-  const list=[]; for(const jn of JOURNEY){ if(jn.from>k.slice(0,7)&&jn.country!==cur.country) continue; jn.cities.forEach(([c,m])=>list.push({c,m,country:jn.country})); }
+  const list=[];
+  if(hasRoute()){const wk=cur.week||0, upto=Math.floor(wk/4)%settings.route.length;settings.route.slice(0,Math.max(upto+1,2)).forEach(cn=>{const jn=JOURNEY.find(x=>x.country===cn);if(jn)jn.cities.slice(0,4).forEach(([c,m])=>list.push({c,m,country:jn.country}));});}
+  else for(const jn of JOURNEY){ if(jn.from>k.slice(0,7)&&jn.country!==cur.country) continue; jn.cities.forEach(([c,m])=>list.push({c,m,country:jn.country})); }
   const shown=list.slice(0,12);
   return `<div class="passport card"><div class="cd-head"><span class="label">Паспорт путешественника</span><span class="tip">Штамп за город: пройди там 3 урока</span></div>
     <div class="stamps">${shown.map((x,i)=>{const n=counts[x.c]||0, on=n>=3, now=x.c===cur.city;
@@ -2478,7 +2493,8 @@ const flag=(country,w=22)=>FLAGS[country]?`<svg class="flag" viewBox="0 0 30 20"
 const LANG_COUNTRY={"английский":"Великобритания","итальянский":"Италия","финский":"Финляндия","японский":"Япония","французский":"Франция","казахский":"Казахстан","нидерландский":"Нидерланды","испанский":"Испания","греческий":"Греция","корейский":"Южная Корея"};
 function routeFlags(){
   const cur=journeyFor(todayKey()).country;
-  return `<div class="route-flags" aria-label="Маршрут по странам">${JOURNEY.map((jn,i)=>`<span class="rf ${jn.country===cur?"now":jn.from<todayKey().slice(0,7)?"past":""}" title="${esc(jn.country)}">${flag(jn.country,jn.country===cur?34:24)}</span>${i<JOURNEY.length-1?`<i></i>`:""}`).join("")}</div>`;
+  const R=hasRoute()?settings.route.map(c=>({country:c})):JOURNEY, ci=R.findIndex(x=>x.country===cur);
+  return `<div class="route-flags" aria-label="Маршрут по странам">${R.map((jn,i)=>`<span class="rf ${jn.country===cur?"now":(hasRoute()?i<ci:jn.from<todayKey().slice(0,7))?"past":""}" title="${esc(jn.country)}">${flag(jn.country,jn.country===cur?34:24)}</span>${i<R.length-1?`<i></i>`:""}`).join("")}</div>`;
 }
 
 /* city legends shelf in the library */
@@ -2502,32 +2518,33 @@ function openLegend(i){
 /* ---------- onboarding: first login for a new person ---------- */
 document.addEventListener("click",e=>{if(e.target.closest?.("#obEdit"))openOnboarding(true);});
 const OB_COLORS=["--p-alpha","--p-columbus","--p-blog","--p-burka","--p-other"], OB_ICONS=["star","plane","mic","coffee","target"];
-function openOnboarding(edit){
-  const s=settings, work=(s.projects||[]).filter(p=>p.kind!=="home");
-  const names=edit?work.map(p=>p.name):["Работа","Учёба","Свой проект"];
+function openOnboarding(edit,back){
+  if(!back) obDraft={};
+  const s={...settings,...(obDraft&&obDraft.base||{})}, work=(settings.projects||[]).filter(p=>p.kind!=="home");
+  const names=back&&obDraft.names?obDraft.names.slice():edit?work.map(p=>p.name):["Работа","Учёба","Свой проект"];
   while(names.length<5) names.push("");
   openSheet(`<div class="ci-sheet ob">
-    <div class="ob-top">${bari({mood:"joy",wave:true,size:96,prop:PROPS.spark})}<div><h3 style="margin:0">${edit?"О себе":"Привет! Я BARI"}</h3><p class="tip" style="margin:4px 0 0">${edit?"Поменяй, что нужно.":"«Бәрі» по-казахски — «всё». Здесь всё в одном месте: дела, дом, ты сама и немного мира каждый день. Давай познакомимся."}</p></div></div>
-    <label>Как тебя зовут?<input id="obName" value="${esc(edit?userName():"")}" placeholder="Имя" autocomplete="given-name"></label>
+    <div class="ob-top">${bari({mood:"joy",wave:true,size:96,prop:PROPS.spark})}<div>${isOwner()&&edit?"":`<span class="label">Шаг 1 из 3</span>`}<h3 style="margin:0">${edit?"О себе":"Привет! Я BARI"}</h3><p class="tip" style="margin:4px 0 0">${edit?"Поменяй, что нужно.":"«Бәрі» по-казахски — «всё». Здесь всё в одном месте: дела, дом, ты сама и немного мира каждый день. Давай познакомимся."}</p></div></div>
+    <label>Как тебя зовут?<input id="obName" value="${esc(back&&obDraft.base?obDraft.base.name:edit?userName():"")}" placeholder="Имя" autocomplete="given-name"></label>
     <div><span class="label">Твои проекты или сферы — до 5</span><p class="tip" style="margin:2px 0 6px">Работа, клиенты, учёба, хобби. Дом, книги и выпечка уже есть.</p>
       <div class="ob-projects">${names.slice(0,5).map((n,i)=>`<input class="ob-p" data-i="${i}" value="${esc(n)}" placeholder="${["Например, работа","Учёба","Хобби","Клиент","Ещё"][i]}" style="border-left:6px solid var(${OB_COLORS[i]})">`).join("")}</div></div>
     <div class="row"><label style="flex:1">Начинаю в<input id="obStart" type="time" value="${esc(s.dayStart||"10:00")}"></label><label style="flex:1">Заканчиваю в<input id="obEnd" type="time" value="${esc(s.dayEnd||"18:00")}"></label></div>
     <label>Сколько часов в день готова работать<input id="obLimit" type="number" min="1" max="12" step="0.5" inputmode="decimal" value="${esc(String(s.limit||4))}"></label>
     <div><span class="label">Ведёшь соцсети или делаешь контент?</span><div class="ob-kids"><button class="pick-c ${contentMode()?"on":""}" data-cont="1">Да</button><button class="pick-c ${!contentMode()?"on":""}" data-cont="0">Нет</button></div><p class="tip" style="margin:4px 0 0">Тогда появится режим «Контент»: я сама разложу идею, текст, съёмку и монтаж по дням до публикации.</p></div>
     <div><span class="label">Есть дети?</span><div class="ob-kids"><button class="pick-c ${hasKids()?"on":""}" data-kids="1">Да</button><button class="pick-c ${!hasKids()?"on":""}" data-kids="0">Нет</button></div><p class="tip" style="margin:4px 0 0">Тогда BARI будет предлагать идеи, чем заняться вместе.</p></div>
-    <button class="primary" id="obSave">${ic("check")}${edit?"Сохранить":"Начать"}</button></div>`);
-  let kids=hasKids(), cont=contentMode();
+    <button class="primary" id="obSave">${isOwner()&&edit?ic("check")+"Сохранить":"Дальше"}</button></div>`);
+  let kids=back&&obDraft.base?obDraft.base.kids:hasKids(), cont=back&&obDraft.base?obDraft.base.content:contentMode();
   document.querySelectorAll("[data-cont]").forEach(b=>b.onclick=()=>{cont=b.dataset.cont==="1";document.querySelectorAll("[data-cont]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-kids]").forEach(b=>b.onclick=()=>{kids=b.dataset.kids==="1";document.querySelectorAll("[data-kids]").forEach(z=>z.classList.toggle("on",z===b));});
-  document.getElementById("obSave").onclick=async()=>{
-    const name=document.getElementById("obName").value.trim();
+  document.getElementById("obSave").onclick=()=>{
     const list=[...document.querySelectorAll(".ob-p")].map(x=>x.value.trim());
-    const old=work;
-    const projects=list.map((n,i)=>n?(old[i]?{...old[i],name:n}:{id:"p"+i+"-"+(slug(n)||"x").slice(0,12),name:n,color:OB_COLORS[i],icon:OB_ICONS[i]}):null).filter(Boolean);
+    const projects=list.map((n,i)=>n?(work[i]?{...work[i],name:n}:{id:"p"+i+"-"+(slug(n)||"x").slice(0,12),name:n,color:OB_COLORS[i],icon:OB_ICONS[i]}):null).filter(Boolean);
     if(!projects.length) projects.push({id:"work",name:"Работа",color:OB_COLORS[0],icon:OB_ICONS[0]});
-    const homes=(settings.projects||[]).filter(p=>p.kind==="home"); 
-    await store.saveSettings({...settings,name,kids,content:cont,onboarded:true,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)});
-    if(edit){closeSheet();toast("Сохранила!");} else openTour(0);
+    const homes=(settings.projects||[]).filter(p=>p.kind==="home");
+    obDraft.names=list;
+    obDraft.base={name:document.getElementById("obName").value.trim(),kids,content:cont,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)};
+    if(isOwner()&&edit){store.saveSettings({...settings,...obDraft.base});closeSheet();toast("Сохранила!");return;}
+    obStep2(edit);
   };
 }
 
@@ -2609,6 +2626,103 @@ document.body.insertAdjacentHTML("beforeend",`<button class="help-fab" id="helpF
 document.getElementById("helpFab").onclick=()=>openHelp(view);
 document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))openTour(0);if(e.target.closest?.("#addHelp"))openHelp("add");});
 
+/* ---------- personalisation: niche, priorities, own travel route ---------- */
+const NICHES=[
+  {id:"smm",n:"SMM и маркетинг",g:"spark2"},{id:"teach",n:"Учитель, репетитор",g:"book2"},{id:"biz",n:"Свой бизнес",g:"espresso"},
+  {id:"beauty",n:"Красота и здоровье",g:"flower"},{id:"it",n:"IT и дизайн",g:"column"},{id:"creative",n:"Творчество и блог",g:"lantern"},
+  {id:"student",n:"Учёба, студент",g:"apple"},{id:"mom",n:"Мама в декрете",g:"heart"},{id:"office",n:"Работа в офисе",g:"tower"},{id:"other",n:"Другое",g:"tree"}
+];
+GLYPHS.spark2=`<path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" fill="#FFD166"/>`;
+const PRIORITIES=[
+  {id:"work",n:"Работа и карьера",h:{id:"plan",name:"План на завтра",glyph:"column",goal:1}},
+  {id:"study",n:"Учёба",h:{id:"read",name:"Чтение 10 мин",glyph:"book2",goal:1}},
+  {id:"health",n:"Здоровье",h:{id:"water",name:"Вода",glyph:"tea",goal:8}},
+  {id:"sport",n:"Спорт",h:{id:"sport",name:"Движение 20 мин",glyph:"bicycle",goal:1}},
+  {id:"family",n:"Семья",h:{id:"family",name:"Время с близкими",glyph:"heart",goal:1}},
+  {id:"money",n:"Деньги",h:{id:"money",name:"Записать расходы",glyph:"apple",goal:1}},
+  {id:"calm",n:"Спокойствие",h:{id:"nophone",name:"Вечер без телефона",glyph:"flower",goal:1}},
+  {id:"lang",n:"Языки",h:{id:"lang",name:"Язык 10 мин",glyph:"lantern",goal:1}},
+  {id:"sleep",n:"Сон",h:{id:"sleep",name:"Сон до 23:30",glyph:"mountain",goal:1}},
+  {id:"hobby",n:"Хобби",h:{id:"hobby",name:"Время на хобби",glyph:"pizza",goal:1}}
+];
+const nicheOf=()=>NICHES.find(n=>n.id===settings.niche)||null;
+const hasRoute=()=>Array.isArray(settings.route)&&settings.route.length>0;
+const mondayOf=k=>{const d=fromKey(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+function routeJourney(k){
+  const r=settings.route, start=settings.routeStart||mondayOf(todayKey());
+  const wk=Math.max(0,Math.floor((fromKey(k)-fromKey(start))/(7*864e5)));
+  const jn=JOURNEY.find(x=>x.country===r[Math.floor(wk/4)%r.length])||JOURNEY[0];
+  const [city,mark]=jn.cities[wk%4%jn.cities.length];
+  return {country:jn.country,lang:jn.lang,city,mark,week:wk};
+}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+let obDraft=null;
+function obStep2(edit){
+  const d=obDraft; d.prio=d.prio||settings.priorities||[];
+  openSheet(`<div class="ci-sheet ob">
+    <div class="ob-top">${bari({mood:"think",size:80})}<div><span class="label">Шаг 2 из 3</span><h3 style="margin:2px 0 0">Чем ты занимаешься?</h3><p class="tip" style="margin:4px 0 0">По нише я буду предлагать идеи для работы, а по приоритетам — привычки.</p></div></div>
+    <div><span class="label">Твоя сфера</span><div class="ob-grid">${NICHES.map(n=>`<button class="pick-c ${d.niche===n.id?"on":""}" data-niche="${n.id}">${glyph(n.g,18)}${esc(n.n)}</button>`).join("")}</div></div>
+    <label>Опиши подробнее (по желанию)<input id="obNicheText" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: репетитор английского для детей 7–10 лет"></label>
+    <div><span class="label">Что для тебя сейчас важнее всего? До 4</span><div class="ob-grid">${PRIORITIES.map(p=>`<button class="pick-c ${d.prio.includes(p.id)?"on":""}" data-prio="${p.id}">${esc(p.n)}</button>`).join("")}</div></div>
+    <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obNext">Дальше</button></div></div>`);
+  document.querySelectorAll("[data-niche]").forEach(b=>b.onclick=()=>{d.niche=b.dataset.niche;document.querySelectorAll("[data-niche]").forEach(z=>z.classList.toggle("on",z===b));});
+  document.querySelectorAll("[data-prio]").forEach(b=>b.onclick=()=>{const id=b.dataset.prio;if(d.prio.includes(id))d.prio=d.prio.filter(x=>x!==id);else if(d.prio.length<4)d.prio=d.prio.concat(id);else{toast("Можно выбрать до 4.");return;}b.classList.toggle("on",d.prio.includes(id));});
+  const keep=()=>{d.nicheText=document.getElementById("obNicheText").value.trim();};
+  document.getElementById("obBack").onclick=()=>{keep();openOnboarding(edit,true);};
+  document.getElementById("obNext").onclick=()=>{keep();obStep3(edit);};
+}
+function obStep3(edit){
+  const d=obDraft; d.route=d.route||(hasRoute()?settings.route.slice():[]);
+  const draw=()=>{
+    openSheet(`<div class="ci-sheet ob">
+      <div class="ob-top">${bari({mood:"joy",wave:true,size:80,prop:PROPS.spark})}<div><span class="label">Шаг 3 из 3</span><h3 style="margin:2px 0 0">Куда отправимся?</h3><p class="tip" style="margin:4px 0 0">Каждый месяц — новая страна, каждую неделю — новый город. Уроки, факты и фон приложения будут про него. Нажимай страны в том порядке, в каком хочешь путешествовать.</p></div></div>
+      <div class="route-pick">${JOURNEY.map(jn=>{const i=d.route.indexOf(jn.country);return `<button class="rp ${i>=0?"on":""}" data-rc="${esc(jn.country)}">${i>=0?`<b class="rp-n">${i+1}</b>`:""}${flag(jn.country,30)}<span>${esc(jn.country)}</span><small>${esc(jn.cities.slice(0,2).map(c=>c[0]).join(", "))}…</small></button>`;}).join("")}</div>
+      <div class="row"><button class="ghost" id="rpSurprise">${ic("spark")}Удиви меня</button><button class="ghost" id="rpClear">Сбросить</button></div>
+      <p class="tip" style="margin:0">${d.route.length?`Маршрут: ${d.route.map(esc).join(" → ")}`:"Можно выбрать несколько стран или довериться BARI."}</p>
+      <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obSave">${ic("check")}${edit?"Сохранить":"Поехали!"}</button></div></div>`);
+    document.querySelectorAll("[data-rc]").forEach(b=>b.onclick=()=>{const c=b.dataset.rc;d.route=d.route.includes(c)?d.route.filter(x=>x!==c):d.route.concat(c);draw();});
+    document.getElementById("rpSurprise").onclick=()=>{d.route=shuffle(JOURNEY.map(j=>j.country));draw();};
+    document.getElementById("rpClear").onclick=()=>{d.route=[];draw();};
+    document.getElementById("obBack").onclick=()=>obStep2(edit);
+    document.getElementById("obSave").onclick=()=>obFinish(edit);
+  };
+  draw();
+}
+async function obFinish(edit){
+  const d=obDraft; let route=d.route&&d.route.length?d.route:shuffle(JOURNEY.map(j=>j.country));
+  const habits=d.prio&&d.prio.length?PRIORITIES.filter(p=>d.prio.includes(p.id)).map(p=>p.h):null;
+  const same=hasRoute()&&JSON.stringify(route)===JSON.stringify(settings.route);
+  const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
+  if(habits&&(!edit||!settings.habits)) next.habits=habits;
+  await store.saveSettings(next); obDraft=null;
+  if(edit){closeSheet();toast("Сохранила! Маршрут обновлён.");} else openTour(0);
+}
+/* niche ideas for everyone except the owner (owner has the detailed work card) */
+let nicheIdeas={};
+async function loadNicheIdeas(id){
+  if(nicheIdeas[id]!==undefined) return; nicheIdeas[id]=null;
+  try{const r=await fetch(`content/ideas/${id}.json`,{cache:"no-cache"});nicheIdeas[id]=r.ok?await r.json():false;}catch(e){nicheIdeas[id]=false;}
+  if(view==="today") render();
+}
+function nicheCard(k){
+  const n=nicheOf(); if(!n||typeof loadContent!=="function") return "";
+  loadNicheIdeas(n.id);
+  const data=nicheIdeas[n.id], items=data&&Array.isArray(data.items)?data.items:[];
+  const start=((Math.floor((fromKey(k)-new Date(2026,0,1))/864e5)*3)%Math.max(items.length,1)+Math.max(items.length,1))%Math.max(items.length,1);
+  const pick=items.length?[0,1,2].map(i=>items[(start+i)%items.length]):[];
+  const occ=data&&Array.isArray(data.dates)?data.dates.filter(x=>x.d>=k).slice(0,3):[];
+  const ask=`Я ${n.n.toLowerCase()}${settings.nicheText?` (${settings.nicheText})`:""}. Мои проекты: ${(settings.projects||[]).filter(p=>p.kind!=="home").map(p=>p.name).join(", ")}. Предложи 5 конкретных идей на эту неделю, с первым шагом для каждой.`;
+  return `<section class="card niche-card">
+    <div class="cd-head"><span class="label">${glyph(n.g,18)} Идеи для тебя · ${esc(n.n)}</span></div>
+    ${pick.length?`<div class="ni-list">${pick.map(x=>`<div class="ni"><b>${esc(x.t||"")}</b>${x.why?`<span class="tip">${esc(x.why)}</span>`:""}${x.step?`<small>Первый шаг: ${esc(x.step)}</small>`:""}</div>`).join("")}</div>`
+      :data===false?`<p class="tip" style="margin:0">BARI собирает идеи для твоей сферы — они появятся в понедельник.</p>`:`<p class="tip" style="margin:0">Загружаю идеи…</p>`}
+    ${occ.length?`<span class="label" style="margin-top:6px">Поводы впереди</span><div class="ni-list">${occ.map(o=>`<div class="ni"><b>${esc(o.t)}</b><span class="tip">${esc(new Date(o.d).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}))}${o.idea?` — ${esc(o.idea)}`:""}</span></div>`).join("")}</div>`:""}
+    <div class="row" style="margin-top:8px"><button class="mini-btn" data-ni-copy="${esc(ask)}">${ic("chat")}Скопировать запрос для Claude</button></div>
+  </section>`;
+}
+document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-ni-copy]");if(!b)return;try{await navigator.clipboard.writeText(b.dataset.niCopy);toast("Скопировано. Вставь в чат с Claude — получишь идеи под тебя.");}catch(_){toast("Не получилось скопировать.");}});
+
+if(!GLYPHS.heart) GLYPHS.heart=`<path d="M12 20s-7.5-4.5-7.5-10A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3c0 5.5-7.5 10-7.5 10z" fill="#FF7B86"/>`;
 /* ---------- «Я»: 20 minutes of erudition, tied to the city of the week ---------- */
 const TOPICS=[
   {k:"logic",name:"Логика и квиз недели",icon:"idea"},
@@ -2807,10 +2921,28 @@ function makeDb(sb,uid){
 }
 /* daily lessons and digest are prepared by Claude each morning and published next to the app */
 const contentCache={lessons:{},digest:{},cityday:{},city:{}};
+async function fetchContent(path){try{const r=await fetch(`content/${path}.json`,{cache:"no-cache"});return r.ok?await r.json():false;}catch(e){return false;}}
+let planCache=null; const getPlan=async()=>planCache||(planCache=await fetchContent("plan")||{});
+async function resolveLesson(k){
+  const j=journeyFor(k), tp=TOPICS[fromKey(k).getDay()].k, own=slug(j.city);
+  let r=await fetchContent(`lessons/${own}/${tp}`); if(r) return r;
+  const jn=JOURNEY.find(x=>x.country===j.country);
+  for(const [c] of (jn?jn.cities:[])){if(slug(c)===own)continue;r=await fetchContent(`lessons/${slug(c)}/${tp}`);if(r)return {...r,_alt:c};}
+  const plan=(await getPlan())[k]; if(plan&&plan.citySlug!==own){r=await fetchContent(`lessons/${plan.citySlug}/${tp}`);if(r)return {...r,_alt:plan.city};}
+  return await fetchContent(`lessons/${k}`);
+}
+async function resolveCityday(k){
+  const j=journeyFor(k), d=fromKey(k), mmdd=k.slice(5);
+  const [city,hist]=await Promise.all([loadContent("city",slug(j.city)),fetchContent(`history/${mmdd}`)]);
+  const days=city&&Array.isArray(city.days)?city.days:[], dd=days.length?days[((d.getDay()+6)%7)%days.length]:null;
+  if(!dd&&!hist) return await fetchContent(`cityday/${k}`);
+  return {date:k,city:j.city,fact:dd?.fact||"",word:dd?.word||null,history:hist?{year:hist.year,text:hist.text}:null};
+}
 async function loadContent(kind,k){
   if(contentCache[kind][k]!==undefined) return contentCache[kind][k];
   contentCache[kind][k]=null;
-  try{const r=await fetch(`content/${kind}/${k}.json`,{cache:"no-cache"});contentCache[kind][k]=r.ok?await r.json():false;}catch(e){contentCache[kind][k]=false;}
+  const r=kind==="lessons"?await resolveLesson(k):kind==="cityday"?await resolveCityday(k):await fetchContent(`${kind}/${k}`);
+  contentCache[kind][k]=r||false;
   render();
   return contentCache[kind][k];
 }

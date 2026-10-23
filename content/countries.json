@@ -1,0 +1,298 @@
+[
+ {
+  "country": "Италия",
+  "lang": "итальянский",
+  "cities": [
+   {
+    "name": "Рим",
+    "slug": "rim",
+    "mark": "colosseum"
+   },
+   {
+    "name": "Флоренция",
+    "slug": "florenciya",
+    "mark": "dome"
+   },
+   {
+    "name": "Венеция",
+    "slug": "veneciya",
+    "mark": "venice"
+   },
+   {
+    "name": "Милан",
+    "slug": "milan",
+    "mark": "spires"
+   },
+   {
+    "name": "Неаполь",
+    "slug": "neapol",
+    "mark": "volcano"
+   },
+   {
+    "name": "Болонья",
+    "slug": "bolonya",
+    "mark": "towers"
+   }
+  ]
+ },
+ {
+  "country": "Финляндия",
+  "lang": "финский",
+  "cities": [
+   {
+    "name": "Хельсинки",
+    "slug": "helsinki",
+    "mark": "dome"
+   },
+   {
+    "name": "Рованиеми",
+    "slug": "rovaniemi",
+    "mark": "forest"
+   },
+   {
+    "name": "Турку",
+    "slug": "turku",
+    "mark": "towers"
+   },
+   {
+    "name": "Тампере",
+    "slug": "tampere",
+    "mark": "sea"
+   }
+  ]
+ },
+ {
+  "country": "Япония",
+  "lang": "японский",
+  "cities": [
+   {
+    "name": "Токио",
+    "slug": "tokio",
+    "mark": "tower"
+   },
+   {
+    "name": "Киото",
+    "slug": "kioto",
+    "mark": "pagoda"
+   },
+   {
+    "name": "Осака",
+    "slug": "osaka",
+    "mark": "pagoda"
+   },
+   {
+    "name": "Нара",
+    "slug": "nara",
+    "mark": "forest"
+   }
+  ]
+ },
+ {
+  "country": "Франция",
+  "lang": "французский",
+  "cities": [
+   {
+    "name": "Париж",
+    "slug": "parizh",
+    "mark": "eiffel"
+   },
+   {
+    "name": "Лион",
+    "slug": "lion",
+    "mark": "dome"
+   },
+   {
+    "name": "Прованс",
+    "slug": "provans",
+    "mark": "windmill"
+   },
+   {
+    "name": "Ницца",
+    "slug": "nicca",
+    "mark": "sea"
+   }
+  ]
+ },
+ {
+  "country": "Казахстан",
+  "lang": "казахский",
+  "cities": [
+   {
+    "name": "Алматы",
+    "slug": "almaty",
+    "mark": "mountains"
+   },
+   {
+    "name": "Туркестан",
+    "slug": "turkestan",
+    "mark": "dome"
+   },
+   {
+    "name": "Астана",
+    "slug": "astana",
+    "mark": "tower"
+   },
+   {
+    "name": "Атырау",
+    "slug": "atyrau",
+    "mark": "sea"
+   }
+  ]
+ },
+ {
+  "country": "Нидерланды",
+  "lang": "нидерландский",
+  "cities": [
+   {
+    "name": "Амстердам",
+    "slug": "amsterdam",
+    "mark": "windmill"
+   },
+   {
+    "name": "Гаага",
+    "slug": "gaaga",
+    "mark": "towers"
+   },
+   {
+    "name": "Утрехт",
+    "slug": "utreht",
+    "mark": "spires"
+   },
+   {
+    "name": "Роттердам",
+    "slug": "rotterdam",
+    "mark": "sea"
+   }
+  ]
+ },
+ {
+  "country": "Испания",
+  "lang": "испанский",
+  "cities": [
+   {
+    "name": "Мадрид",
+    "slug": "madrid",
+    "mark": "dome"
+   },
+   {
+    "name": "Барселона",
+    "slug": "barselona",
+    "mark": "spires"
+   },
+   {
+    "name": "Севилья",
+    "slug": "sevilya",
+    "mark": "tower"
+   },
+   {
+    "name": "Валенсия",
+    "slug": "valensiya",
+    "mark": "sea"
+   }
+  ]
+ },
+ {
+  "country": "Греция",
+  "lang": "греческий",
+  "cities": [
+   {
+    "name": "Афины",
+    "slug": "afiny",
+    "mark": "temple"
+   },
+   {
+    "name": "Санторини",
+    "slug": "santorini",
+    "mark": "sea"
+   },
+   {
+    "name": "Крит",
+    "slug": "krit",
+    "mark": "mountains"
+   },
+   {
+    "name": "Дельфы",
+    "slug": "delfy",
+    "mark": "temple"
+   }
+  ]
+ },
+ {
+  "country": "Мексика",
+  "lang": "испанский",
+  "cities": [
+   {
+    "name": "Мехико",
+    "slug": "mehiko",
+    "mark": "pyramid"
+   },
+   {
+    "name": "Оахака",
+    "slug": "oahaka",
+    "mark": "mountains"
+   },
+   {
+    "name": "Юкатан",
+    "slug": "yukatan",
+    "mark": "pyramid"
+   },
+   {
+    "name": "Гвадалахара",
+    "slug": "gvadalahara",
+    "mark": "dome"
+   }
+  ]
+ },
+ {
+  "country": "Южная Корея",
+  "lang": "корейский",
+  "cities": [
+   {
+    "name": "Сеул",
+    "slug": "seul",
+    "mark": "tower"
+   },
+   {
+    "name": "Кёнджу",
+    "slug": "kendzhu",
+    "mark": "pagoda"
+   },
+   {
+    "name": "Пусан",
+    "slug": "pusan",
+    "mark": "sea"
+   },
+   {
+    "name": "Чеджу",
+    "slug": "chedzhu",
+    "mark": "volcano"
+   }
+  ]
+ },
+ {
+  "country": "Великобритания",
+  "lang": "английский",
+  "cities": [
+   {
+    "name": "Лондон",
+    "slug": "london",
+    "mark": "tower"
+   },
+   {
+    "name": "Оксфорд",
+    "slug": "oksford",
+    "mark": "spires"
+   },
+   {
+    "name": "Эдинбург",
+    "slug": "edinburg",
+    "mark": "towers"
+   },
+   {
+    "name": "Бат",
+    "slug": "bat",
+    "mark": "temple"
+   }
+  ]
+ }
+]

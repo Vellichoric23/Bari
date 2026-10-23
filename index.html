@@ -494,6 +494,15 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+.cd-music{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:14px;padding:8px 10px;margin:10px 0}
+.cd-music>div{flex:1;min-width:0;display:grid}
+.cd-music small{color:var(--muted);font-size:12px}
+.mus-btn{width:40px;height:40px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:15px;cursor:pointer;flex:none}
+.mus-btn.on{animation:musPulse 1s ease-in-out infinite}
+@keyframes musPulse{50%{transform:scale(1.08)}}
+.mnotes{animation:mnFloat 1.6s ease-in-out infinite}
+@keyframes mnFloat{50%{transform:translateY(-6px)}}
+
 .care-seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .care-cfg .label{display:block}
 .care-seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -1022,7 +1031,7 @@ function checkinHtml(ci,big){
 async function handleCi(action,id){
   const t=tasks.find(x=>x.id===id); if(!t) return;
   const k=todayKey(), nowD=new Date(), nowM=nowD.getHours()*60+nowD.getMinutes();
-  if(action==="done"){await stopTrack(t,{done:true});restToast(t);}
+  if(action==="done"){await stopTrack(t,{done:true});sfx("done");restToast(t);}
   else if(action==="start") await startTrack(t);
   else if(action==="more"){const n={...t,hours:Number(t.hours||0)+0.25}; if(t.startedAt) await store.saveTask(n); else await startTrack(n); warned.delete(t.id);}
   else if(action==="tomorrow") await stopTrack(t,{date:addDays(k,1)});
@@ -1334,7 +1343,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -1958,6 +1967,7 @@ function cityDayCard(k){
     <div class="cd-head"><span class="label">Город дня · ${esc(j.city)}</span><span class="cd-time">${cityTimeLine(j)}</span></div>
     ${fact?`<p class="cd-fact">${ic("spark")}<span>${esc(fact)}</span></p>`:`<p class="tip">${cityBusy?"BARI собирает факты о городе…":"Факт дня появится, как только BARI его найдёт."}</p>`}
     ${w?`<div class="cd-word"><span class="label">Слово дня</span><b>${flag(j.country,18)} ${esc(w.it)}</b><span>${flag("Великобритания",14)} ${esc(w.en||"")}${w.ru?` · ${esc(w.ru)}`:""}</span>${w.hint?`<small>${esc(w.hint)}</small>`:""}</div>`:""}
+    ${musicRow(j.country)}
     ${d?.history?.text?`<div class="cd-hist"><span class="cd-year hours">${esc(String(d.history.year||""))}</span><div><span class="label">Сегодня в истории</span><p>${esc(d.history.text)}</p></div></div>`:""}
     <p class="tip" style="font-size:12.5px">Нажми на наклейку вверху, чтобы узнать о ней больше.</p>
   </section>`;
@@ -1989,7 +1999,7 @@ function careCard(k){
 }
 function bindDayCards(){
   document.querySelectorAll(".city-chip[data-item]").forEach(c=>c.onclick=()=>openCityItem(c.dataset.item));
-  document.querySelectorAll("[data-care]").forEach(b=>b.onclick=async()=>{const t=tasks.find(x=>x.id===b.dataset.care);if(t&&!t.done){await stopTrack(t,{done:true});toast(BARI_DAY[Math.floor(Math.random()*BARI_DAY.length)]);}});
+  document.querySelectorAll("[data-care]").forEach(b=>b.onclick=async()=>{const t=tasks.find(x=>x.id===b.dataset.care);if(t&&!t.done){await stopTrack(t,{done:true});sfx("done");toast(BARI_DAY[Math.floor(Math.random()*BARI_DAY.length)]);}});
   const m=document.getElementById("careMore"); if(m) m.onclick=()=>{careShift++;render();};
   ensureCityDay();
 }
@@ -2036,6 +2046,7 @@ function levelChip(){
 }
 function storyHtml(n){const st=STORY[n-1];return `<div class="story"><span class="label">${esc(st.h)}</span><p>${esc(gx(st.t))}</p></div>`;}
 function openLevel(n){
+  if(n)sfx("chime");
   const xp=xpTotal(), L=levelOf(xp), show=n||L.n;
   openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">${bari({mood:"joy",wave:true,prop:PROPS.spark,size:120,lvl:show})}
     <h3>${n?"Новая глава!":"История BARI"}</h3><p class="tip">Уровень ${L.n} · ${L.name} · ${xp} баллов</p>
@@ -2657,6 +2668,7 @@ function badgesHtml(){
     <div class="medals">${b.map(x=>`<button class="medal t${x.tier} ${x.ok?"on":""}" data-badge="${x.id}"><span class="medal-c">${glyph(x.g,30)}${x.tier?`<i class="medal-s">${"★".repeat(x.tier)}</i>`:""}</span><b>${esc(x.n)}</b><small>${esc(x.d)}</small></button>`).join("")}</div></div>`;
 }
 function openBadge(id,fresh){
+  if(fresh)sfx("chime");
   const x=badgeList().find(z=>z.id===id); if(!x) return;
   openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">
     <div class="medal big t${x.tier} ${x.ok?"on":""}"><span class="medal-c">${glyph(x.g,52)}</span></div>
@@ -2995,6 +3007,127 @@ const RITUALS={
 };
 function ritualProp(p){return RPROP[p]!==undefined?RPROP[p]:GLYPHS[p]?HAND(p):"";}
 
+/* ---------- sound: UI blips and city melodies, synthesized with Web Audio ---------- */
+let AC=null, MASTER=null;
+function ac(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();MASTER=AC.createGain();MASTER.gain.value=.8;MASTER.connect(AC.destination);}if(AC.state==="suspended")AC.resume()?.catch?.(()=>{});return AC;}catch(e){return null;}}
+const soundOn=()=>settings.sounds!==false;
+const NOTE=n=>{const m=/^([A-G])(#|b)?(\d)$/.exec(n);if(!m)return 0;const s={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]]+(m[2]==="#"?1:m[2]==="b"?-1:0);return 440*Math.pow(2,(s+(+m[3]+1)*12-69)/12);};
+const INST={
+  koto:{vol:1.5,type:"triangle",dec:1.3,lp:3200,h:2,hv:.25},
+  dombyra:{vol:1.5,type:"sawtooth",dec:.45,lp:1700,h:2,hv:.2},
+  mandolin:{vol:1.5,type:"sawtooth",dec:.22,lp:2600,trem:.075},
+  accordion:{vol:.55,type:"sawtooth",sus:.55,lp:1500,detune:9,att:.04,rel:.09},
+  guitar:{vol:1.5,type:"triangle",dec:1,lp:2200,h:2,hv:.3},
+  bouzouki:{vol:1.5,type:"sawtooth",dec:.35,lp:2800,trem:.09,h:2,hv:.15},
+  kantele:{vol:1.5,type:"triangle",dec:1.8,lp:2600,h:3,hv:.12},
+  organ:{vol:.3,type:"square",sus:.4,lp:2000,detune:6,att:.01,rel:.05},
+  marimba:{vol:1.5,type:"sine",dec:.45,h:4,hv:.18},
+  gayageum:{vol:1.5,type:"triangle",dec:1.1,lp:1900,vib:5},
+  harpsichord:{vol:1.5,type:"sawtooth",dec:.7,lp:3600,h:2,hv:.15},
+  sine:{type:"sine",dec:.3}
+};
+function voice(f,t,d,inst,v,dest){
+  const c=AC, I=INST[inst]||INST.sine, g=c.createGain(); let head=g; v*=I.vol||1;
+  if(I.lp){const fl=c.createBiquadFilter();fl.type="lowpass";fl.frequency.value=I.lp;fl.connect(g);head=fl;}
+  g.connect(dest||MASTER);
+  const end=I.sus?t+d+(I.rel||.06):t+Math.min(I.dec,d+I.dec*.6);
+  const osc=(freq,det,type,gain)=>{const o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(freq,t);if(det)o.detune.value=det;
+    if(I.vib){const l=c.createOscillator(),lg=c.createGain();l.frequency.value=I.vib;lg.gain.value=freq*.006;l.connect(lg);lg.connect(o.frequency);l.start(t+.15);l.stop(end+.05);}
+    if(gain!==1){const og=c.createGain();og.gain.value=gain;o.connect(og);og.connect(head);}else o.connect(head);o.start(t);o.stop(end+.05);};
+  osc(f,0,I.type,1); if(I.detune) osc(f,I.detune,I.type,1); if(I.h) osc(f*I.h,0,"sine",I.hv||.2);
+  g.gain.setValueAtTime(0.0001,t);
+  if(I.sus){g.gain.exponentialRampToValueAtTime(v,t+(I.att||.01));g.gain.setValueAtTime(v*I.sus*1.6,t+d);g.gain.exponentialRampToValueAtTime(0.0001,end);}
+  else{g.gain.exponentialRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(0.0001,end);}
+}
+function playNote(f,t,d,inst,v,dest){const I=INST[inst]||INST.sine;
+  if(I.trem&&d>=.35){for(let x=0;x<d-.02;x+=I.trem) voice(f,t+x,I.trem,inst,v*(x?0.7:1),dest);} else voice(f,t,d,inst,v,dest);}
+/* UI sounds */
+function sfx(kind){
+  if(!soundOn()) return; const c=ac(); if(!c) return; const t=c.currentTime+.01;
+  if(kind==="blip"){const o=c.createOscillator(),g=c.createGain();o.type="triangle";o.frequency.setValueAtTime(1250,t);o.frequency.exponentialRampToValueAtTime(1500,t+.04);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.07,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.07);o.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.09);}
+  else if(kind==="pop"){const o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.setValueAtTime(380,t);o.frequency.exponentialRampToValueAtTime(980,t+.07);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.28,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.14);o.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.16);}
+  else if(kind==="done"){sfx("pop");["E6","B6"].forEach((n,i)=>voice(NOTE(n),t+.08+i*.07,.2,"marimba",.12));}
+  else if(kind==="chime"){["C6","E6","G6","C7"].forEach((n,i)=>voice(NOTE(n),t+i*.09,.4,"koto",.12));}
+  else if(kind==="soft"){voice(NOTE("A5"),t,.1,"marimba",.08);}
+}
+/* city melodies: public-domain folk tunes or BARI's own tunes in the local style */
+const MUSIC={
+  "Япония":{n:"Сакура, сакура",i:"кото",inst:"koto",bpm:72,kind:"японская народная песня",
+    mel:"A4:1 A4:1 B4:2 A4:1 A4:1 B4:2 A4:1 B4:1 C5:1 B4:1 A4:1 B4:.5 A4:.5 F4:2 E4:1 C4:1 E4:1 F4:1 E4:1 E4:.5 C4:.5 B3:2 A4:1 B4:1 C5:1 B4:1 A4:1 B4:.5 A4:.5 F4:2 E4:1 C4:1 E4:1 F4:1 E4:1 E4:.5 C4:.5 B3:2 A4:1 A4:1 B4:2 A4:1 A4:1 B4:2 E4:1 F4:1 B4:.5 A4:.5 F4:1 E4:4",
+    s:"«Сакура, сакура» — японская народная песня о весеннем цветении. Её мелодию напечатали в 1888 году в учебнике игры на кото, но сама песня старше — из эпохи Эдо. Кото — длинная цитра с 13 струнами: на неё играют, надев на пальцы маленькие «когти» — цумэ. Весной, на ханами, эту песню знает каждый."},
+  "Казахстан":{n:"Наигрыш на домбре",i:"домбра",inst:"dombyra",bpm:132,kind:"BARI сочинил в духе кюя",
+    mel:"A4:.5 G4:.5 A4:.5 D5:.5 C5:.5 A4:.5 G4:.5 A4:.5 F4:.5 G4:.5 A4:1 R:.5 A4:.5 C5:.5 D5:.5 E5:.5 D5:.5 C5:.5 A4:.5 G4:.5 F4:.5 E4:.5 D4:1.5 R:.5 D4:.5 F4:.5 G4:.5 A4:.5 C5:.5 A4:.5 G4:.5 F4:.5 G4:.5 A4:.5 D5:1 C5:.5 A4:.5 G4:.5 E4:.5 F4:.5 G4:.5 A4:.5 G4:.5 F4:.5 E4:.5 D4:2",
+    drone:"D3:.5 A3:.5",
+    s:"Кюй — казахская инструментальная пьеса-рассказ на домбре. Самая известная легенда — о кюе «Ақсақ құлан». На охоте на куланов погиб Жошы, сын Чингисхана. Хан пригрозил залить горло свинцом тому, кто принесёт дурную весть. Кюйши Кетбуга молча сыграл кюй — и хан всё понял без слов. Тогда свинцом «наказали» домбру — и, по легенде, с тех пор у неё есть отверстие в деке. Этот наигрыш BARI сочинил сам — в духе кюя."},
+  "Италия":{n:"Тарантелла",i:"мандолина",inst:"mandolin",bpm:168,kind:"BARI сочинил в духе тарантеллы",
+    mel:"E5:1 A4:.5 C5:.5 E5:1 A5:1 G5:.5 F5:.5 E5:1 D5:.5 C5:.5 B4:1 G#4:.5 B4:.5 E5:1 D5:1 C5:.5 B4:.5 A4:2 E5:1 A4:.5 C5:.5 E5:1 A5:1 B5:.5 A5:.5 G5:1 F5:.5 E5:.5 D5:1 B4:.5 G#4:.5 B4:1 E5:.5 D5:.5 C5:1 B4:1 A4:2",
+    drone:"A3:1 E3:1",
+    s:"Тарантелла — быстрый весёлый танец юга Италии, названный по городу Таранто. Есть старинное поверье: укушенный пауком-тарантулом должен танцевать до изнеможения, чтобы «вытанцевать» яд. А мандолина, на которой BARI играет, родом из Неаполя XVIII века — её узнаёшь по звенящему тремоло. Мелодию BARI сочинил сам — в духе тарантеллы."},
+  "Франция":{n:"Frère Jacques",i:"аккордеон",inst:"accordion",bpm:104,kind:"французская детская песенка",
+    mel:"C5:1 D5:1 E5:1 C5:1 C5:1 D5:1 E5:1 C5:1 E5:1 F5:1 G5:2 E5:1 F5:1 G5:2 G5:.5 A5:.5 G5:.5 F5:.5 E5:1 C5:1 G5:.5 A5:.5 G5:.5 F5:.5 E5:1 C5:1 C5:1 G4:1 C5:2 C5:1 G4:1 C5:2",
+    drone:"C3:1 G3:1",
+    s:"«Frère Jacques» — французская песенка XVIII века о монахе, который проспал: «Dormez-vous? Sonnez les matines!» — «Спишь? Звони к заутрене!». Её поют каноном: каждый следующий голос вступает на такт позже. Густав Малер превратил её в грустный марш в своей Первой симфонии. А аккордеон стал голосом парижских танцевальных вечеров — бал-мюзетов — в начале XX века."},
+  "Испания":{n:"Андалузская каденция",i:"гитара",inst:"guitar",bpm:100,kind:"BARI сочинил на классических аккордах фламенко",
+    mel:"E5:1 F5:.5 E5:.5 D5:1 C5:1 D5:.5 C5:.5 B4:1 G4:2 C5:.5 B4:.5 A4:1 F4:1 A4:1 G#4:1 F4:.5 E4:.5 E4:2 E5:1 F5:.5 E5:.5 D5:1 C5:1 B4:1 C5:.5 B4:.5 A4:1 G4:1 A4:1 C5:1 B4:.5 A4:.5 F4:1 G#4:.5 F4:.5 E4:3 R:1",
+    chords:[["A3","C4","E4"],["G3","B3","D4"],["F3","A3","C4"],["E3","G#3","B3"]],bar:4,
+    s:"Четыре аккорда, шагающие вниз — ля минор, соль, фа, ми, — называют андалузской каденцией. На ней построены сотни мелодий фламенко, а ещё множества песен по всему миру. Современный вид испанской гитары придумал мастер Антонио де Торрес в XIX веке. Мелодию BARI сочинил сам на этих аккордах."},
+  "Греция":{n:"Наигрыш на бузуки",i:"бузуки",inst:"bouzouki",bpm:120,kind:"BARI сочинил в греческом ладу",
+    mel:"D5:.5 Eb5:.5 F#5:.5 G5:.5 A5:1 G5:.5 F#5:.5 G5:1 F#5:.5 Eb5:.5 D5:2 A4:.5 Bb4:.5 C5:.5 D5:.5 Eb5:1 D5:.5 C5:.5 Bb4:1 A4:.5 G4:.5 A4:2 D5:.5 Eb5:.5 F#5:.5 G5:.5 A5:1 Bb5:.5 A5:.5 G5:1 F#5:.5 Eb5:.5 D5:1 C5:.5 Bb4:.5 A4:1 Bb4:.5 A4:.5 G4:.5 F#4:.5 G4:.5 A4:.5 D4:2",
+    drone:"D3:1 A3:1",
+    s:"Бузуки — греческий щипковый инструмент с длинным грифом и звонким тремоло. А знаешь, что «сиртаки» — вовсе не древний танец? Его придумали в 1964 году для фильма «Грек Зорба», и он так полюбился, что теперь его танцуют как народный. Этот наигрыш BARI сочинил сам — в восточном греческом ладу."},
+  "Финляндия":{n:"Наигрыш на кантеле",i:"кантеле",inst:"kantele",bpm:80,kind:"BARI сочинил в духе рун",
+    mel:"D4:1 F4:1 G4:1 A4:1 C5:1 A4:1 G4:2 F4:1 G4:1 A4:1 G4:1 F4:1 D4:1 F4:2 A4:1 C5:1 D5:1 C5:1 A4:1 G4:1 A4:2 G4:1 F4:1 G4:1 A4:1 F4:1 E4:1 D4:3 R:1",
+    drone:"D3:2 A3:2",
+    s:"Кантеле — национальный инструмент Финляндии, маленькая цитра, которую держат на коленях. В «Калевале» мудрец Вяйнямёйнен сделал первое кантеле из челюсти огромной щуки. Когда он заиграл, послушать пришли все звери и птицы, а сам он заплакал — и его слёзы стали жемчугом. Мелодию BARI сочинил сам — в духе старинных рун."},
+  "Нидерланды":{n:"Вальс шарманки",i:"уличный орган",inst:"organ",bpm:150,kind:"BARI сочинил в духе уличного органа",
+    mel:"C5:1 E5:1 G5:1 G5:2 E5:1 F5:1 D5:1 B4:1 G4:3 A4:1 B4:1 C5:1 D5:2 F5:1 E5:1 C5:1 A4:1 G4:3 C5:1 E5:1 G5:1 C6:2 B5:1 A5:1 F5:1 D5:1 B4:3 C5:1 E5:1 D5:1 G4:1 B4:1 D5:1 C5:3 R:3",
+    bass:"C3:1 G3:1 G3:1 C3:1 G3:1 G3:1 G2:1 F3:1 F3:1 G2:1 F3:1 F3:1 F2:1 C3:1 C3:1 G2:1 F3:1 F3:1 F2:1 A3:1 A3:1 C3:1 E3:1 E3:1 C3:1 G3:1 G3:1 C3:1 G3:1 G3:1 F2:1 C3:1 C3:1 G2:1 F3:1 F3:1 C3:1 G3:1 G3:1 G2:1 F3:1 F3:1 C3:1 E3:1 E3:1 C3:3",
+    s:"Уличные органы — draaiorgels — играют на улицах Амстердама больше ста лет. Это огромные расписные шкафы на колёсах: внутри сотни трубок, а мелодия записана дырочками на складной картонной «книге». Шарманщик крутит ручку и звенит монетками в баночке. Вальс BARI сочинил сам — в духе этих органов."},
+  "Мексика":{n:"La Cucaracha",i:"маримба",inst:"marimba",bpm:176,kind:"мексиканская народная песня",
+    mel:"G4:.5 G4:.5 G4:.5 C5:1.5 E5:1 R:.5 G4:.5 G4:.5 G4:.5 C5:1.5 E5:1 R:1 C5:1 C5:.5 B4:.5 B4:.5 A4:.5 A4:.5 G4:2 R:.5 G4:.5 G4:.5 G4:.5 B4:1.5 D5:1 R:.5 G4:.5 G4:.5 G4:.5 B4:1.5 D5:1 R:1 G5:1 A5:.5 G5:.5 F5:.5 E5:.5 D5:.5 C5:2",
+    bass:"C3:2 G3:2 C3:2 G3:2 C3:2 G3:2 G2:2 D3:2 G2:2 D3:2 G2:2 D3:2 C3:4",
+    s:"«La Cucaracha» — «Таракашка» — старинная испанская песенка, которая стала знаменитой во время Мексиканской революции 1910-х: солдаты сочиняли к ней всё новые и новые смешные куплеты. Маримба — большой деревянный ксилофон, национальный инструмент юга Мексики, особенно штата Чьяпас. На ней часто играют вчетвером."},
+  "Южная Корея":{n:"Наигрыш на каягыме",i:"каягым",inst:"gayageum",bpm:66,kind:"BARI сочинил на пентатонике",
+    mel:"G4:2 A4:1 C5:1.5 D5:.5 C5:1 A4:2 G4:1 E4:1.5 G4:.5 A4:1 G4:3 D5:2 E5:1 D5:1.5 C5:.5 A4:1 C5:2 A4:1 G4:1.5 E4:.5 D4:1 G4:3",
+    drone:"G2:3",
+    s:"Каягым — корейская цитра с 12 шёлковыми струнами. По преданию, её придумал король Касиль из древнего государства Кая в VI веке. Корейская народная музыка часто строится на пентатонике — пятиступенной гамме. На ней же построена и «Ариран» — главная народная песня Кореи из списка ЮНЕСКО. Этот наигрыш BARI сочинил сам."},
+  "Великобритания":{n:"Greensleeves",i:"клавесин",inst:"harpsichord",bpm:108,kind:"английская мелодия XVI века",
+    mel:"A4:1 C5:2 D5:1 E5:1.5 F5:.5 E5:1 D5:2 B4:1 G4:1.5 A4:.5 B4:1 C5:2 A4:1 A4:1.5 G#4:.5 A4:1 B4:2 G#4:1 E4:2 A4:1 C5:2 D5:1 E5:1.5 F5:.5 E5:1 D5:2 B4:1 G4:1.5 A4:.5 B4:1 C5:1.5 B4:.5 A4:1 G#4:1.5 F#4:.5 G#4:1 A4:3",
+    bass:"R:1 A2:3 C3:3 G2:3 E2:3 A2:3 E2:3 E2:3 A2:3 C3:3 G2:3 E2:3 A2:3 E2:3 A2:3",
+    s:"«Greensleeves» — «Зелёные рукава» — английская мелодия XVI века. Легенда приписывает её королю Генриху VIII: будто он сочинил её для Анны Болейн. Но музыковеды считают, что мелодия написана позже, в итальянском стиле, пришедшем в Англию уже после его смерти. Клавесин звучит «щипком»: внутри струны задевают маленькие пёрышки-плектры."}
+};
+function seqOf(str){let t=0;return str.trim().split(/\s+/).map(x=>{const [n,d]=x.split(":");const e={n,t,d:+d};t+=+d;return e;});}
+let song=null;
+function stopMusic(){if(!song)return;try{if(song.g)song.g.gain.setTargetAtTime(0.0001,AC.currentTime,.06);const g=song.g;setTimeout(()=>{try{g.disconnect();}catch(e){}},400);}catch(e){}clearTimeout(song.to);song=null;window.bariMusic=null;musicUi();const b=document.getElementById("bariBtn");if(b&&window.bariStateNow)b.innerHTML=bari(window.bariStateNow);const bub=document.getElementById("bariBubble");if(bub)bub.hidden=true;}
+function playMusic(country,loop=0){
+  const M=MUSIC[country]; const c=ac(); if(!M||!c) return;
+  if(song&&loop===0) stopMusic();
+  const g=c.createGain(); g.gain.value=.9; g.connect(MASTER);
+  const spb=60/M.bpm, t0=c.currentTime+.08, mel=seqOf(M.mel), len=mel.reduce((a,e)=>Math.max(a,e.t+e.d),0);
+  mel.forEach(e=>{if(e.n!=="R")playNote(NOTE(e.n),t0+e.t*spb,e.d*spb,M.inst,.22,g);});
+  if(M.bass){seqOf(M.bass).forEach(e=>{if(e.n!=="R"&&e.t<len)playNote(NOTE(e.n),t0+e.t*spb,e.d*spb,M.inst,.12,g);});}
+  if(M.drone){const dr=seqOf(M.drone),dl=dr.reduce((a,e)=>Math.max(a,e.t+e.d),0);for(let o=0;o<len;o+=dl)dr.forEach(e=>{if(o+e.t<len)voice(NOTE(e.n),t0+(o+e.t)*spb,e.d*spb,M.inst,.08,g);});}
+  if(M.chords){let ci=0;for(let b=0;b<len;b+=M.bar,ci++){const ch=M.chords[ci%M.chords.length];[0,2].forEach(off=>{if(b+off<len)ch.forEach((n,k)=>voice(NOTE(n),t0+(b+off)*spb+k*.025,1.4,M.inst,.07,g));});}}
+  song={g,country,loop,to:setTimeout(()=>{if(song&&song.g===g){if(loop<Math.max(1,Math.ceil(36/(len*spb)))-1){song.g=null;try{g.disconnect();}catch(e){}song=null;playMusic(country,loop+1);}else stopMusic();}},(len*spb+.6)*1000)};
+  window.bariMusic=country;
+  if(loop===0){musicUi();const b=document.getElementById("bariBtn");if(b&&window.bariStateNow&&!reducedMotion()){b.innerHTML=bari({...window.bariStateNow,mood:"joy",arms:"hold",prop:(country==="Казахстан"?RPROP.dombyra:"")+NOTES_PROP});b.querySelector("svg.bari")?.classList.add("r-sway");}
+    const bub=document.getElementById("bariBubble");if(bub){bub.textContent=`♪ Играю «${M.n}» — ${M.i}`;bub.hidden=false;setTimeout(()=>{if(bub.textContent.startsWith("♪"))bub.hidden=true;},6000);}}
+}
+const NOTES_PROP=`<g class="mnotes" fill="#FFD166" stroke="#2B2550" stroke-width="1.5"><g transform="translate(150 70) scale(1.4)"><path d="M0 0v22a7 6 0 1 1-3-5V6l16-4v18a7 6 0 1 1-3-5V-2z"/></g><g transform="translate(36 96) scale(1.1)"><path d="M0 0v20a6 5 0 1 1-3-4V0z"/></g></g>`;
+function musicRow(country,noStory){const M=MUSIC[country];if(!M)return "";const on=window.bariMusic===country;
+  return `<div class="cd-music"><button class="mus-btn ${on?"on":""}" data-music="${esc(country)}" aria-label="${on?"Остановить":"Включить"} мелодию">${on?"■":"▶"}</button><div><b>${esc(M.n)}</b><small>${esc(M.i)} · ${esc(M.kind)}</small></div>${noStory?"":`<button class="mini-btn" data-mstory="${esc(country)}">История</button>`}</div>`;}
+function musicUi(){document.querySelectorAll("[data-music]").forEach(b=>{const on=window.bariMusic===b.dataset.music;b.classList.toggle("on",on);b.textContent=on?"■":"▶";});}
+function openMusicStory(country){const M=MUSIC[country];if(!M)return;
+  openSheet(`<div class="ci-sheet"><span class="label">Мелодия города · ${esc(country)}</span><h3 style="margin:0">${esc(M.n)}</h3><p class="tip" style="margin:0">${esc(M.i)} · ${esc(M.kind)}</p><div class="story"><p>${esc(M.s)}</p></div>${musicRow(country,true)}<button class="ghost" id="msClose">Закрыть</button></div>`);
+  document.getElementById("msClose").onclick=closeSheet;}
+document.addEventListener("click",e=>{
+  const m=e.target.closest?.("[data-music]"); if(m){if(window.bariMusic===m.dataset.music)stopMusic();else playMusic(m.dataset.music);return;}
+  const st=e.target.closest?.("[data-mstory]"); if(st){openMusicStory(st.dataset.mstory);return;}
+  if(e.target.closest?.("[data-sounds]")){store.saveSettings({...settings,sounds:settings.sounds===false});setTimeout(()=>{sfx("pop");render();},50);return;}
+  if(e.target.closest?.(".tabbar button,.mini-btn,.seg button,.opt,.mura-item,.mura-sec,.medal,.lvl")) sfx("blip");
+},true);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopMusic();});
+
 const BARI_ACTS=[
   {k:"ritual",w:6},
   {k:"walk",w:6},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
@@ -3014,7 +3147,7 @@ const DRINKS={
 };
 const ACT_LINES={tea:["Чай с молоком — по-казахски!","Пауза на чай ☕"],read:["Читаю про наш город…","Ещё одну страничку!"],wave:["Привет-привет!","Я тут!"]};
 function bariAct(){
-  if(document.hidden||reducedMotion()) return;
+  if(document.hidden||reducedMotion()||window.bariMusic) return;
   const btn=document.getElementById("bariBtn"), hero=document.querySelector(".city-hero"), st=window.bariStateNow;
   if(!btn||!hero||!st||st.mood==="sleep"||!document.getElementById("sheet").hidden) return;
   const bub=document.getElementById("bariBubble"); if(bub&&!bub.hidden) return;
@@ -3794,7 +3927,7 @@ document.addEventListener("click",async e=>{
   const tr=e.target.closest("[data-track]");
   if(tr){const t=tasks.find(x=>x.id===tr.dataset.track);if(t){if(t.startedAt) await stopTrack(t); else await startTrack(t);}return;}
   const tg=e.target.closest("[data-toggle]");
-  if(tg){const t=tasks.find(x=>x.id===tg.dataset.toggle);if(t){if(t.done) await store.saveTask({...t,done:false}); else {await stopTrack(t,{done:true});if(!restToast(t))toast(BARI_LINES[Math.floor(Math.random()*BARI_LINES.length)]);}}return;}
+  if(tg){const t=tasks.find(x=>x.id===tg.dataset.toggle);if(t){if(t.done) await store.saveTask({...t,done:false}); else {await stopTrack(t,{done:true});sfx("done");if(!restToast(t))toast(BARI_LINES[Math.floor(Math.random()*BARI_LINES.length)]);}}return;}
   const ed=e.target.closest("[data-edit]");
   if(ed) openEdit(ed.dataset.edit);
 });

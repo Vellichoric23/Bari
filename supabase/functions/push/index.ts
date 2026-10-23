@@ -20,9 +20,30 @@ const ymd = (d: Date) => d.toISOString().slice(0, 10);
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const keys = await vapid();
-  if (new URL(req.url).searchParams.has("key")) return json({ key: keys.public_key });
+  const qs = new URL(req.url).searchParams;
+  if (qs.has("key")) return json({ key: keys.public_key });
 
   webpush.setVapidDetails("mailto:bari-app@example.com", keys.public_key, keys.private_key);
+
+  // diagnostics for one user: ?check=<user id> → what the server sees and a test push
+  const check = qs.get("check");
+  if (check) {
+    const out: Record<string, unknown> = { now: new Date().toISOString(), version: 2 };
+    const { data: subs, error: e1 } = await sb.from("docs").select("id, data").eq("col", "push").eq("user_id", check);
+    out.subscriptions = subs?.length ?? 0; if (e1) out.subsError = e1.message;
+    const { data: rems, error: e2 } = await sb.from("docs").select("id, data").eq("col", "remind").eq("user_id", check);
+    if (e2) out.remindError = e2.message;
+    const upcoming = (rems ?? []).flatMap((r) => (r.data?.items ?? []).map((i: { at: string; title: string }) => ({ at: i.at, title: i.title })))
+      .filter((i) => Date.parse(i.at) > Date.now() - 15 * 60e3).sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+    out.reminders = upcoming.length; out.next = upcoming.slice(0, 3);
+    const results: string[] = [];
+    for (const s of subs ?? []) {
+      try { await webpush.sendNotification(s.data, JSON.stringify({ title: "BARI: проверка", body: "Если ты это видишь — уведомления работают 🎉", tag: "test" })); results.push("ok"); }
+      catch (e) { const er = e as { statusCode?: number; body?: string; message?: string }; results.push(`error ${er.statusCode ?? ""} ${er.body ?? er.message ?? e}`.slice(0, 300)); }
+    }
+    out.test = results;
+    return json(out);
+  }
   const now = Date.now();
   const days = [-1, 0, 1].map((o) => ymd(new Date(now + o * 864e5)));
   const { data: rems } = await sb.from("docs").select("user_id, id, data").eq("col", "remind").in("id", days);

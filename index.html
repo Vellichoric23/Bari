@@ -671,6 +671,10 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .mi-st{font-size:20px;color:var(--muted)}
 .mura-item.on .mi-st{color:var(--ok)}
 .code-card .lang-tog{margin-top:2px}
+.diag{list-style:none;padding:0;margin:0;display:grid;gap:6px;font-size:14.5px}
+.diag li.ok{color:var(--ok)}
+.diag li.bad{color:var(--warn);font-weight:700}
+.diag-pre{font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2);padding:8px;border-radius:10px;max-height:200px;overflow:auto}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1269,7 +1273,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено в плане":"ждёт Claude"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button>${window.sbClient?`<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("pin")}Где я бываю</h2>
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
@@ -3165,6 +3169,28 @@ document.addEventListener("click",e=>{
   if(e.target.closest?.("#notifOn")) enableNotifications();
   if(e.target.closest?.("#notifLater")){try{localStorage.setItem("bari-notif-later",todayKey());}catch(_){}render();}
 });
+
+async function notifCheck(){
+  const lines=[], add=(ok,t)=>lines.push(`<li class="${ok?"ok":"bad"}">${ok?"✓":"✗"} ${t}</li>`);
+  const st=notifState();
+  add(window.sbClient,"Вход в аккаунт");
+  add(!(isIOS&&!isStandalone()),isIOS?"BARI открыт с главного экрана":"Браузер подходит");
+  add(st==="granted",`Разрешение на уведомления: ${st==="granted"?"есть":st==="denied"?"запрещено в настройках телефона":st==="default"?"ещё не спрашивали":st}`);
+  let sub=null; try{const reg=await navigator.serviceWorker.ready;sub=await reg.pushManager.getSubscription();}catch(e){}
+  add(!!sub,"Телефон подписан на уведомления");
+  if(st==="granted"&&!sub){try{await subscribePush();add(true,"Переподписала телефон");}catch(e){add(false,"Не удалось подписаться: "+(e.message||e));}}
+  if(st==="granted"){try{const reg=await navigator.serviceWorker.ready;await reg.showNotification("BARI: проверка на телефоне",{body:"Это уведомление показало само приложение.",tag:"local-test",icon:"icons/icon-192.png"});add(true,"Местное уведомление отправлено");}catch(e){add(false,"Местное уведомление: "+(e.message||e));}}
+  syncReminders(true);
+  let srv="";
+  try{const cfg=window.BARI_CONFIG||{};const r=await fetch(`${cfg.supabaseUrl}/functions/v1/push?check=${encodeURIComponent(window.sbUserId||"")}`,{headers:{apikey:cfg.supabaseAnonKey}});const j=await r.json();
+    add(j.version===2,`Сервер обновлён${j.version===2?"":" — нужно заново вставить код функции push"}`);
+    if(j.version===2){add(j.subscriptions>0,`Сервер видит подписок: ${j.subscriptions}`);add(j.reminders>0,`Напоминаний впереди: ${j.reminders}`);(j.test||[]).forEach(x=>add(x==="ok",x==="ok"?"Сервер отправил тестовое уведомление":"Ошибка отправки: "+esc(x)));}
+    srv=`<details><summary>Технические детали</summary><pre class="diag-pre">${esc(JSON.stringify(j,null,1))}</pre></details>`;
+  }catch(e){add(false,"Сервер не ответил: "+esc(e.message||String(e)));}
+  openSheet(`<div class="ci-sheet"><h3 style="margin:0">Проверка уведомлений</h3><ul class="diag">${lines.join("")}</ul>${srv}<p class="tip" style="margin:0">Если пришли оба тестовых уведомления — всё работает. Если нет — сделай скриншот этого окна и пришли Claude.</p><button class="primary" id="dgOk">Понятно</button></div>`);
+  document.getElementById("dgOk").onclick=closeSheet;
+}
+document.addEventListener("click",e=>{if(e.target.closest?.("#notifDiag"))notifCheck();});
 /* «Идёт задача» — stays in the notification shade while a task runs */
 const hm=m=>{m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");};
 window.bariOnTrack=async(t,on)=>{
@@ -3184,6 +3210,11 @@ function buildReminders(k){
   const items=[], open=sc.rows.filter(r=>!r.t.done);
   if(open.length) items.push({key:k+"-morning",at:at(sc.ds-10),title:`${userName()?userName()+", д":"Д"}оброе утро!`,body:`Сегодня ${open.length} ${plural(open.length,"задача","задачи","задач")}. Первая: «${open[0].t.title}» в ${hm(open[0].start)}.`});
   for(const r of open){
+    if(r.t.startedAt){
+      const st=new Date(r.t.startedAt), left=Math.max(5,planMin(r.t)-(Number(r.t.spentMin)||0)), end=new Date(st.getTime()+left*60000), em=end.getHours()*60+end.getMinutes();
+      items.push({key:`${k}-${r.t.id}-run-${r.t.startedAt}`,at:end.toISOString(),title:`Уже ${hm(em)}. Сделала?`,body:`Время на «${r.t.title}» по плану вышло. Отметь ✓, продли или перенеси.`});
+      continue;
+    }
     items.push({key:`${k}-${r.t.id}-s-${Math.round(r.start)}`,at:at(r.start),title:`Пора: ${r.t.title}`,body:`${proj(r.t.project).name} · до ${hm(r.start+r.dur)}. Нажми ▶ в BARI, когда начнёшь.`});
     items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:`Уже ${hm(r.start+r.dur)}. Сделала?`,body:`«${r.t.title}» — отметь ✓ или перенеси.`});
   }

@@ -1669,15 +1669,15 @@ const BARI_LINES=["Один шаг — уже движение.","Не всё с
 const JOURNEY=[
   {from:"2026-10",country:"Италия",lang:"итальянский",cities:[["Рим","colosseum"],["Флоренция","dome"],["Венеция","venice"],["Милан","spires"],["Неаполь","volcano"],["Болонья","towers"]]},
   {from:"2026-12",country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Рованиеми","forest"],["Турку","towers"],["Тампере","sea"]]},
-  {from:"2027-01",country:"Япония",lang:"японский",cities:[["Токио","tower"],["Киото","pagoda"],["Осака","pagoda"],["Нара","forest"]]},
+  {from:"2027-01",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","pagoda"],["Нара","forest"]]},
   {from:"2027-02",country:"Франция",lang:"французский",cities:[["Париж","eiffel"],["Лион","dome"],["Прованс","windmill"],["Ницца","sea"]]},
   {from:"2027-03",country:"Казахстан",lang:"казахский",cities:[["Алматы","mountains"],["Туркестан","dome"],["Астана","tower"],["Атырау","sea"]]},
   {from:"2027-04",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","towers"],["Утрехт","spires"],["Роттердам","sea"]]},
   {from:"2027-05",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","tower"],["Валенсия","sea"]]},
   {from:"2027-06",country:"Греция",lang:"греческий",cities:[["Афины","temple"],["Санторини","sea"],["Крит","mountains"],["Дельфы","temple"]]},
   {from:"2027-07",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]},
-  {from:"2027-08",country:"Южная Корея",lang:"корейский",cities:[["Сеул","tower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]},
-  {from:"2027-09",country:"Великобритания",lang:"английский",cities:[["Лондон","tower"],["Оксфорд","spires"],["Эдинбург","towers"],["Бат","temple"]]}
+  {from:"2027-08",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]},
+  {from:"2027-09",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","towers"],["Бат","temple"]]}
 ];
 const JOURNEY_START="2026-10-19";
 function journeyFor(k){
@@ -1707,6 +1707,9 @@ function landmark(mark,c){
     case "spires": return `<rect ${f} x="80" y="100" width="100" height="40"/>${[0,1,2,3,4,5].map(i=>`<path ${f} d="M${82+i*18} 100 L${88+i*18} ${70-(i%2)*10} L${94+i*18} 100Z"/>`).join("")}<path ${f} d="M126 100 L130 50 L134 100Z"/>`;
     case "volcano": return `<path ${f} d="M40 140 L110 70 L124 74 L196 140Z"/><path d="M114 66 Q108 50 120 40 Q130 30 124 18" stroke="${c}" stroke-width="5" fill="none" opacity=".5" stroke-linecap="round"/>`;
     case "towers": return `<rect ${f} x="96" y="50" width="14" height="90"/><rect ${f} x="118" y="70" width="12" height="70" transform="rotate(4 124 140)"/><rect ${f} x="60" y="110" width="120" height="30"/>`;
+    case "tokyotower": return `<g><path d="M123 26 L127 26 L150 140 H100Z" fill="#E5532E"/><path d="M112 96 H138 M106 118 H144 M117 66 H133" stroke="#FFFFFF" stroke-width="5"/><path d="M123 26 L127 26 L150 140 H100Z" fill="none" stroke="#B83A1E" stroke-width="1.2"/><rect x="113" y="80" width="24" height="7" rx="2" fill="#FFFFFF"/><rect x="108" y="102" width="34" height="6" rx="2" fill="#FFFFFF"/><path d="M125 26 V8" stroke="#E5532E" stroke-width="2.4"/><path d="M110 140 Q125 118 140 140" fill="#7E7698"/></g>`;
+    case "seoultower": return `<g><path d="M90 140 Q125 108 160 140Z" fill="#6FA36A"/><rect x="121" y="44" width="8" height="74" fill="#ECE8F4"/><ellipse cx="125" cy="52" rx="15" ry="8" fill="#ECE8F4"/><ellipse cx="125" cy="47" rx="11" ry="4" fill="#C8C2D8"/><path d="M125 40 V12" stroke="#ECE8F4" stroke-width="2.4"/><circle cx="125" cy="12" r="2.4" fill="#E5434D"/></g>`;
+    case "bigben": return `<g><rect x="113" y="50" width="24" height="90" fill="#C9A86A"/><rect x="110" y="44" width="30" height="10" fill="#B8955A"/><circle cx="125" cy="66" r="9" fill="#FFF8E6" stroke="#6B5A3A" stroke-width="1.6"/><path d="M125 66 V60 M125 66 L129 68" stroke="#2A2340" stroke-width="1.4"/><path d="M110 44 L125 14 L140 44Z" fill="#4A5B5A"/><path d="M125 14 V4" stroke="#4A5B5A" stroke-width="2"/>${[0,1,2,3].map(i=>`<rect x="${117+i*5}" y="${84+((i%2)*4)}" width="2" height="48" fill="#A88A52"/>`).join("")}<rect x="60" y="112" width="53" height="28" fill="#C9A86A"/><rect x="137" y="112" width="60" height="28" fill="#C9A86A"/></g>`;
     case "tower": return `<path ${f} d="M120 40 L126 40 L134 140 H112Z"/><rect ${f} x="110" y="78" width="26" height="8" rx="3"/><rect ${f} x="70" y="112" width="110" height="28"/>`;
     case "pagoda": return [0,1,2,3].map(i=>`<path ${f} d="M${92+i*7} ${132-i*22} H${168-i*7} L${158-i*7} ${120-i*22} H${102+i*7}Z"/><rect ${f} x="${106+i*7}" y="${120-i*22}" width="${48-i*14}" height="12"/>`).join("")+`<rect ${f} x="128" y="34" width="4" height="14"/>`;
     case "eiffel": return `<path ${f} d="M128 30 L132 30 L156 140 H144 Q130 112 116 140 H104Z"/><rect ${f} x="114" y="96" width="32" height="6"/><rect ${f} x="120" y="66" width="20" height="5"/>`;
@@ -1781,7 +1784,8 @@ const GLYPHS={
   temple:`<path d="M3 8l9-5 9 5z" fill="#F6F1E8"/><g fill="#EDE6DA"><rect x="5" y="9" width="2" height="9"/><rect x="9" y="9" width="2" height="9"/><rect x="13" y="9" width="2" height="9"/><rect x="17" y="9" width="2" height="9"/></g><rect x="3" y="18" width="18" height="2" fill="#EDE6DA"/>`,
   tower:`<path d="M11 2h2l2 19H9z" fill="#8C7DFF"/><rect x="8" y="9" width="8" height="2" rx="1" fill="#6C5BFF"/>`
 };
-const glyph=(n,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${GLYPHS[n]||GLYPHS.tree}</svg>`;
+const GLYPH_ALIAS={tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat"};
+const glyph=(n,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${GLYPHS[n]||GLYPHS[GLYPH_ALIAS[n]]||GLYPHS.tree}</svg>`;
 /* what to see and taste: city first, then country */
 const CITY_ITEMS={
   "Рим":[["colosseum","Колизей"],["pasta","Карбонара"],["fountain","Фонтан Треви"],["espresso","Эспрессо"],["scooter","Vespa"]],
@@ -1806,7 +1810,7 @@ const COUNTRY_ITEMS={
 const itemsFor=j=>CITY_ITEMS[j.city]||COUNTRY_ITEMS[j.country]||[["tree","Прогулка"]];
 const FOLIAGE={autumn:["#E58A3A","#F2B33D","#C9783B","#D9A441"],winter:["#FFFFFF","#EEF3FF","#DCE6FA","#FFFFFF"],spring:["#FFB3C7","#FFD1DC","#9FD06B","#FFC2D4"],summer:["#7CC23A","#5FA82E","#A6D85A","#6DB33F"]};
 const STONE={colosseum:"#C98F58",dome:"#E3B98A",venice:"#D9A274",spires:"#EFE6DA",volcano:"#8C6A5A",towers:"#C9744A",tower:"#B9AFFF",pagoda:"#E85A4A",eiffel:"#8A7666",windmill:"#C9783B",temple:"#F6F1E8",pyramid:"#D9A96A",mountains:"#8E9CC4",forest:"#3E8E5A",sea:"#E9DCC8"};
-const FACADES={"Италия":["#F2C48D","#E8A87C","#F5D7A1","#D98E5F","#F0B98A"],"Финляндия":["#F4F1EA","#E7D8C9","#C9D6E3","#F2E3C6"],"Япония":["#F4ECE0","#E9D7C3","#D8C3A5","#F2E6D8"],"Франция":["#F3EBDD","#E9DCC8","#F6F0E6","#DCCFBB"],"Казахстан":["#F4ECE0","#E9D7C3","#C9D6E3","#F2E3C6"],default:["#F3E6D3","#E9D2B6","#F6EBDD","#DCC3A5"]};
+const FACADES={"Нидерланды":["#9C4A36","#7E3B2C","#B5654A","#6E4A3A","#C27B5A"],"Великобритания":["#A85A44","#8E4A3A","#C9B79C","#B86A50"],"Мексика":["#F2A541","#E5677D","#2EC4B6","#F7D154","#9B5DE5"],"Испания":["#F6EFE2","#EBD9B4","#F2E3C6","#E3C9A0"],"Южная Корея":["#F4ECE0","#E9DCC8","#EFE4D2"],"Финляндия":["#B5422F","#D9A441","#F4F1EA","#8C3B2E"],"Италия":["#F2C48D","#E8A87C","#F5D7A1","#D98E5F","#F0B98A"],"Япония":["#F4ECE0","#E9D7C3","#D8C3A5","#F2E6D8"],"Франция":["#F3EBDD","#E9DCC8","#F6F0E6","#DCCFBB"],"Казахстан":["#F4ECE0","#E9D7C3","#C9D6E3","#F2E3C6"],default:["#F3E6D3","#E9D2B6","#F6EBDD","#DCC3A5"]};
 function cityBgSvg(k,W=400){
   /* the city fills the top half of the screen (behind the greeting); a quiet piazza continues below the cards */
   const j=journeyFor(k), now=new Date(), se=seasonOf(now), td=todOf(now), S=SKY[se], sky=S[td], night=td==="night", eve=td==="evening";
@@ -1820,16 +1824,13 @@ function cityBgSvg(k,W=400){
   let x=-6, houses="", i=0;
   while(x<W+10){const w=44+((i*37)%30), h=70+((i*53)%60), c=fac[i%fac.length];
     if(x+w>cx-150&&x<cx+150){x=cx+150;i++;continue;}
-    houses+=`<rect x="${x}" y="${BASE-h}" width="${w}" height="${h}" fill="${c}"/><path d="M${x-3} ${BASE-h} H${x+w+3} L${x+w-4} ${BASE-h-10} H${x+4}Z" fill="${roof}"/>`;
-    for(let r=0;r<Math.floor((h-24)/24);r++) for(let cI=0;cI<Math.floor((w-10)/14);cI++){
-      const wx=x+8+cI*14, wy=BASE-h+12+r*24, lit=night&&((i+r+cI)%3!==0);
-      houses+=`<rect x="${wx}" y="${wy}" width="7" height="11" rx="1.5" fill="${lit?"#FFE27A":"#6E7FA8"}" opacity="${lit?1:.55}"/>${j.country==="Италия"?`<rect x="${wx-2}" y="${wy}" width="2" height="11" fill="#6B8F71"/><rect x="${wx+7}" y="${wy}" width="2" height="11" fill="#6B8F71"/>`:""}`;}
+    houses+=houseSvg(j.country,x,w,h,c,i,night,BASE);
     x+=w+2; i++;}
   const tx=[];for(let t=30;t<W;t+=110) tx.push(t);
   const tree=(t,n,base)=>{const c1=leaf[n%4],c2=leaf[(n+1)%4];
     return se==="winter"?`<rect x="${t-3}" y="${base-34}" width="6" height="34" fill="#7A5A44"/><path d="M${t} ${base-32} l-14 -22 M${t} ${base-26} l16 -20 M${t} ${base-40} l0 -26" stroke="#7A5A44" stroke-width="3" stroke-linecap="round"/><ellipse cx="${t}" cy="${base-56}" rx="16" ry="5" fill="#fff"/>`
       :`<rect x="${t-3}" y="${base-36}" width="6" height="36" fill="#7A5A44"/><circle cx="${t}" cy="${base-54}" r="24" fill="${c1}"/><circle cx="${t-15}" cy="${base-42}" r="16" fill="${c2}"/><circle cx="${t+16}" cy="${base-44}" r="17" fill="${c2}"/>`;};
-  const trees=tx.map((t,n)=>tree(t,n,BASE+30)).join("");
+  const trees=tx.map((t,n)=>countryTree(j.country,t,n,BASE+30,se,leaf)||tree(t,n,BASE+30)).join("");
   const lamps=tx.map(t=>t+55).filter(l=>l<W).map(lx=>`<rect x="${lx}" y="${BASE-16}" width="3" height="50" fill="#3B3560"/><circle cx="${lx+1.5}" cy="${BASE-18}" r="5" fill="${night||eve?"#FFE27A":"#F4F1FF"}"/>${night?`<circle cx="${lx+1.5}" cy="${BASE-18}" r="18" fill="#FFE27A" opacity=".25"/>`:""}`).join("");
   const plaza=se==="winter"?"#EEF2FF":night?"#3A3466":"#E9DFD0";
   const stones=Array.from({length:Math.round(W*430/900)},(_,n)=>`<rect x="${(n*53)%W}" y="${440+(n*37)%420}" width="14" height="7" rx="3" fill="${se==="winter"?"#DCE4FA":night?"#463F78":"#DCCFBB"}"/>`).join("");
@@ -1837,9 +1838,9 @@ function cityBgSvg(k,W=400){
   return `<svg viewBox="0 0 ${W} 860" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
     <defs><linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".4" stop-color="${sky[1]}"/></linearGradient></defs>
     <rect width="${W}" height="860" fill="url(#cbg)"/>${sun}${clouds}
-    <path d="M0 250 Q${W*.22} 214 ${W*.5} 240 T${W} 228 V${BASE} H0Z" fill="${S.hill[0]}" opacity=".75" style="${dim}"/>
+    ${backdropSvg(j.country,W,BASE,S,dim,se)}
     <g transform="translate(${cx-206} ${BASE-231}) scale(1.65)" style="${dim}">${landmark(j.mark,STONE[j.mark]||"#E9DCC8")}</g>
-    <g style="${dim}">${houses}</g>
+    <g style="${dim}">${houses}${streetExtras(j.country,W,BASE,night,se)}</g>
     ${se==="winter"?`<rect y="${BASE-4}" width="${W}" height="6" fill="#fff"/>`:""}
     <rect y="${BASE}" width="${W}" height="32" fill="${se==="winter"?"#F4F7FF":"#CFC6B8"}" style="${dim}"/>
     <g style="${dim}">${trees}</g>${lamps}
@@ -1910,8 +1911,9 @@ const dayInfo=k=>cityday[k]||(typeof contentCache!=="undefined"&&contentCache.ci
 const itemInfo=j=>cityinfo[slug(j.city)]||(typeof contentCache!=="undefined"&&contentCache.city?.[slug(j.city)])||null;
 function cityDayCard(k){
   const j=journeyFor(k), d=dayInfo(k), lesson=erud[k];
-  const fact=d?.fact||lesson?.facts?.[0]||"";
-  const w=d?.word?.it?d.word:(lesson?.words?.[0]||null);
+  const sameCity=lesson&&(!lesson.city||lesson.city===j.city);
+  const fact=d?.fact||(sameCity?lesson?.facts?.[0]:"")||"";
+  const w=d?.word?.it?d.word:(sameCity?lesson?.words?.[0]:null)||null;
   return `<section class="card cityday">
     <div class="cd-head"><span class="label">Город дня · ${esc(j.city)}</span><span class="cd-time">${cityTimeLine(j)}</span></div>
     ${fact?`<p class="cd-fact">${ic("spark")}<span>${esc(fact)}</span></p>`:`<p class="tip">${cityBusy?"BARI собирает факты о городе…":"Факт дня появится, как только BARI его найдёт."}</p>`}
@@ -3106,6 +3108,90 @@ document.addEventListener("click",e=>{
   try{localStorage.setItem("bari-collapsed",JSON.stringify(colState));}catch(_){}
   applyCollapse(document.getElementById("view-today"));
 });
+/* ---------- country-styled streets ---------- */
+function winGrid(x,y,w,h,night,seed,opts={}){
+  let o=""; const cw=opts.cw||7, ch=opts.ch||11, gx=opts.gx||14, gy=opts.gy||24;
+  for(let r=0;r<Math.floor((h-24)/gy);r++) for(let c=0;c<Math.floor((w-10)/gx);c++){
+    const wx=x+8+c*gx, wy=y+12+r*gy, lit=night&&((seed+r+c)%3!==0);
+    o+=`<rect x="${wx}" y="${wy}" width="${cw}" height="${ch}" rx="${opts.rx??1.5}" fill="${lit?"#FFE27A":(opts.wc||"#6E7FA8")}" opacity="${lit?1:.6}"/>`;
+    if(opts.frame) o+=`<rect x="${wx-1}" y="${wy-1}" width="${cw+2}" height="${ch+2}" rx="1" fill="none" stroke="${opts.frame}" stroke-width="1.6"/>`;
+    if(opts.shutters) o+=`<rect x="${wx-2}" y="${wy}" width="2" height="${ch}" fill="${opts.shutters}"/><rect x="${wx+cw}" y="${wy}" width="2" height="${ch}" fill="${opts.shutters}"/>`;
+  }
+  return o;
+}
+function houseSvg(country,x,w,h,c,i,night,B){
+  const y=B-h;
+  switch(country){
+    case "Япония":{ const hh=Math.min(h,70)+10, yy=B-hh;
+      return `<rect x="${x}" y="${yy}" width="${w}" height="${hh}" fill="${c}"/>
+        <path d="M${x-8} ${yy+2} Q${x+w/2} ${yy-6} ${x+w+8} ${yy+2} L${x+w-2} ${yy-12} Q${x+w/2} ${yy-18} ${x+2} ${yy-12}Z" fill="#3E3A4F"/>
+        ${winGrid(x,yy,w,hh,night,i,{wc:"#E9DCC3",cw:10,ch:14,gx:16,rx:0,frame:"#6B4E3A"})}
+        <line x1="${x+w/2}" y1="${yy+2}" x2="${x+w/2}" y2="${yy+10}" stroke="#3E3A4F"/><ellipse cx="${x+w/2}" cy="${yy+16}" rx="5" ry="7" fill="#E5434D"/>`; }
+    case "Южная Корея":{ const hh=Math.min(h,64)+8, yy=B-hh;
+      return `<rect x="${x}" y="${yy}" width="${w}" height="${hh}" fill="${c}"/><rect x="${x}" y="${B-12}" width="${w}" height="12" fill="#9C8B7A"/>
+        <path d="M${x-12} ${yy-10} Q${x-4} ${yy+2} ${x+6} ${yy} H${x+w-6} Q${x+w+4} ${yy+2} ${x+w+12} ${yy-10} Q${x+w/2} ${yy-6} ${x-12} ${yy-10}Z M${x+4} ${yy-6} Q${x+w/2} ${yy-22} ${x+w-4} ${yy-6}Z" fill="#46424F"/>
+        ${winGrid(x,yy,w,hh,night,i,{wc:"#F4EAD6",cw:11,ch:14,gx:17,rx:0,frame:"#8C5A3C"})}`; }
+    case "Нидерланды":{ const ww=Math.max(30,w-14), steps=[0,6,12];
+      const gable=`M${x} ${y} ${steps.map((s,n)=>`V${y-8-n*8} H${x+s+6} `).join("")}H${x+ww-18} ${steps.map((s,n)=>`V${y-24+n*8} H${x+ww-12+n*6} `).join("")}V${y}Z`;
+      return `<rect x="${x}" y="${y}" width="${ww}" height="${h}" fill="${c}"/><path d="${gable}" fill="${c}"/>
+        ${winGrid(x,y,ww,h,night,i,{wc:"#4A5B7A",cw:9,ch:13,gx:13,frame:"#FFFFFF"})}`; }
+    case "Греция":{
+      return `<rect x="${x}" y="${y+10}" width="${w}" height="${h-10}" fill="#FFFFFF"/><rect x="${x+w/2-6}" y="${B-22}" width="12" height="22" rx="6" fill="#2F6DB5"/>
+        ${i%3===1?`<path d="M${x+w/2-16} ${y+10} A16 16 0 0 1 ${x+w/2+16} ${y+10}Z" fill="#2F6DB5"/><path d="M${x+w/2} ${y-6} v-8 M${x+w/2-4} ${y-10} h8" stroke="#2F6DB5" stroke-width="2"/>`:""}
+        ${winGrid(x,y+10,w,h-34,night,i,{wc:"#2F6DB5",cw:8,ch:10,gx:16})}`; }
+    case "Мексика":{
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/><rect x="${x}" y="${y}" width="${w}" height="6" fill="#FFFFFF" opacity=".6"/>
+        <path d="M${x+8} ${B} V${B-18} A${(w-16)/2} 12 0 0 1 ${x+w-8} ${B-18} V${B}Z" fill="#7A4A2E" opacity=".7"/>
+        ${winGrid(x,y,w,h-26,night,i,{wc:"#2B6CB0",cw:8,ch:12,gx:16,frame:"#FFFFFF"})}`; }
+    case "Великобритания":{
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/><path d="M${x-2} ${y} L${x+w/2} ${y-16} L${x+w+2} ${y}Z" fill="#4A4458"/>
+        <rect x="${x+w-14}" y="${y-22}" width="7" height="14" fill="#8C4A3C"/>
+        ${winGrid(x,y,w,h,night,i,{wc:"#5B6A8A",cw:9,ch:13,gx:15,frame:"#FFFFFF"})}`; }
+    case "Финляндия":{
+      return `<rect x="${x}" y="${y+6}" width="${w}" height="${h-6}" fill="${c}"/>${Array.from({length:Math.floor((h-6)/8)},(_,n)=>`<line x1="${x}" y1="${y+10+n*8}" x2="${x+w}" y2="${y+10+n*8}" stroke="#000" opacity=".08"/>`).join("")}
+        <path d="M${x-5} ${y+8} L${x+w/2} ${y-22} L${x+w+5} ${y+8}Z" fill="#3C3A48"/>
+        ${winGrid(x,y+6,w,h-6,night,i,{wc:"#6E7FA8",cw:9,ch:12,gx:16,frame:"#FFFFFF"})}`; }
+    case "Франция":{
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/><path d="M${x-2} ${y} L${x+6} ${y-16} H${x+w-6} L${x+w+2} ${y}Z" fill="#6E7A8C"/>
+        ${Array.from({length:Math.floor((w-10)/14)},(_,n)=>`<rect x="${x+8+n*14}" y="${y-12}" width="6" height="8" rx="3" fill="#E9E2D6"/>`).join("")}
+        ${winGrid(x,y,w,h,night,i,{wc:"#5B6A8A",cw:7,ch:13,gx:14})}
+        ${Array.from({length:Math.floor((h-24)/24)},(_,r)=>`<line x1="${x+3}" y1="${y+26+r*24}" x2="${x+w-3}" y2="${y+26+r*24}" stroke="#2A2340" stroke-width="1.6"/>`).join("")}`; }
+    case "Испания":{
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/><path d="M${x-3} ${y} H${x+w+3} L${x+w-4} ${y-9} H${x+4}Z" fill="#C25B3A"/>
+        ${winGrid(x,y,w,h,night,i,{wc:"#5B6A8A",cw:7,ch:12,gx:15})}
+        ${Array.from({length:Math.floor((h-24)/24)},(_,r)=>`<rect x="${x+4}" y="${y+24+r*24}" width="${w-8}" height="3" fill="#2A2340" opacity=".75"/>`).join("")}`; }
+    case "Казахстан":{
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/><rect x="${x}" y="${y}" width="${w}" height="5" fill="#00AFCA" opacity=".7"/>
+        ${winGrid(x,y,w,h,night,i,{wc:"#5B7FA8",cw:9,ch:12,gx:14})}`; }
+    default:
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/><path d="M${x-3} ${y} H${x+w+3} L${x+w-4} ${y-10} H${x+4}Z" fill="${country==="Италия"?"#C25B3A":"#8C5A4A"}"/>
+        ${winGrid(x,y,w,h,night,i,country==="Италия"?{shutters:"#6B8F71"}:{})}`;
+  }
+}
+function streetExtras(country,W,B,night,se){
+  const ex=[];
+  if(country==="Япония") ex.push(`<g transform="translate(${Math.round(W*.86)} ${B-58})"><rect x="-26" y="0" width="5" height="58" fill="#D83A2E"/><rect x="21" y="0" width="5" height="58" fill="#D83A2E"/><path d="M-36 -2 Q0 -10 36 -2 V5 Q0 -3 -36 5Z" fill="#D83A2E"/><rect x="-30" y="12" width="60" height="5" fill="#D83A2E"/></g>`);
+  if(country==="Южная Корея"||country==="Япония") ex.push(`<path d="M0 ${B-74} Q${W/2} ${B-56} ${W} ${B-74}" stroke="#3E3A4F" stroke-width="1.2" fill="none"/>${Array.from({length:Math.round(W/46)},(_,n)=>{const lx=20+n*46,ly=B-74+Math.sin((lx/W)*Math.PI)*18;return `<ellipse cx="${lx}" cy="${ly+8}" rx="6" ry="8" fill="${night?"#FFB347":"#E5434D"}"/>`;}).join("")}`);
+  if(country==="Мексика") ex.push(`<path d="M0 ${B-118} Q${W/2} ${B-96} ${W} ${B-118}" stroke="#7A4A2E" stroke-width="1" fill="none"/>${Array.from({length:Math.round(W/20)},(_,n)=>{const fx=8+n*20,fy=B-118+Math.sin((fx/W)*Math.PI)*22;return `<path d="M${fx} ${fy} h14 v12 l-7 -4 l-7 4Z" fill="${["#E5434D","#FFD166","#2EC4B6","#FF8FAB","#7CC23A"][n%5]}"/>`;}).join("")}`);
+  if(country==="Великобритания") ex.push(`<g transform="translate(${Math.round(W*.9)} ${B-46})"><rect x="0" y="0" width="16" height="46" rx="3" fill="#D7262E"/><rect x="3" y="6" width="10" height="26" fill="#FBE8E8" opacity=".7"/><rect x="-1" y="-4" width="18" height="6" rx="3" fill="#B71E25"/></g>`);
+  if(country==="Казахстан") ex.push(`<g transform="translate(${Math.round(W*.9)} ${B-34})"><path d="M-30 34 V14 Q0 -6 30 14 V34Z" fill="#F4F1EA"/><path d="M-30 14 Q0 -6 30 14" stroke="#C0263A" stroke-width="3" fill="none"/><rect x="-6" y="18" width="12" height="16" fill="#C0263A"/><circle cx="0" cy="3" r="4" fill="#E0A93A"/></g>`);
+  if(country==="Нидерланды") ex.push(`<rect y="${B+6}" width="${W}" height="10" fill="#5B8FB0" opacity=".7"/>`);
+  return ex.join("");
+}
+function backdropSvg(country,W,B,S,dim,se){
+  if(country==="Казахстан") return `<path d="M0 ${B-60} L${W*.12} 150 L${W*.24} 205 L${W*.4} 120 L${W*.55} 190 L${W*.7} 135 L${W*.86} 200 L${W} 160 V${B} H0Z" fill="#8FA3C8" opacity=".85" style="${dim}"/><path d="M${W*.4-26} 156 L${W*.4} 120 L${W*.4+24} 152 L${W*.4+8} 160 L${W*.4-6} 150Z M${W*.7-24} 166 L${W*.7} 135 L${W*.7+22} 165Z M${W*.12-20} 180 L${W*.12} 150 L${W*.12+18} 178Z" fill="#FFFFFF" style="${dim}"/>`;
+  if(country==="Финляндия") return `<path d="M0 250 Q${W*.22} 214 ${W*.5} 240 T${W} 228 V${B} H0Z" fill="#5E7A6A" opacity=".75" style="${dim}"/>`;
+  if(country==="Греция") return `<rect y="232" width="${W}" height="${B-232}" fill="#3E86C4" opacity=".55" style="${dim}"/>`;
+  return `<path d="M0 250 Q${W*.22} 214 ${W*.5} 240 T${W} 228 V${B} H0Z" fill="${S.hill[0]}" opacity=".75" style="${dim}"/>`;
+}
+function countryTree(country,t,n,base,se,leaf){
+  if(country==="Финляндия") return `<rect x="${t-3}" y="${base-20}" width="6" height="20" fill="#5A4636"/><path d="M${t} ${base-86} L${t-20} ${base-40} H${t+20}Z M${t} ${base-70} L${t-24} ${base-20} H${t+24}Z" fill="${se==="winter"?"#D9E4F2":"#2E6B4A"}"/>`;
+  if(country==="Мексика") return `<g fill="#4F9A5A"><rect x="${t-7}" y="${base-70}" width="14" height="70" rx="7"/><rect x="${t-24}" y="${base-50}" width="11" height="30" rx="5.5"/><rect x="${t+13}" y="${base-58}" width="11" height="30" rx="5.5"/><rect x="${t-17}" y="${base-26}" width="12" height="6"/><rect x="${t+5}" y="${base-32}" width="12" height="6"/></g>`;
+  if(country==="Испания"||country==="Греция") return `<rect x="${t-3}" y="${base-64}" width="6" height="64" fill="#8C6A4A"/>${[-50,-20,10,40,160,190].map(a=>`<ellipse cx="${t}" cy="${base-66}" rx="22" ry="5" fill="#4F9A5A" transform="rotate(${a} ${t} ${base-66})"/>`).join("")}`;
+  if(country==="Япония"&&se==="spring") return `<rect x="${t-3}" y="${base-36}" width="6" height="36" fill="#6B4E3A"/><circle cx="${t}" cy="${base-54}" r="24" fill="#FFC2D4"/><circle cx="${t-15}" cy="${base-42}" r="16" fill="#FFB3C7"/><circle cx="${t+16}" cy="${base-44}" r="17" fill="#FFD1DC"/>`;
+  return null;
+}
+
 /* «Для тебя» — compact tiles instead of a long scroll */
 let forYouOpen=null;
 function forYouHtml(k){
@@ -3577,6 +3663,7 @@ function renderMe(){
     ${passportHtml()}
     ${badgesHtml()}
     <h2>${ic(tp.icon)}Урок дня</h2>
+    ${e&&e.city&&e.city!==j.city?`<p class="lib-cap2" style="margin:0 0 8px">BARI ещё готовит урок про ${esc(j.city)}. Пока — урок из города ${esc(e.city)} (${esc(e.country||"")}).</p>`:""}
     <div class="card">${lesson}</div>
     <h2>${ic("sun")}Мир сегодня</h2>
     <div class="list">${news}</div>

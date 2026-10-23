@@ -407,8 +407,8 @@ h2{background:color-mix(in srgb,var(--surface) 70%,transparent);-webkit-backdrop
 .lvl-bar i{display:block;height:100%;background:linear-gradient(90deg,#C9F56A,#7CC23A);border-radius:99px}
 .lvl-bar.big{width:100%;height:10px}
 .lvl-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.lvl-list span{font-size:12.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
-.lvl-list span.on{background:var(--accent-soft);color:var(--accent)}
+.lvl-list span,.lvl-list button{font-family:inherit;border:0;cursor:pointer;font-size:12.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.lvl-list span.on,.lvl-list button.on{background:var(--accent-soft);color:var(--accent)}
 .workcard{margin-top:12px}
 .pulse{display:grid;gap:6px}
 .pulse-row{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
@@ -492,7 +492,18 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .kor-i.on svg{filter:none;opacity:1}
 .badges{margin-top:12px}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1)}
+.medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
+.medal-c{position:relative}
+.care-seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.care-cfg .label{display:block}
+.care-seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.medal.t1 .medal-c{background:radial-gradient(circle at 35% 30%,#FBE3CC,#E0A070 60%,#B87444);box-shadow:0 0 0 4px color-mix(in srgb,#E0A070 35%,transparent),0 6px 14px rgba(30,27,46,.15)}
+.medal.t2 .medal-c{background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9D1DB 60%,#98A3B3);box-shadow:0 0 0 4px color-mix(in srgb,#C9D1DB 45%,transparent),0 6px 14px rgba(30,27,46,.15)}
+.medal-s{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10px;color:#B8860B;background:var(--surface);border-radius:8px;padding:0 4px;line-height:14px;white-space:nowrap}
+.medal.big .medal-c{width:96px;height:96px}
+.story{background:var(--surface-2);border-radius:16px;padding:12px 14px;text-align:left;width:100%;box-sizing:border-box}
+.story p{margin:4px 0 0;line-height:1.5}
+.lvl-list button:disabled{cursor:default}
 .medal.on{opacity:1;filter:none}
 .medal-c{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#FFF4C2,#FFD166 60%,#E0A93A);box-shadow:0 0 0 4px color-mix(in srgb,#FFD166 35%,transparent),0 6px 14px rgba(30,27,46,.15)}
 .medal:not(.on) .medal-c{background:var(--surface-2);box-shadow:0 0 0 3px var(--line)}
@@ -1011,7 +1022,7 @@ function checkinHtml(ci,big){
 async function handleCi(action,id){
   const t=tasks.find(x=>x.id===id); if(!t) return;
   const k=todayKey(), nowD=new Date(), nowM=nowD.getHours()*60+nowD.getMinutes();
-  if(action==="done") await stopTrack(t,{done:true});
+  if(action==="done"){await stopTrack(t,{done:true});restToast(t);}
   else if(action==="start") await startTrack(t);
   else if(action==="more"){const n={...t,hours:Number(t.hours||0)+0.25}; if(t.startedAt) await store.saveTask(n); else await startTrack(n); warned.delete(t.id);}
   else if(action==="tomorrow") await stopTrack(t,{date:addDays(k,1)});
@@ -1025,7 +1036,7 @@ function blockGroups(rows){
   return groups;
 }
 async function sendDayToCalendar(k,btn){
-  if(!mcp){toast("Календарь работает, когда приложение открыто в Claude с подключённым Google Calendar.");return;}
+  if(!mcp){toast("Отправка в календарь пока недоступна.");return;}
   if((settings.calSent||{})[k]&&btn.dataset.sure!=="1"){btn.dataset.sure="1";btn.innerHTML=`${ic("cal")}Уже отправляла. Ещё раз?`;return;}
   const groups=blockGroups(daySchedule(k).rows);
   if(!groups.length){toast("На этот день нет рабочих задач.");return;}
@@ -1052,7 +1063,7 @@ async function startTrack(t){
   await store.saveTask({...t,startedAt:new Date().toISOString()});
   window.bariOnTrack?.(t,true);
 }
-async function stopTrack(t,extra={}){await store.saveTask({...t,spentMin:Math.round(spentTotal(t)*10)/10,startedAt:"",...extra});window.bariOnTrack?.(t,false);}
+async function stopTrack(t,extra={}){if(extra.done&&!t.done)extra={doneAt:new Date().toISOString(),...extra};await store.saveTask({...t,spentMin:Math.round(spentTotal(t)*10)/10,startedAt:"",...extra});window.bariOnTrack?.(t,false);}
 function stageStats(){
   const since=addDays(todayKey(),-30), g={};
   for(const t of workTasks(tasks)) if(t.done&&t.date>=since&&(Number(t.spentMin)||0)>0.5){const s=g[t.stage]||(g[t.stage]={n:0,fact:0,plan:0});s.n++;s.fact+=Number(t.spentMin);s.plan+=planMin(t);}
@@ -1135,6 +1146,7 @@ function render(){
   if(view==="code") renderCode();
   if(view==="lib") renderLib();
   checkNewBadges();
+  checkLevelUp();
   if(typeof gxNode==="function") gxNode(document.querySelector("main"));
   if(view==="today"&&typeof applyCollapse==="function") applyCollapse(document.getElementById("view-today"));
   if(typeof syncReminders==="function") syncReminders();
@@ -1235,7 +1247,7 @@ function renderToday(){
     ${overdue.length?`<h2>${ic("reset")}Хвосты<span class="count">${overdue.length}</span></h2><div class="list">${overdue.map(t=>taskRow(t,true)).join("")}</div>
       <div style="margin-top:10px"><button class="mini-btn" id="moveOverdue">${ic("right")}Перенести все на сегодня</button></div>`:""}
     <h2>${ic("timer")}Блоки дня<span class="count hours">${esc(settings.dayStart)}–${esc(settings.dayEnd)} · ${fmtH(total)} / ${fmtH(lim)}</span></h2>
-    ${sch.rows.length?`<div class="tl">${tl}</div>${mcp?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="mini-btn" data-cal="${k}">${ic("cal")}В Google Календарь</button><button class="mini-btn" data-cal="${addDays(k,1)}">${ic("cal")}Завтра в календарь</button></div>`:""}<p class="tip" style="margin-top:8px;font-size:13px">Нажимай ${ic("play")} когда начинаешь задачу: так видно, сколько она реально занимает.</p>`:(work.length?"":`<div class="empty"><span class="tile">${ic("sun")}</span>Нажми «Добавить», чтобы поставить задачу на сегодня.</div>`)}
+    ${sch.rows.length?`<div class="tl">${tl}</div>${mcp?`${mcp?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="mini-btn" data-cal="${k}">${ic("cal")}В Google Календарь</button><button class="mini-btn" data-cal="${addDays(k,1)}">${ic("cal")}Завтра в календарь</button></div>`:""}`:""}<p class="tip" style="margin-top:8px;font-size:13px">Нажимай ${ic("play")} когда начинаешь задачу: так видно, сколько она реально занимает.</p>`:(work.length?"":`<div class="empty"><span class="tile">${ic("sun")}</span>Нажми «Добавить», чтобы поставить задачу на сегодня.</div>`)}
     <h2>${ic("check")}Привычки</h2>
     ${habitsCard(k)}
     <h2 style="color:var(--home)">${ic("heart")}Для себя и дома</h2>
@@ -1314,15 +1326,17 @@ function renderRhythm(){
   const workT=tpls.filter(t=>!(STAGES[t.stage]?.home)), homeT=tpls.filter(t=>STAGES[t.stage]?.home);
   const groups=s.projects.filter(p=>p.kind!=="home").map(p=>({p,items:workT.filter(t=>t.project===p.id)})).filter(g=>g.items.length);
   document.getElementById("view-rhythm").innerHTML=`
-    <h2>${ic("note")}Заметки для Claude</h2>
+    <h2>${ic("note")}${isOwner()?"Заметки для Claude":"Заметки"}</h2>
     <div class="card">
-      <p class="tip">Пиши сюда всё новое: изменения в графике, новые задачи, сроки. Потом скажи Claude в чате «посмотри заметки», и он поправит план.</p>
+      <p class="tip">${isOwner()?"Пиши сюда всё новое: изменения в графике, новые задачи, сроки. Потом скажи Claude в чате «посмотри заметки», и он поправит план.":"Пиши сюда всё новое: изменения в графике, задачи, сроки, мысли. Отмечай галочкой, когда учтёшь."}</p>
       <div class="field"><label class="label" for="noteIn">Новая заметка</label><textarea id="noteIn" rows="3" placeholder="Например: с ноября в Columbus по вторникам, а не по средам"></textarea></div>
       <button class="primary" id="addNote">${ic("plus")}Сохранить заметку</button>
-      ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено в плане":"ждёт Claude"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
+      ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
     <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <h2>${ic("heart")}Забота о себе</h2>
+    ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
@@ -1788,6 +1802,32 @@ const GLYPH_ALIAS={tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"
 const glyph=(n,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${GLYPHS[n]||GLYPHS[GLYPH_ALIAS[n]]||GLYPHS.tree}</svg>`;
 /* what to see and taste: city first, then country */
 const CITY_ITEMS={
+  "Рованиеми":[["bun","Корвапуусти"],["espresso","Кофе"],["tree","Лес"],["boat","Реки"],["mountain","Северное сияние"]],
+  "Лион":[["croissant","Круассан"],["baguette","Бушоны"],["espresso","Кафе"],["bicycle","Велосипед"],["eiffel","Башня Фурвьер"]],
+  "Туркестан":[["tea","Чай с молоком"],["bun","Баурсаки"],["yurt","Киіз үй"],["apple","Сады"],["mountain","Каратау"]],
+  "Барселона":[["bowl","Паэлья"],["apple","Апельсины"],["flower","Сардана"],["espresso","Кафе кон лече"],["dome","Архитектура"]],
+  "Санторини":[["olive","Оливки"],["column","Акротири"],["boat","Кальдера"],["cheese","Фета"],["temple","Ия"]],
+  "Кёнджу":[["bowl","Кимчи"],["tea","Чай"],["lantern","Фонари"],["pagoda","Дворцы"],["tower","Чхомсондэ"]],
+  "Оксфорд":[["tea","Чай в пять"],["bus","Даблдекер"],["tower","Башня Карфакс"],["bun","Сконы"],["column","Музеи"]],
+  "Турку":[["bun","Корвапуусти"],["espresso","Кофе"],["tree","Лес"],["boat","Река Аура"],["mountain","Северное сияние"]],
+  "Осака":[["sushi","Суши"],["bowl","Уличная еда"],["tea","Матча"],["flower","Сакура"],["pagoda","Храмы"]],
+  "Прованс":[["croissant","13 десертов"],["baguette","Рынок"],["espresso","Кафе"],["bicycle","Ванту"],["flower","Лаванда"]],
+  "Астана":[["tea","Чай с молоком"],["bun","Баурсаки"],["yurt","Хан Шатыр"],["apple","Апорт"],["mountain","Бурабай"]],
+  "Севилья":[["bowl","Тапас"],["apple","Апельсины"],["flower","Фламенко"],["espresso","Кафе кон лече"],["dome","Архитектура"]],
+  "Крит":[["olive","Оливки"],["column","Кносс"],["boat","Острова"],["cheese","Фета"],["temple","Ханья"]],
+  "Юкатан":[["taco","Пойо пибиль"],["cactus","Природа"],["pyramid","Пирамиды"],["flower","День мёртвых"],["tea","Какао"]],
+  "Пусан":[["bowl","Рынок Чагальчи"],["tea","Чай"],["lantern","Фонари"],["pagoda","Хэдон-ёнгунса"],["tower","Башня Пусан"]],
+  "Эдинбург":[["tea","Чай в пять"],["bus","Даблдекер"],["tower","Пушка в 13:00"],["bun","Сконы"],["column","Музеи"]],
+  "Тампере":[["bun","Пирожки"],["espresso","Кофе"],["tree","Лес"],["boat","Таммеркоски"],["mountain","Северное сияние"]],
+  "Нара":[["sushi","Суши"],["bowl","Моти"],["tea","Матча"],["flower","Сакура"],["pagoda","Храмы"]],
+  "Ницца":[["croissant","Сокка"],["baguette","Нисуаз"],["espresso","Кафе"],["bicycle","Велосипед"],["eiffel","Холм Шато"]],
+  "Атырау":[["tea","Чай с молоком"],["bun","Баурсаки"],["yurt","Киіз үй"],["boat","Рыба"],["mountain","Степь"]],
+  "Роттердам":[["tulip","Тюльпаны"],["bicycle","Велосипеды"],["cheese","Маркталь"],["windmill","Мельницы"],["boat","Порт"]],
+  "Валенсия":[["bowl","Паэлья"],["apple","Апельсины"],["flower","Фальяс"],["espresso","Орчата"],["dome","Архитектура"]],
+  "Дельфы":[["olive","Оливки"],["column","Толос"],["boat","Парнас"],["cheese","Фета"],["temple","Храм Аполлона"]],
+  "Гвадалахара":[["taco","Торта ахогада"],["cactus","Агава"],["pyramid","Пирамиды"],["flower","День мёртвых"],["tea","Бирья"]],
+  "Чеджу":[["bowl","Хальлабон"],["tea","Чай"],["lantern","Тольхарыбан"],["pagoda","Халласан"],["tower","Сонсан Ильчхульбон"]],
+  "Бат":[["tea","Чай в пять"],["bus","Даблдекер"],["tower","Королевский полумесяц"],["bun","Сконы"],["column","Римские бани"]],
   "Рим":[["colosseum","Колизей"],["pasta","Карбонара"],["fountain","Фонтан Треви"],["espresso","Эспрессо"],["scooter","Vespa"]],
   "Флоренция":[["dome","Дуомо"],["gelato","Джелато"],["column","Давид"],["espresso","Капучино утром"],["bun","Скьяччата"]],
   "Венеция":[["gondola","Гондола"],["fountain","Площадь Сан-Марко"],["pasta","Паста с морепродуктами"],["column","Мост Риальто"],["espresso","Кофе у канала"]],
@@ -1971,27 +2011,47 @@ const OCCASIONS=[
   {d:"2026-12-16",t:"День Независимости Казахстана",g:"yurt",ideas:{alpha:"Рилс: дети о героях Казахстана",columbus:"Пост: казахстанцы, которые учились за границей и вернулись",burka:"Поздравление в фирменном стиле"}}
 ];
 const HOOKS=["«3 ошибки, которые совершают почти все родители, когда…»","«Никто не говорит вам об этом, но…»","«Если ваш ребёнок стесняется — досмотрите до конца»","«Мы спросили 10 родителей в Атырау…»","«Сколько на самом деле стоит учёба в…»","«POV: ваш ребёнок впервые выходит на сцену»","«Хотела бы я знать это раньше…»","«Стоп. Не делайте этого, пока не посмотрите видео»","«Вот что происходит, когда ребёнок 7 дней в лагере»","«Самый частый вопрос, который нам задают:»","«Миф или правда?»","«Объясню за 30 секунд»","«Это видео сэкономит вам месяц поисков»","«До и после: одна неделя»","«Вы знали, что…?»","«Одно дело, которое стоит сделать до конца года»","«Почему умные дети боятся отвечать у доски»","«Не покупайте кофе, пока не узнаете это»","«Сохраните, чтобы не потерять»","«Отвечаем на ваш вопрос в директ»","«Как бы я поступала в 2027, если бы начинала сначала»","«Один день из жизни студента в…»","«Тест: какой вы родитель?»","«Сравним: учёба в Корее и в Китае»","«Это снимали не для рекламы»","«Мы сделали это впервые в Атырау»","«Повторите это упражнение вместе с ребёнком»","«Только честно: вы бы так смогли?»","«3 фразы, которые убивают уверенность ребёнка»","«Что скрывается за этим фасадом?»"];
-const LEVELS=[[0,"Семечко"],[60,"Росток"],[160,"Листик"],[320,"Побег"],[550,"Бутон"],[850,"Цветение"],[1250,"Деревце"],[1800,"Сад"]];
+const LEVELS=[[0,"Семечко"],[200,"Росток"],[550,"Листик"],[1100,"Побег"],[1900,"Бутон"],[3000,"Цветение"],[4500,"Деревце"],[6500,"Сад"]];
+const XP={work:3,home:2,lesson:8,right:3,mura:2};
+const STORY=[
+  {h:"Глава 1. Семечко",t:"Ветер долго нёс по степи маленькое семечко и уронил его к твоему порогу. Внутри кто-то спал и тихо сопел. Это был BARI — от казахского «бәрі», «всё». Он ещё не знает, что умеет, но уже знает, чего хочет: узнать всё на свете."},
+  {h:"Глава 2. Росток",t:"Каждое твоё закрытое дело — капля воды. Их набралось столько, что семечко треснуло, и BARI высунул наружу зелёную макушку. Первое, что он увидел, — тебя. Теперь он уверен: вы команда."},
+  {h:"Глава 3. Листик",t:"У BARI раскрылся первый настоящий лист. Он примерил его как шляпу, потом как зонтик, потом как карту — и решил, что это карта. «Мир большой, — сказал он, — пойдём смотреть». Так началось ваше путешествие."},
+  {h:"Глава 4. Побег",t:"BARI научился здороваться на чужих языках и пить чай так, как пьют его в каждой стране. В его рюкзаке звенят сувениры, а в голове шумят истории. Он заметил: чем больше узнаёшь, тем легче расти."},
+  {h:"Глава 5. Бутон",t:"Однажды утром на макушке BARI появился бутон. Старая черепаха из сказки сказала ему: «Бутоны не торопят. Они раскрываются, когда внутри накопилось достаточно света». BARI стал копить свет — в книгах, словах и добрых делах."},
+  {h:"Глава 6. Цветение",t:"Бутон раскрылся! Цветок BARI пахнет всеми городами, где вы побывали: кофе, морем, лепёшками и дождём. Прохожие останавливаются и улыбаются. BARI шепчет тебе: «Это не я так цвету. Это мы»."},
+  {h:"Глава 7. Деревце",t:"BARI стал деревцем. В его ветках поселились птицы-идеи, а под ним можно отдохнуть после длинного дня. Он больше не боится бурь: корни держат крепко, ведь их растила ты — день за днём."},
+  {h:"Глава 8. Сад",t:"Из семечка вырос целый сад. Здесь растёт всё, что ты сделала, узнала и прочитала. BARI сидит под самым старым деревом, пьёт чай и вспоминает, как всё начиналось. «Бәрі, — говорит он, — всё получилось»."}
+];
 function xpTotal(){
-  const t=workTasks(tasks).filter(x=>x.done).length*5+tasks.filter(x=>x.done&&isHome(x)).length*3;
-  const l=Object.values(erud).filter(e=>e&&e.done).reduce((s,e)=>s+10+5*(e.correct||0),0);
-  return t+l;
+  const t=workTasks(tasks).filter(x=>x.done).length*XP.work+tasks.filter(x=>x.done&&isHome(x)).length*XP.home;
+  const l=Object.values(erud).filter(e=>e&&e.done).reduce((s,e)=>s+XP.lesson+XP.right*(e.correct||0),0);
+  const m=Object.keys(codeProg?.read||{}).length*XP.mura;
+  return t+l+m;
 }
 function levelOf(xp){let i=0;for(let n=0;n<LEVELS.length;n++) if(xp>=LEVELS[n][0]) i=n;const cur=LEVELS[i],next=LEVELS[i+1];return {n:i+1,name:cur[1],from:cur[0],to:next?next[0]:cur[0],pct:next?Math.min(100,Math.round((xp-cur[0])/(next[0]-cur[0])*100)):100};}
 function levelChip(){
   const xp=xpTotal(), L=levelOf(xp);
   return `<button class="lvl" id="lvlBtn" aria-label="Уровень BARI"><span class="lvl-n">Ур. ${L.n}</span><span class="lvl-t">${L.name}</span><span class="lvl-bar"><i style="width:${L.pct}%"></i></span></button>`;
 }
-function openLevel(){
-  const xp=xpTotal(), L=levelOf(xp);
-  openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">${bari({mood:"joy",wave:true,prop:PROPS.spark,size:120})}
-    <h3>BARI растёт вместе с тобой</h3><p class="tip">Уровень ${L.n} · ${L.name} · ${xp} баллов</p>
+function storyHtml(n){const st=STORY[n-1];return `<div class="story"><span class="label">${esc(st.h)}</span><p>${esc(gx(st.t))}</p></div>`;}
+function openLevel(n){
+  const xp=xpTotal(), L=levelOf(xp), show=n||L.n;
+  openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">${bari({mood:"joy",wave:true,prop:PROPS.spark,size:120,lvl:show})}
+    <h3>${n?"Новая глава!":"История BARI"}</h3><p class="tip">Уровень ${L.n} · ${L.name} · ${xp} баллов</p>
     <div class="lvl-bar big"><i style="width:${L.pct}%"></i></div>
-    <p class="tip">${L.to>L.from?`До уровня «${LEVELS[L.n]?.[1]||""}» осталось ${L.to-xp} баллов.`:"Ты на самом высоком уровне!"}</p>
-    <div class="lvl-list">${LEVELS.map((x,i)=>`<span class="${i<L.n?"on":""}">${i+1}. ${x[1]}</span>`).join("")}</div>
-    <p class="tip">+5 за рабочую задачу, +3 за дело для себя и дома, +10 за урок и +5 за каждый верный ответ.</p>
+    <p class="tip">${L.to>L.from?`До главы «${LEVELS[L.n]?.[1]||""}» осталось ${L.to-xp} баллов.`:gx("Ты дошла до конца истории!")}</p>
+    ${storyHtml(show)}
+    <div class="lvl-list">${LEVELS.map((x,i)=>`<button class="${i<L.n?"on":""}" ${i<L.n?`data-ch="${i+1}"`:"disabled"}>${i+1}. ${i<L.n?x[1]:"???"}</button>`).join("")}</div>
+    <p class="tip">Баллы: +${XP.work} за рабочую задачу, +${XP.home} за дело для себя и дома, +${XP.lesson} за урок и +${XP.right} за каждый верный ответ, +${XP.mura} за статью «Мұра». Следующие главы открываются всё реже — как в настоящей книге.</p>
     <button class="ghost" id="ciClose">Закрыть</button></div>`);
+  document.querySelectorAll("#sheetIn [data-ch]").forEach(b=>b.onclick=()=>{const box=document.querySelector("#sheetIn .story");if(box)box.outerHTML=storyHtml(Number(b.dataset.ch));});
   document.getElementById("ciClose").onclick=closeSheet;
+}
+function checkLevelUp(){
+  const n=levelOf(xpTotal()).n; let was=0; try{was=Number(localStorage.getItem("bari-lvl-seen")||0);}catch(e){}
+  try{localStorage.setItem("bari-lvl-seen",String(n));}catch(e){}
+  if(was&&n>was&&document.getElementById("sheet").hidden) setTimeout(()=>openLevel(n),600);
 }
 function workCard(k){
   const proj4=settings.projects.filter(p=>p.kind!=="home");
@@ -2003,7 +2063,7 @@ function workCard(k){
   return `<section class="card workcard">
     <div class="cd-head"><span class="label">Для работы сегодня</span></div>
     ${pulse?`<div class="pulse">${pulse}</div>`:""}
-    <div class="hook-box"><span class="label">Хук дня для Reels</span><p class="hook-t">${esc(hook)}</p><div class="seg"><button class="mini-btn" id="hookCopy">${ic("check")}Скопировать</button><a class="mini-btn" href="${HELPER_URL}" target="_blank" rel="noopener">${ic("spark")}Контент-помогатор</a></div></div>
+    <div class="hook-box"><span class="label">Хук дня для Reels</span><p class="hook-t">${esc(hook)}</p><div class="seg"><button class="mini-btn" id="hookCopy">${ic("check")}Скопировать</button>${isOwner()?`<a class="mini-btn" href="${HELPER_URL}" target="_blank" rel="noopener">${ic("spark")}Контент-помогатор</a>`:""}</div></div>
     ${up.length?`<div class="occ"><span class="label">Инфоповоды впереди</span>${up.map((o,i)=>{const dd=Math.round((fromKey(o.d)-fromKey(k))/864e5);return `<details class="occ-i" ${i===0?"open":""}><summary>${glyph(o.g,30)}<div><b>${esc(o.t)}</b><span class="tip">${nice(o.d)} · ${dd===0?"сегодня":dd===1?"завтра":`через ${dd} ${plural(dd,"день","дня","дней")}`}</span></div></summary>
       <ul>${proj4.filter(p=>o.ideas[p.id]&&o.ideas[p.id]!=="—").map(p=>`<li><span class="dot" style="background:var(${p.color})"></span><span><b>${esc(p.name)}:</b> ${esc(o.ideas[p.id])}</span></li>`).join("")}</ul></details>`;}).join("")}</div>`:""}
   </section>`;
@@ -2567,37 +2627,54 @@ function renderCode(){
   const nx=document.getElementById("mqNext"); if(nx) nx.onclick=()=>{muraQ=null;render();};
 }
 
-/* badges */
+/* badges: souvenirs with stories and three tiers */
+const TIER=["","бронза","серебро","золото"];
 function badgeList(){
   const st=meStats(), ideasN=Object.keys(ideas).length, codeN=Object.keys(codeProg.read).length;
-  const kidN=tasks.filter(t=>t.tpl==="h-kid"&&t.done).length, early=workTasks(tasks).some(t=>t.done&&(t.stage==="stories")&&t.date&&(t.time||"").startsWith("10"));
+  const kidN=tasks.filter(t=>t.tpl==="h-kid"&&t.done).length, doneN=workTasks(tasks).filter(t=>t.done).length+tasks.filter(t=>t.done&&isHome(t)).length;
   const wordsN=Object.values(erud).filter(e=>e&&e.done).reduce((s,e)=>s+(e.words?.length||0),0);
   const habitDays=Object.values(daily).filter(d=>d&&d.habits&&Object.values(d.habits).filter(v=>v>0).length>=3).length;
-  return [
-    {id:"first",g:"flower",n:"Первый шаг",d:"Закрыть первую задачу",ok:workTasks(tasks).some(t=>t.done)},
-    {id:"streak3",g:"apple",n:"Три дня подряд",d:"Уроки 3 дня подряд",ok:st.streak>=3},
-    {id:"streak7",g:"mountain",n:"Неделя знаний",d:"Уроки 7 дней подряд",ok:st.streak>=7},
-    ...(hasKids()?[{id:"mama",g:"heart",n:genderOf()==="m"?"Папа года":"Мама года",d:isOwner()?"7 вечеров с дочкой":"7 вечеров с детьми",ok:kidN>=7}]:[]),
-    {id:"ideas",g:"bun",n:"Генератор идей",d:"10 идей в копилке",ok:ideasN>=10},
-    {id:"poly",g:"tea",n:"Полиглот",d:"Выучить 15 слов",ok:wordsN>=15},
-    {id:"code10",g:"yurt",n:"Знаток кода",d:"10 карточек в Қоржын",ok:codeN>=10},
-    {id:"habits",g:"tree",n:"Ритм жизни",d:"5 дней с 3+ привычками",ok:habitDays>=5},
-    {id:"books3",g:"book2",n:"Книжный червь",d:"Дочитать 3 книги",ok:Object.values(books).filter(b=>b.status==="read").length>=3},
-    {id:"rome",g:"colosseum",n:"Римские каникулы",d:"Штамп Рима",ok:Object.values(erud).filter(e=>e&&e.done&&e.city==="Рим").length>=3}
+  const byC={}; Object.values(erud).filter(e=>e&&e.done&&e.country).forEach(e=>byC[e.country]=(byC[e.country]||0)+1);
+  const countries=Object.values(byC).filter(v=>v>=3).length;
+  const booksN=Object.values(books).filter(b=>b.status==="read").length;
+  const L=[
+    {id:"first",g:"flower",n:"Первый шаг",v:doneN,t:[1,100,500],u:["дело","дела","дел"],s:"Первое закрытое дело — и BARI высунул из земли первый лист. В Казахстане первые шаги малыша празднуют обрядом «тұсау кесу»: разрезают путы на ножках, чтобы дорога по жизни была лёгкой. Твоя дорога тоже началась."},
+    {id:"streak",g:"apple",n:"Огонь знаний",v:st.streak,t:[3,7,30],u:["день уроков подряд","дня уроков подряд","дней уроков подряд"],s:"BARI разжёг костёр и сказал: «Огонь любит, когда в него подкладывают каждый день». Три полена — уже тепло, неделя — уже свет, месяц — уже маяк, который видно издалека."},
+    ...(hasKids()?[{id:"mama",g:"heart",n:genderOf()==="m"?"Папа года":"Мама года",v:kidN,t:[7,30,100],u:["вечер с детьми","вечера с детьми","вечеров с детьми"],s:"BARI спрятал в рюкзак маленькую ракушку. Он говорит, что внутри неё слышен не шум моря, а детский смех. Каждый вечер, проведённый вместе, делает её звонче."}]:[]),
+    {id:"ideas",g:"bun",n:"Генератор идей",v:ideasN,t:[10,50,150],u:["идея в копилке","идеи в копилке","идей в копилке"],s:"Идеи — как баурсаки: пока горячие, их хватают все. BARI завёл для них дорожный сундук, чтобы ни одна не остыла и не потерялась."},
+    {id:"poly",g:"tea",n:"Полиглот",v:wordsN,t:[15,60,150],u:["слово","слова","слов"],s:"В каждой стране BARI просит у хозяев чай и одно слово. Чай он выпивает, а слова складывает в жестяную банку. Банка гремит всё громче — скоро он сможет поблагодарить хозяев на их языке."},
+    {id:"mura",g:"yurt",n:"Хранитель наследия",v:codeN,t:[10,35,MURA_ALL().length],u:["статья «Мұра»","статьи «Мұра»","статей «Мұра»"],s:"Старый жырау подарил BARI камчу с узором и сказал: «Кто знает свои корни, того не сдует ветром». BARI привязал её к рюкзаку — теперь в любой стране он помнит, откуда пришёл."},
+    {id:"habits",g:"tree",n:"Ритм жизни",v:habitDays,t:[5,21,60],u:["день с 3+ привычками","дня с 3+ привычками","дней с 3+ привычками"],s:"BARI посадил деревце и поливал его каждый день — даже когда не хотелось. Говорят, на привычку нужно около трёх недель, а чтобы она стала частью тебя — пара месяцев. Деревце уже даёт тень."},
+    {id:"books",g:"book2",n:"Книжный червь",v:booksN,t:[3,12,30],u:["книга","книги","книг"],s:"На полке BARI появилась закладка из сухого листа. Он вкладывает её в каждую дочитанную книгу, и лист становится чуть ярче. Говорят, книги — это паспорта в чужие жизни."},
+    {id:"passport",g:"mountain",n:"Паспорт путешественника",v:countries,t:[1,4,10],u:["страна с 3+ уроками","страны с 3+ уроками","стран с 3+ уроками"],s:"Пограничник на первой границе поставил BARI штамп и спросил: «Цель визита?» BARI ответил: «Узнать всё». С тех пор в паспорте не осталось чистых страниц, а BARI просит вклеить новые."}
   ];
+  return L.map(x=>{const tier=x.t.filter(n=>x.v>=n).length, next=x.t[tier];return {...x,tier,ok:tier>0,next,d:next?`${Math.min(x.v,next)} / ${next} ${plural(next,...x.u)}`:`${x.v} ${plural(x.v,...x.u)} — всё собрано`};});
 }
 function badgesHtml(){
   const b=badgeList();
-  return `<div class="card badges"><div class="cd-head"><span class="label">Награды BARI</span><span class="tip">${b.filter(x=>x.ok).length} из ${b.length}</span></div>
-    <div class="medals">${b.map(x=>`<div class="medal ${x.ok?"on":""}" title="${esc(x.d)}"><span class="medal-c">${glyph(x.g,30)}</span><b>${esc(x.n)}</b><small>${esc(x.d)}</small></div>`).join("")}</div></div>`;
+  return `<div class="card badges"><div class="cd-head"><span class="label">Сувениры BARI</span><span class="tip">${b.reduce((s,x)=>s+x.tier,0)} из ${b.length*3}</span></div>
+    <p class="tip" style="margin:0 0 10px">Нажми на сувенир — BARI расскажет его историю. У каждого три ступени: бронза, серебро, золото.</p>
+    <div class="medals">${b.map(x=>`<button class="medal t${x.tier} ${x.ok?"on":""}" data-badge="${x.id}"><span class="medal-c">${glyph(x.g,30)}${x.tier?`<i class="medal-s">${"★".repeat(x.tier)}</i>`:""}</span><b>${esc(x.n)}</b><small>${esc(x.d)}</small></button>`).join("")}</div></div>`;
 }
+function openBadge(id,fresh){
+  const x=badgeList().find(z=>z.id===id); if(!x) return;
+  openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">
+    <div class="medal big t${x.tier} ${x.ok?"on":""}"><span class="medal-c">${glyph(x.g,52)}</span></div>
+    <h3 style="margin:0">${fresh?"Новый сувенир: ":""}${esc(x.n)}</h3>
+    <p class="tip" style="margin:0">${x.tier?`Ступень: ${TIER[x.tier]}`:"Ещё не найден"} · ${esc(x.d)}</p>
+    ${x.ok?`<div class="story"><p>${esc(gx(x.s))}</p></div>`:`<p class="tip">История откроется на ступени «бронза»: ${x.t[0]} ${esc(plural(x.t[0],...x.u))}.</p>`}
+    <button class="ghost" id="bgClose">Закрыть</button></div>`);
+  document.getElementById("bgClose").onclick=closeSheet;
+}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-badge]");if(b)openBadge(b.dataset.badge);});
 function checkNewBadges(){
-  let seen={}; try{seen=JSON.parse(localStorage.getItem("bari-badges")||"{}");}catch(e){}
-  const fresh=badgeList().filter(x=>x.ok&&!seen[x.id]);
+  let seen={}; try{seen=JSON.parse(localStorage.getItem("bari-badges2")||"{}");}catch(e){}
+  const fresh=badgeList().filter(x=>x.tier>(seen[x.id]||0));
   if(!fresh.length) return;
-  fresh.forEach(x=>seen[x.id]=1); try{localStorage.setItem("bari-badges",JSON.stringify(seen));}catch(e){}
+  fresh.forEach(x=>seen[x.id]=x.tier); try{localStorage.setItem("bari-badges2",JSON.stringify(seen));}catch(e){}
   if(!checkNewBadges.primed){checkNewBadges.primed=true;return;}
-  toast(`Новая награда: «${fresh[0].n}»! ${BARI_DAY[Math.floor(Math.random()*BARI_DAY.length)]}`);
+  if(document.getElementById("sheet").hidden) setTimeout(()=>openBadge(fresh[0].id,true),400);
+  else toast(`Новый сувенир: «${fresh[0].n}» — ${TIER[fresh[0].tier]}!`);
 }
 
 function quoteCard(k){const q=quoteOfDay(k);return `<section class="card quote-card today-q"><div class="cc-top">${bari({mood:"wink",size:64,outfit:outfitFor(q)})}<div><span class="label">Совет дня от BARI${OUTFIT_BY[q.a]?" · "+OUTFIT_NAME[OUTFIT_BY[q.a]]:""}</span><blockquote>«${esc(q.q)}»</blockquote></div></div>${q.ru?`<p class="tip" style="margin:0">${esc(q.ru)}</p>`:""}<p class="q-a">— ${esc(q.a)}</p><div class="talk">${ic("spark")}<div>${esc(isOwner()&&q.own?q.own:q.tip)}</div></div></section>`;}
@@ -3068,7 +3145,7 @@ function localGreet(lang,hr){
 /* ---------- gender and relationship ---------- */
 const genderOf=()=>settings.gender||(isOwner()?"f":"");
 const relOf=()=>settings.rel||(isOwner()?"married":"");
-const G_PAIRS=[["сделала","сделал"],["прочитала","прочитал"],["дочитала","дочитал"],["успела","успел"],["стеснялась","стеснялся"],["устала","устал"],["закончила","закончил"],["начала в","начал в"],["готова","готов"],["обязана","обязан"],["благодарна","благодарен"],["ты сама","ты сам"],["выложила","выложил"],["свободна","свободен"]];
+const G_PAIRS=[["сделала","сделал"],["прочитала","прочитал"],["дочитала","дочитал"],["успела","успел"],["стеснялась","стеснялся"],["устала","устал"],["закончила","закончил"],["начала в","начал в"],["готова","готов"],["обязана","обязан"],["благодарна","благодарен"],["ты сама","ты сам"],["выложила","выложил"],["свободна","свободен"],["растила ты","растил ты"],["дошла","дошёл"],["узнала","узнал"],["забывала","забывал"],["Отдохнула","Отдохнул"]];
 const G_RX=G_PAIRS.map(([f,m])=>[new RegExp(`(^|[^а-яёА-ЯЁ])(${f})(?=$|[^а-яёА-ЯЁ])`,"gi"),m]);
 function gx(str){
   if(genderOf()!=="m"||!str) return str;
@@ -3280,7 +3357,7 @@ const HELP={
     "<b>Регулярные дела</b> — то, что повторяется (каждый день, по понедельникам). Я сама создаю их на две недели вперёд.",
     "<b>Где я бываю</b> — дни в офисе или у клиента, <b>Занятые периоды</b> — отпуск и поездки: туда задачи не встанут.",
     "<b>Сколько реально уходит</b> — когда пользуешься таймером ▶, я считаю настоящее время и предлагаю поправить оценки.",
-    "<b>Заметки для Claude</b> — пожелания, которые учтёт Claude, когда будет помогать с планом."]},
+    "<b>Заметки</b> — всё новое: изменения в графике, задачи, сроки, мысли."]},
   me:{t:"Я — 20 минут для себя",m:"joy",i:"spark",p:[
     "<b>Путешествие:</b> каждый месяц я «живу» в новой стране, каждую неделю — в новом городе. Фон, факты, слова и наклейки — всё про этот город. Флажки сверху — маршрут на год.",
     "<b>Урок дня</b> на 5 минут. Тема зависит от дня недели: пн — история, вт — искусство, ср — язык, чт — кино, пт — кухня, сб — книги, вс — квиз недели. Новые уроки появляются каждое утро.",
@@ -3423,7 +3500,7 @@ function nicheCard(k){
     ${occ.length?`<span class="label" style="margin-top:6px">Поводы впереди</span><div class="ni-list">${occ.map(o=>`<div class="ni"><b>${esc(o.t)}</b><span class="tip">${esc(new Date(o.d).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}))}${o.idea?` — ${esc(o.idea)}`:""}</span></div>`).join("")}</div>`:""}
   </section>`;
 }
-document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-ni-copy]");if(!b)return;try{await navigator.clipboard.writeText(b.dataset.niCopy);toast("Скопировано. Вставь в чат с Claude — получишь идеи под тебя.");}catch(_){toast("Не получилось скопировать.");}});
+document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-ni-copy]");if(!b)return;try{await navigator.clipboard.writeText(b.dataset.niCopy);toast("Скопировано.");}catch(_){toast("Не получилось скопировать.");}});
 
 if(!GLYPHS.heart) GLYPHS.heart=`<path d="M12 20s-7.5-4.5-7.5-10A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3c0 5.5-7.5 10-7.5 10z" fill="#FF7B86"/>`;
 /* ---------- notifications: permission, running-task notice, push reminders ---------- */
@@ -3491,7 +3568,7 @@ async function notifCheck(){
     if(j.version===2){add(j.subscriptions>0,`Сервер видит подписок: ${j.subscriptions}`);add(j.reminders>0,`Напоминаний впереди: ${j.reminders}`);(j.test||[]).forEach(x=>add(x==="ok",x==="ok"?"Сервер отправил тестовое уведомление":"Ошибка отправки: "+esc(x)));}
     srv=`<details><summary>Технические детали</summary><pre class="diag-pre">${esc(JSON.stringify(j,null,1))}</pre></details>`;
   }catch(e){add(false,"Сервер не ответил: "+esc(e.message||String(e)));}
-  openSheet(`<div class="ci-sheet"><h3 style="margin:0">Проверка уведомлений</h3><ul class="diag">${lines.join("")}</ul>${srv}<p class="tip" style="margin:0">Если пришли оба тестовых уведомления — всё работает. Если нет — сделай скриншот этого окна и пришли Claude.</p><button class="primary" id="dgOk">Понятно</button></div>`);
+  openSheet(`<div class="ci-sheet"><h3 style="margin:0">Проверка уведомлений</h3><ul class="diag">${lines.join("")}</ul>${srv}<p class="tip" style="margin:0">Если пришли оба тестовых уведомления — всё работает. Если нет — сделай скриншот этого окна и ${isOwner()?"пришли Claude":"отправь тому, кто поделился с тобой BARI"}.</p><button class="primary" id="dgOk">Понятно</button></div>`);
   document.getElementById("dgOk").onclick=closeSheet;
 }
 document.addEventListener("click",e=>{if(e.target.closest?.("#notifDiag"))notifCheck();});
@@ -3507,6 +3584,37 @@ window.bariOnTrack=async(t,on)=>{
     await reg.showNotification(`▶ Идёт: ${t.title}`,{body:gx(`${proj(t.project).name} · начала в ${hm(nowM)} · по плану до ${hm(nowM+left)}`),tag:"running",requireInteraction:true,silent:true,icon:"icons/icon-192.png",badge:"icons/icon-192.png",data:{url:"./"}});
   }catch(e){}
 };
+/* self-care reminders: water, a stretch, rest after each task */
+const careCfg=()=>({water:120,move:true,rest:10,...(settings.care||{})});
+const CARE_LINES={
+  water:[["💧 Выпила воду?","Стакан воды — и голова думает яснее. Отметь привычку, если она у тебя есть."],["💧 BARI пьёт воду","Присоединяйся: пара глотков прямо сейчас."],["💧 Время воды","Даже лёгкое обезвоживание снижает концентрацию. Один стакан — и дальше."]],
+  move:[["🙆 Разомнись","Встань, потянись вверх, покрути плечами — 1 минута."],["👀 Отдых для глаз","Правило 20-20-20: смотри на что-то вдали 20 секунд."],["🚶 Пройдись","Пара минут шагов по комнате — и спина скажет спасибо."]]
+};
+function careItems(k,sc){
+  const c=careCfg(), out=[], base=fromKey(k), at=m=>{const d=new Date(base);d.setHours(0,0,0,0);d.setMinutes(Math.round(m));return d.toISOString();};
+  const ds=sc.ds, last=sc.rows.reduce((m,r)=>Math.max(m,r.start+r.dur),0), de=Math.max(parseHM(settings.dayEnd)??1080,last);
+  if(c.water>0){let i=0;for(let m=ds+c.water;m<=de;m+=c.water,i++){const kind=c.move&&i%2===1?"move":"water", L=CARE_LINES[kind][(i+base.getDate())%3];out.push({key:`${k}-care-${kind}-${m}`,at:at(m),title:gx(L[0]),body:L[1]});}}
+  if(c.rest>0){
+    const next=sc.rows.filter(r=>!r.t.done);
+    for(const t of workTasks(tasks).filter(t=>t.date===k&&t.done&&t.doneAt)){
+      const end=new Date(new Date(t.doneAt).getTime()+c.rest*60000);
+      const n=next[0]?.t; out.push({key:`${k}-${t.id}-rest`,at:end.toISOString(),title:"☕ Перерыв окончен",body:n?`Отдохнула ${c.rest} минут. Дальше — «${n.title}». Нажми ▶, когда начнёшь.`:`Отдохнула ${c.rest} минут. На сегодня рабочие задачи всё — можно и для себя.`});
+    }
+  }
+  return out.map(x=>({...x,body:gx(x.body)}));
+}
+function careCard(){
+  const c=careCfg(), seg=(key,vals,lab)=>`<div class="seg care-seg">${vals.map(v=>`<button class="mini-btn ${c[key]===v?"on":""}" data-carecfg="${key}:${v}">${lab(v)}</button>`).join("")}</div>`;
+  return `<div class="card care-cfg">
+    <p class="tip" style="margin-top:0">${gx("BARI присылает уведомления, чтобы ты не забывала о себе в рабочем потоке.")}</p>
+    <span class="label">Вода${c.move?" и разминка":""}</span>${seg("water",[0,60,90,120],v=>v?`каждые ${v===60?"1 ч":v===90?"1,5 ч":"2 ч"}`:"выкл")}
+    <span class="label" style="margin-top:10px">Разминка и глаза — через раз с водой</span>${seg("move",[true,false],v=>v?"да":"нет")}
+    <span class="label" style="margin-top:10px">Отдых после задачи</span>${seg("rest",[0,5,10,15],v=>v?`${v} мин`:"выкл")}
+    ${notifState()!=="granted"?`<p class="tip" style="margin-bottom:0">Чтобы напоминания приходили, разреши уведомления на главном экране.</p>`:""}
+  </div>`;
+}
+document.addEventListener("click",async e=>{const b=e.target.closest?.("[data-carecfg]");if(!b)return;const [k,v]=b.dataset.carecfg.split(":");const val=v==="true"?true:v==="false"?false:Number(v);await store.saveSettings({...settings,care:{...careCfg(),[k]:val}});syncReminders(true);render();});
+function restToast(t){const c=careCfg();if(c.rest>0&&!isHome(t)){toast(gx(`Готово! Теперь ${c.rest} минут отдыха: вода, окно, потянись. Я напомню, когда пора дальше.`));return true;}return false;}
 /* reminders for the server: start of each block, «сделала?» at its planned end, morning summary */
 let remindLast={};
 function buildReminders(k){
@@ -3522,6 +3630,7 @@ function buildReminders(k){
     items.push({key:`${k}-${r.t.id}-s-${Math.round(r.start)}`,at:at(r.start),title:`Пора: ${r.t.title}`,body:`${proj(r.t.project).name} · до ${hm(r.start+r.dur)}. Нажми ▶ в BARI, когда начнёшь.`});
     items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:gx(`Уже ${hm(r.start+r.dur)}. Сделала?`),body:`«${r.t.title}» — отметь ✓ или перенеси.`});
   }
+  items.push(...careItems(k,sc));
   return items.filter(x=>new Date(x.at)>new Date(Date.now()-60000));
 }
 function syncReminders(force){
@@ -3560,7 +3669,7 @@ const meToday=()=>todayKey();
 function lessonFor(k){const e=erud[k]||null, f=window.BARI_FIXES?.lessons?.[k];return e&&f?{...e,...f}:e;}
 function meStats(){
   const days=Object.values(erud).filter(e=>e&&e.done);
-  const points=days.reduce((s,e)=>s+10+5*(e.correct||0),0);
+  const points=days.reduce((s,e)=>s+XP.lesson+XP.right*(e.correct||0),0);
   let streak=0; let k=meToday(); if(!(erud[k]&&erud[k].done)) k=addDays(k,-1);
   while(erud[k]&&erud[k].done){streak++;k=addDays(k,-1);}
   return {points,streak,total:days.length};
@@ -3599,7 +3708,7 @@ async function genLesson(force){
       answers:{},correct:0,done:false};
     await store.saveDoc("erud",k,doc);
   }catch(e){
-    if(e&&e.code==="cancelled"){} else meErr={not_granted:"Разреши приложению обращаться к Claude, чтобы получать уроки.",rate_limited:"Слишком много запросов. Попробуй через пару минут.",invalid_json:"Урок пришёл в неправильном виде. Нажми ещё раз."}[e?.code]||"Не получилось подготовить урок. Попробуй ещё раз через минуту.";
+    if(e&&e.code==="cancelled"){} else meErr={not_granted:"Урок пока недоступен. Загляни чуть позже.",rate_limited:"Слишком много запросов. Попробуй через пару минут.",invalid_json:"Урок пришёл в неправильном виде. Нажми ещё раз."}[e?.code]||"Не получилось подготовить урок. Попробуй ещё раз через минуту.";
   }finally{meBusy=false;render();}
 }
 async function answerQuiz(qi,oi){
@@ -3642,7 +3751,7 @@ function renderMe(){
       ${e.together&&hasKids()?`<div class="talk kid">${ic("heart")}<div><b>${isOwner()?"Вместе с дочкой":"Вместе с ребёнком"}</b><br>${esc(e.together)}</div></div>`:""}
       ${e.talk?`<div class="talk">${ic("chat")}<div><b>Ввернуть в разговор</b><br>«${esc(e.talk)}»</div></div>`:""}
       <h4>Проверь себя</h4>${qhtml}
-      ${e.done?`<div class="done-card">${bari({mood:"joy",wave:true,size:76,prop:PROPS.spark})}<div><b>Урок пройден: ${e.correct} из ${e.quiz.length}</b><br>+${10+5*e.correct} баллов. До завтра в ${esc(journeyFor(addDays(k,1)).city)}!</div></div>`:""}
+      ${e.done?`<div class="done-card">${bari({mood:"joy",wave:true,size:76,prop:PROPS.spark})}<div><b>Урок пройден: ${e.correct} из ${e.quiz.length}</b><br>+${XP.lesson+XP.right*e.correct} баллов. До завтра в ${esc(journeyFor(addDays(k,1)).city)}!</div></div>`:""}
     </article>`;
   }
   const news=dg&&Array.isArray(dg.items)&&dg.items.length
@@ -3685,7 +3794,7 @@ document.addEventListener("click",async e=>{
   const tr=e.target.closest("[data-track]");
   if(tr){const t=tasks.find(x=>x.id===tr.dataset.track);if(t){if(t.startedAt) await stopTrack(t); else await startTrack(t);}return;}
   const tg=e.target.closest("[data-toggle]");
-  if(tg){const t=tasks.find(x=>x.id===tg.dataset.toggle);if(t){if(t.done) await store.saveTask({...t,done:false}); else {await stopTrack(t,{done:true});toast(BARI_LINES[Math.floor(Math.random()*BARI_LINES.length)]);}}return;}
+  if(tg){const t=tasks.find(x=>x.id===tg.dataset.toggle);if(t){if(t.done) await store.saveTask({...t,done:false}); else {await stopTrack(t,{done:true});if(!restToast(t))toast(BARI_LINES[Math.floor(Math.random()*BARI_LINES.length)]);}}return;}
   const ed=e.target.closest("[data-edit]");
   if(ed) openEdit(ed.dataset.edit);
 });
@@ -3733,7 +3842,7 @@ function makeDb(sb,uid){
     doc(path){const [c,id]=path.split("/");return docRef(c,id);}
   };
 }
-/* daily lessons and digest are prepared by Claude each morning and published next to the app */
+/* daily lessons and digest are published next to the app each morning */
 const contentCache={lessons:{},digest:{},cityday:{},city:{}};
 async function fetchContent(path){try{const r=await fetch(`content/${path}.json`,{cache:"no-cache"});return r.ok?await r.json():false;}catch(e){return false;}}
 let planCache=null; const getPlan=async()=>planCache||(planCache=await fetchContent("plan")||{});

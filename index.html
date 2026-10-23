@@ -2778,6 +2778,19 @@ function placeBari(){const h=document.querySelector(".city-hero");if(h){h.style.
 const BARI_ACTS=[
   {k:"walk",w:4},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
 ];
+const DRINKS={
+  "Италия":{cup:"espresso",l:["В Италии кофе у стойки дешевле, чем за столиком. Пьют стоя, за минуту.","Капучино итальянцы пьют только утром. После обеда — эспрессо.","В Неаполе есть обычай caffè sospeso: платишь за два кофе, второй — для незнакомца.","Гейзерную кофеварку «мока» придумал Альфонсо Биалетти в 1933 году."]},
+  "Финляндия":{cup:"espresso",l:["Финны — одни из главных кофеманов мира: больше 10 кг кофе на человека в год.","В Финляндии любят светлую обжарку — кофе там мягкий и кисловатый.","Кофе-брейки у финнов часто прописаны прямо в трудовых соглашениях."]},
+  "Япония":{cup:"tea",l:["Японская чайная церемония называется «тя-но ю» — «горячая вода для чая».","Генмайча — японский зелёный чай с обжаренным рисом, пахнет попкорном.","Кофе в банках из автоматов в Японии продают с конца 1960-х — горячим и холодным."]},
+  "Франция":{cup:"espresso",l:["Во Франции «un café» — это эспрессо, а café au lait на завтрак пьют из большой чашки-миски.","Le Procope — старейшее кафе Парижа, открыто в 1686 году."]},
+  "Казахстан":{cup:"tea",l:["Казахи наливают гостю пиалу чая наполовину: полная пиала — намёк, что пора уходить.","Сүтті шай — чай с молоком — главный напиток казахского дастархана.","Казахстан — одна из самых «чайных» стран мира по количеству чая на человека."]},
+  "Нидерланды":{cup:"espresso",l:["Голландская Ост-Индская компания одной из первых привезла чай в Европу — в начале XVII века.","Koffie verkeerd — «неправильный кофе»: в нём больше молока, чем кофе."]},
+  "Испания":{cup:"espresso",l:["Кортадо — эспрессо с капелькой молока, любимый кофе испанцев.","Churros con chocolate — испанский завтрак: пончики-палочки в густом горячем шоколаде."]},
+  "Греция":{cup:"espresso",l:["Фраппе придумали в Салониках в 1957 году — случайно, на выставке.","Греческий кофе варят в маленькой турке — брики — и пьют не взбалтывая."]},
+  "Мексика":{cup:"espresso",l:["Café de olla — мексиканский кофе в глиняном горшке с корицей и тростниковым сахаром.","Мексиканский горячий шоколад пьют с корицей — его взбивают деревянной мутовкой molinillo."]},
+  "Южная Корея":{cup:"tea",l:["Юджачха — корейский чай из цитрусового джема юдзу, его пьют зимой от простуды.","Далгона-кофе — взбитый кофе, который в 2020 году разлетелся по всему миру из Кореи."]},
+  "Великобритания":{cup:"tea",l:["Традицию afternoon tea приписывают герцогине Анне Бедфордской, 1840-е.","Британцы до сих пор спорят, наливать молоко в чай до или после."]}
+};
 const ACT_LINES={tea:["Чай с молоком — по-казахски!","Пауза на чай ☕"],read:["Читаю про наш город…","Ещё одну страничку!"],wave:["Привет-привет!","Я тут!"]};
 function bariAct(){
   if(document.hidden||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -2796,10 +2809,15 @@ function bariAct(){
     return;
   }
   if(act==="tea"||act==="read"||act==="wave"){
-    const prop=act==="tea"?`<g transform="translate(138 118) scale(2.1)">${GLYPHS.tea}</g>`:act==="read"?`<g transform="translate(66 118) scale(2.8)">${GLYPHS.book2}</g>`:"";
+    const jr=journeyFor(todayKey()), dr=DRINKS[jr.country];
+    const prop=act==="tea"?`<g transform="translate(138 118) scale(2.1)">${GLYPHS[dr?.cup==="espresso"?"espresso":"tea"]}</g>`:act==="read"?`<g transform="translate(66 118) scale(2.8)">${GLYPHS.book2}</g>`:"";
     btn.innerHTML=bari({...st,mood:act==="wave"?"joy":"happy",arms:act==="wave"?"down":"hold",wave:act==="wave",prop});
-    if(bub&&Math.random()<.5){const L=ACT_LINES[act];bub.textContent=L[Math.floor(Math.random()*L.length)];bub.hidden=false;setTimeout(()=>{bub.hidden=true;},2600);}
-    setTimeout(()=>{const b2=document.getElementById("bariBtn");if(b2)b2.innerHTML=bari(window.bariStateNow);},act==="wave"?2600:4200);
+    let line="";
+    if(act==="tea"&&dr) line=dr.l[Math.floor(Math.random()*dr.l.length)];
+    else if(act==="read"){const inf=itemInfo(jr), lg=inf&&Array.isArray(inf.legends)&&inf.legends.length?inf.legends[Math.floor(Math.random()*inf.legends.length)]:null, f=dayInfo(todayKey())?.fact;line=lg?`Читаю легенду «${lg.title}» — она на полке города в «Книгах».`:f?f:"";}
+    if(!line&&Math.random()<.5){const L=ACT_LINES[act];line=L[Math.floor(Math.random()*L.length)];}
+    if(bub&&line){bub.textContent=line;bub.hidden=false;setTimeout(()=>{bub.hidden=true;},line.length>60?6500:3200);}
+    setTimeout(()=>{const b2=document.getElementById("bariBtn");if(b2)b2.innerHTML=bari(window.bariStateNow);},act==="wave"?2600:6500);
     return;
   }
   if(svg){svg.classList.remove("hop","peek","wiggle");void svg.getBoundingClientRect();svg.classList.add(act);setTimeout(()=>svg.classList.remove(act),1400);}

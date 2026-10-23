@@ -494,6 +494,29 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animation:bariBreath 3.6s ease-in-out infinite}
+@keyframes bariBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.985)}}
+.tour2{position:fixed;inset:0;z-index:60}
+.t2-spot{position:fixed;border-radius:18px;box-shadow:0 0 0 9999px rgba(18,14,48,.62);transition:all .45s cubic-bezier(.3,1.3,.5,1);pointer-events:none;outline:3px solid #FFD166;outline-offset:2px}
+.t2-bari{position:fixed;z-index:62;transition:left .5s cubic-bezier(.3,1.4,.5,1),top .5s cubic-bezier(.3,1.4,.5,1);pointer-events:none}
+.t2-bari svg{animation:t2hop .5s ease-out}
+@keyframes t2hop{0%{transform:translateY(0) scale(.8)}40%{transform:translateY(-18px) scale(1.05)}100%{transform:none}}
+.t2-bub{position:fixed;left:12px;right:12px;max-width:520px;margin:0 auto;z-index:61;background:var(--surface);color:var(--ink);border-radius:20px;padding:14px 16px;box-shadow:0 18px 40px rgba(0,0,0,.3);transition:top .45s ease}
+.t2-bub p{margin:0 0 10px;font-size:15.5px;line-height:1.5;min-height:3em}
+.t2-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.t2-dots{flex:1;font-size:12px;color:var(--muted);font-weight:700}
+.tale{display:grid;gap:10px}
+.tale-pic{border-radius:20px;overflow:hidden;aspect-ratio:4/3;animation:taleIn .6s ease}
+.tale-pic svg{width:100%;height:100%;display:block}
+@keyframes taleIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.tale-txt p{margin:0 0 6px;font-size:16px;line-height:1.55;opacity:0;animation:taleTxt .6s ease forwards}
+@keyframes taleTxt{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tale-dots{display:flex;gap:6px;justify-content:center}.tale-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.tale-dots i.on{background:var(--accent);width:20px;border-radius:4px}
+.tale .tw{animation:tw 2.4s ease-in-out infinite}@keyframes tw{50%{opacity:.25}}
+.tale .glow{animation:glw 2.2s ease-in-out infinite}@keyframes glw{50%{opacity:.45}}
+.tale .tb-bob{animation:tbBob 2.4s ease-in-out infinite}@keyframes tbBob{50%{transform:translateY(-8px)}}
+.tale .tb-fly{animation:tbFly 4s ease-in-out infinite}@keyframes tbFly{0%,100%{transform:translate(0,0) rotate(-3deg)}50%{transform:translate(18px,-14px) rotate(4deg)}}
+.tale .windl{stroke-dasharray:60 240;animation:windl 2.6s linear infinite}@keyframes windl{to{stroke-dashoffset:-300}}
+
 .gen-card{background:var(--surface-2);border-radius:16px;padding:14px;display:grid;gap:8px;justify-items:start}
 .gen-card p{margin:0;line-height:1.5;font-size:15px}
 .gen-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
@@ -1332,6 +1355,7 @@ function renderToday(){
   bindDayCards();
   bindWork();
   bindExtras();
+  if(!window._taleChk&&settingsLoaded){window._taleChk=1;let seen=false;try{seen=!!localStorage.getItem("bari-tale");}catch(e){seen=true;}if(!seen&&settings.onboarded!==false&&(settings.onboarded||isOwner()))setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash"))openStory(true);},3200);}
   const bb=document.getElementById("bariBtn");
   const bariSay=(q)=>{const b=document.getElementById("bariBubble");if(!b||!bb)return;b.innerHTML=`«${esc(q.q)}»${q.ru?`<span class="bb-ru">${esc(q.ru)}</span>`:""}<span class="bb-a">— ${esc(q.a)}</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:bariState.mood==="sleep"?"happy":"wink",prop:"",outfit:outfitFor(q)});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);};
   if(bb){bb.onclick=()=>{const n=(bb._n=(bb._n||0)+1);if(n===2){const L=monthLook(),b=document.getElementById("bariBubble");b.innerHTML=`${esc(L.line)}<span class="bb-a">${esc(L.n)} · ${esc(L.w)}</span><span class="bb-ru">Книга есть во вкладке «Книги».</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:"joy",prop:"",outfit:L.o});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);return;}const q=n===1?quoteOfDay(k):QUOTES[Math.floor(Math.random()*QUOTES.length)];bariSay(q);};
@@ -1410,7 +1434,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>`:""}
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -1710,6 +1734,7 @@ function bari(o={}){
     think:`<ellipse cx="80" cy="103" rx="10.5" ry="13" fill="#1F1D3D"/><ellipse cx="126" cy="103" rx="10.5" ry="13" fill="#1F1D3D"/><circle cx="83" cy="97" r="4" fill="#fff"/><circle cx="129" cy="97" r="4" fill="#fff"/>`,
     sleep:`<path d="M66 108 Q77 116 88 108" stroke="#1F1D3D" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M112 108 Q123 116 134 108" stroke="#1F1D3D" stroke-width="3.6" fill="none" stroke-linecap="round"/>`
   }[mood]||"";
+  const eyes3=eyes.replace(/<ellipse ([^>]*)fill="#1F1D3D"/g,(m,a1)=>`<ellipse ${a1}fill="url(#E${id})"`);
   const open=`<path d="M88 122 Q100 144 112 122 Z" fill="#7A1E2C"/><path d="M93 132 Q100 140 107 132 Q100 127 93 132Z" fill="#FF7B86"/>`;
   const mouth={happy:open,wink:open,
     joy:`<path d="M86 121 Q100 147 114 121 Z" fill="#7A1E2C"/><path d="M92 133 Q100 142 108 133 Q100 128 92 133Z" fill="#FF7B86"/>`,
@@ -1720,27 +1745,32 @@ function bari(o={}){
   const w=o.size||120;
   return `<svg class="bari ${o.cls||""}" viewBox="0 0 200 220" width="${w}" height="${Math.round(w*1.1)}" role="img" aria-label="BARI">
   <defs>
-    <radialGradient id="B${id}" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#9C8FFF"/><stop offset=".55" stop-color="#6C5BFF"/><stop offset="1" stop-color="#4E3FD9"/></radialGradient>
+    <radialGradient id="B${id}" cx="32%" cy="24%" r="88%"><stop offset="0" stop-color="#C2B9FF"/><stop offset=".3" stop-color="#8676FF"/><stop offset=".68" stop-color="#5A49E6"/><stop offset="1" stop-color="#3626A8"/></radialGradient><radialGradient id="A${id}" cx="50%" cy="100%" r="75%"><stop offset="0" stop-color="#1A1060" stop-opacity=".5"/><stop offset=".55" stop-color="#1A1060" stop-opacity=".12"/><stop offset="1" stop-color="#1A1060" stop-opacity="0"/></radialGradient><linearGradient id="R${id}" x1="0" y1="0" x2="1" y2="0"><stop offset=".72" stop-color="#C9C2FF" stop-opacity="0"/><stop offset="1" stop-color="#E4E0FF" stop-opacity=".55"/></linearGradient><radialGradient id="E${id}" cx="50%" cy="78%" r="70%"><stop offset="0" stop-color="#4B4690"/><stop offset=".6" stop-color="#1F1D3D"/><stop offset="1" stop-color="#0E0C24"/></radialGradient><radialGradient id="T${id}" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#7466F0"/><stop offset="1" stop-color="#3A2BB0"/></radialGradient><filter id="X${id}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2"/></filter>
     <linearGradient id="L${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9F56A"/><stop offset="1" stop-color="#7CC23A"/></linearGradient>
     <radialGradient id="G${id}"><stop offset="0" stop-color="#FFF4C2" stop-opacity=".95"/><stop offset=".4" stop-color="#FFD166" stop-opacity=".55"/><stop offset="1" stop-color="#FFD166" stop-opacity="0"/></radialGradient>
-    <linearGradient id="F${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF8EE"/><stop offset="1" stop-color="#FFEBD6"/></linearGradient>
+    <radialGradient id="F${id}" cx="45%" cy="30%" r="80%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#FFF3E4"/><stop offset="1" stop-color="#F0D6BC"/></radialGradient>
   </defs>
-  <ellipse cx="100" cy="206" rx="58" ry="7" fill="#1F1D3D" opacity=".12"/>
+  <ellipse cx="100" cy="207" rx="60" ry="8" fill="#1F1D3D" opacity=".22" filter="url(#X${id})"/><g class="bari-body">
   <path class="bari-tail" d="M158 182 C186 188 194 162 178 152 C166 145 156 156 163 164 C168 170 176 165 174 160" stroke="url(#B${id})" stroke-width="13" fill="none" stroke-linecap="round"/>
   ${armR}
   <path d="M100 42 C50 42 24 74 24 118 C24 162 52 198 100 198 C148 198 176 162 176 118 C176 74 150 42 100 42Z" fill="url(#B${id})"/>
-  <path d="M50 74 C62 56 80 48 98 47" stroke="#B9AFFF" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/>
+  <path d="M100 42 C50 42 24 74 24 118 C24 162 52 198 100 198 C148 198 176 162 176 118 C176 74 150 42 100 42Z" fill="url(#A${id})"/>
+  <path d="M100 42 C50 42 24 74 24 118 C24 162 52 198 100 198 C148 198 176 162 176 118 C176 74 150 42 100 42Z" fill="url(#R${id})"/>
+  <ellipse cx="66" cy="70" rx="24" ry="13" transform="rotate(-28 66 70)" fill="#fff" opacity=".5" filter="url(#X${id})"/>
+  <ellipse cx="58" cy="66" rx="6" ry="3.6" transform="rotate(-28 58 66)" fill="#fff" opacity=".85"/>
   ${armL}
-  <ellipse cx="78" cy="198" rx="15" ry="9" fill="#5546E0"/><ellipse cx="122" cy="198" rx="15" ry="9" fill="#5546E0"/>
+  <ellipse cx="78" cy="198" rx="15" ry="9" fill="url(#T${id})"/><ellipse cx="122" cy="198" rx="15" ry="9" fill="url(#T${id})"/><ellipse cx="74" cy="195" rx="6" ry="2.5" fill="#fff" opacity=".35"/><ellipse cx="118" cy="195" rx="6" ry="2.5" fill="#fff" opacity=".35"/>
   <path d="M42 112 C42 82 62 68 90 70 C95 70 98 76 100 76 C102 76 105 70 110 70 C138 68 158 82 158 112 C158 140 136 154 100 154 C64 154 42 140 42 112Z" fill="url(#F${id})"/>
-  <g class="bari-look"><g class="bari-eyes" style="animation-delay:-${(Math.random()*4).toFixed(1)}s">${eyes}</g></g>
-  <ellipse cx="57" cy="126" rx="11" ry="7" fill="#FF7B86" opacity=".45"/><ellipse cx="143" cy="126" rx="11" ry="7" fill="#FF7B86" opacity=".45"/>
+  <path d="M50 128 C62 148 84 154 100 154 C116 154 138 148 150 128 C140 146 120 150 100 150 C80 150 60 146 50 128Z" fill="#D9B89A" opacity=".35"/>
+  <g class="bari-look"><g class="bari-eyes" style="animation-delay:-${(Math.random()*4).toFixed(1)}s">${eyes3}</g></g>
+  <ellipse cx="57" cy="126" rx="12" ry="8" fill="#FF7B86" opacity=".5" filter="url(#X${id})"/><ellipse cx="143" cy="126" rx="12" ry="8" fill="#FF7B86" opacity=".5" filter="url(#X${id})"/>
   ${mouth}
   <g class="bari-star"><circle cx="100" cy="174" r="26" fill="url(#G${id})"/>
   <path d="M100 159 C101.6 170 104.5 172.5 115 174 C104.5 175.5 101.6 178 100 189 C98.4 178 95.5 175.5 85 174 C95.5 172.5 98.4 170 100 159Z" fill="#FFE27A"/>
   <path d="M100 164 C100.8 171 102 172.5 107 174 C102 175 100.8 176.5 100 182 C99.2 176.5 98 175 93 174 C98 172.5 99.2 171 100 164Z" fill="#FFF8D6"/></g>
   ${o.outfit?outfitSvg(o.outfit):""}
   <g class="bari-leaf" style="animation-delay:-${(Math.random()*3).toFixed(1)}s">${sproutSvg(o.lvl??window.bariLvl??3,id)}</g>
+  </g>
   ${o.prop||""}
   </svg>`;
 }
@@ -4024,6 +4054,110 @@ function openGen(){
 document.addEventListener("click",e=>{const b=e.target.closest?.("[data-genopen]");if(b){if(b.dataset.gt)genTab=b.dataset.gt;genTag="all";openGen();}});
 function genTeaser(){return `<section class="card"><div class="cd-head"><span class="label">Генератор идей</span></div><p class="tip" style="margin:0 0 10px">Выбери запрос — BARI подскажет идею. Нажимай «Ещё», пока не понравится.</p><div class="gen-grid">${genTabs().map(([k,n])=>`<button class="gen-btn" data-genopen data-gt="${k}">${glyph(k==="couple"?"heart":k==="kid"?"gelato":k==="self"?"tea":"spark2",30)}<b>${esc(n)}</b></button>`).join("")}</div></section>`;}
 
+/* ---------- animated tour: BARI walks over the real screen and explains it ---------- */
+const TOUR2=[
+ {v:"today",sel:".city-hero",t:"Привет! Я BARI. Это моя улица — каждую неделю я живу в новом городе, и всё здесь меняется: дома, деревья, погода. Нажми на меня — и я что-нибудь расскажу."},
+ {v:"today",sel:"#lvlBtn",t:"Это мой уровень. Каждое твоё дело — капля воды для меня. Когда капель станет много, откроется новая глава моей истории."},
+ {v:"today",sel:".city-chips",t:"Наклейки города: еда, места, традиции. Нажми на любую — расскажу, что попробовать и где побывать."},
+ {v:"today",sel:".hero",t:"Твой день: сколько задач, сколько времени уже ушло и во сколько ты освободишься. Кольцо заполняется, когда закрываешь дела."},
+ {v:"today",sel:".studio-strip",t:"Твоя студия: сторис с готовыми текстами, доска контента от идеи до публикации, отчёт и входящие."},
+ {v:"today",sel:".quick-in",t:"Пришла мысль на бегу — запиши сюда одной строкой. Разберёшь потом, во «Входящих»."},
+ {v:"today",sel:".fy-row",t:"«Для тебя»: настроение, генератор идей, город дня с мелодией, деньги, забота. Нажми на плитку — она раскроется."},
+ {v:"today",sel:".tl",t:"Блоки дня. Нажимай ▶, когда начинаешь задачу, — я засеку время и напомню, когда пора заканчивать."},
+ {v:"today",sel:"#fab",t:"Сюда — чтобы добавить задачу. Можно указать время «с … до …», даже ночью через полночь."},
+ {v:"week",sel:"#tab-week",t:"«Неделя» — вся неделя на одном экране: что, когда и сколько часов."},
+ {v:"rhythm",sel:"#tab-rhythm",t:"«Ритм» — настройки: регулярные дела, забота о себе, уведомления и всё о тебе."},
+ {v:"me",sel:"#tab-me",t:"«Я» — 5 минут в день про город недели: история, кино, кухня, язык. А ещё паспорт с штампами и мои сувениры."},
+ {v:"code",sel:"#tab-code",t:"«Мұра» — наше наследие: обычаи, жеті қазына, эпосы, великие люди. На казахском и русском."},
+ {v:"lib",sel:"#tab-lib",t:"«Книги» — твоя полка и подборки под твою работу и увлечения. Нажми на часы в комнате — почитаем 20 минут."},
+ {v:"today",sel:"#helpFab",t:"Если что-то непонятно — нажми «?» на любом экране. А теперь — вперёд! Бәрі бір жерде. Бір қадамнан."}
+];
+let tourI=-1, tourTyping=null;
+function startTour(){closeSheet();tourI=0;ensureTourDom();tourStep();}
+function ensureTourDom(){
+  if(document.getElementById("tour2")) return;
+  document.body.insertAdjacentHTML("beforeend",`<div id="tour2" class="tour2"><div class="t2-spot" id="t2Spot"></div><div class="t2-bari" id="t2Bari"></div><div class="t2-bub" id="t2Bub"><p id="t2Txt"></p><div class="t2-row"><span class="t2-dots" id="t2Dots"></span><button class="ghost" id="t2Skip">Пропустить</button><button class="ghost" id="t2Back">Назад</button><button class="primary" id="t2Next">Дальше</button></div></div></div>`);
+  document.getElementById("t2Skip").onclick=endTour;
+  document.getElementById("t2Back").onclick=()=>{if(tourI>0){tourI--;tourStep(-1);}};
+  document.getElementById("t2Next").onclick=()=>{if(tourI<TOUR2.length-1){tourI++;tourStep(1);}else endTour();};
+}
+function endTour(){const t=document.getElementById("tour2");if(t)t.remove();tourI=-1;clearInterval(tourTyping);if(view!=="today"){view="today";render();}try{localStorage.setItem("bari-tour2","1");}catch(e){}sfx("chime");}
+function tourStep(dir=1){
+  let st=TOUR2[tourI];
+  if(st.v&&view!==st.v){view=st.v;render();}
+  setTimeout(()=>{
+    let el=document.querySelector(st.sel);
+    if(!el||!el.getClientRects().length){if(dir>=0&&tourI<TOUR2.length-1){tourI++;return tourStep(dir);}if(dir<0&&tourI>0){tourI--;return tourStep(dir);}}
+    if(el&&!el.closest(".tabbar")&&el.id!=="fab"&&el.id!=="helpFab") el.scrollIntoView({block:"center",behavior:reducedMotion()?"auto":"smooth"});
+    setTimeout(()=>placeTour(el,st),reducedMotion()?40:420);
+  },st.v?160:0);
+}
+function placeTour(el,st){
+  const spot=document.getElementById("t2Spot"), b=document.getElementById("t2Bari"), bub=document.getElementById("t2Bub"); if(!spot) return;
+  const W=window.innerWidth, H=window.innerHeight, r=el?el.getBoundingClientRect():{left:W/2-40,top:H/2-40,width:80,height:80};
+  const pad=8, x=Math.max(4,r.left-pad), y=Math.max(4,r.top-pad), w=Math.min(W-8,r.width+pad*2), h=Math.min(H-8,r.height+pad*2);
+  Object.assign(spot.style,{left:x+"px",top:y+"px",width:w+"px",height:h+"px"});
+  const below=y+h+230<H, bubTop=below?Math.min(H-200,y+h+64):Math.max(10,y-200);
+  bub.style.top=bubTop+"px";
+  const bx=Math.min(W-96,Math.max(6,r.left+r.width/2-45)), by=below?y+h-14:y-82;
+  b.innerHTML=bari({mood:tourI===TOUR2.length-1?"joy":tourI%3===0?"happy":"wink",wave:tourI===0||tourI===TOUR2.length-1,size:80,cls:"t2-hop"});
+  Object.assign(b.style,{left:bx+"px",top:Math.max(4,Math.min(H-90,by))+"px"});
+  b.classList.toggle("t2-up",!below);
+  document.getElementById("t2Dots").textContent=`${tourI+1} / ${TOUR2.length}`;
+  document.getElementById("t2Back").disabled=tourI===0;
+  document.getElementById("t2Next").textContent=tourI===TOUR2.length-1?"Готово":"Дальше";
+  const txt=gx(st.t), p=document.getElementById("t2Txt"); clearInterval(tourTyping);
+  if(reducedMotion()){p.textContent=txt;}else{let n=0;p.textContent="";tourTyping=setInterval(()=>{n+=2;p.textContent=txt.slice(0,n);if(n>=txt.length)clearInterval(tourTyping);},18);}
+  sfx("soft");
+}
+window.addEventListener("resize",()=>{if(tourI>=0){const st=TOUR2[tourI];placeTour(document.querySelector(st.sel),st);}});
+document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))startTour();if(e.target.closest?.("[data-story]"))openStory(false);});
+
+/* ---------- the tale of BARI: an animated storybook ---------- */
+const TALE=[
+ {s:"steppe",t:"Давным-давно, там, где степь встречается с небом, жила мудрая әже. В её старом сундуке хранились семена. В каждом — крупица чего-то важного: в одном песня, в другом терпение, в третьем — рецепт самых пышных баурсаков."},
+ {s:"seeds",t:"Самое маленькое семечко было фиолетовым, с крошечной звездой внутри. Все семена знали, кем станут: деревом, цветком, колоском. А маленькое молчало и только тихонько светилось."},
+ {s:"ask",t:"— Кем ты хочешь стать? — спросила әже.\n— Всем, — прошептало семечко. — Бәрі.\nӘже улыбнулась: — Всем стать нельзя. Но можно научиться успевать главное и не терять себя."},
+ {s:"leaves",t:"Әже подарила ему два листочка. «Один — для дел, второй — для дома и близких. Расти так, чтобы ни один не завял». А звезда на груди, сказала она, будет загораться каждый раз, когда ты делаешь шаг."},
+ {s:"wind",t:"Ветер подхватил семечко и понёс через степь, горы и моря. По дороге оно слушало города: как пьют чай в Лондоне, как кланяются в Токио, как звучит кюй в степи. Так у него вырос хвостик — дорожка, память о пути."},
+ {s:"door",t:"Однажды ветер опустил его у твоего порога. Семечко проснулось, огляделось и сказало: «Привет! Я BARI. Давай вместе — шаг за шагом»."},
+ {s:"now",t:"С тех пор BARI живёт рядом с тобой. Он путешествует по городам, растит сад из твоих шагов и напоминает самое главное:\nБәрі бір жерде. Бір қадамнан.\nВсё в одном месте. С одного шага."}
+];
+function taleScene(s){
+  const stars=Array.from({length:24},(_,i)=>`<circle class="tw" style="animation-delay:-${(i%7)*.4}s" cx="${(i*67)%400}" cy="${(i*41)%150}" r="${i%3?1.2:2}" fill="#fff"/>`).join("");
+  const sky=(a,b)=>`<defs><linearGradient id="tsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="300" fill="url(#tsky)"/>`;
+  const steppe=`<path d="M0 230 Q100 205 200 222 T400 214 V300 H0Z" fill="#C9A86A"/><path d="M0 252 Q120 236 240 248 T400 244 V300 H0Z" fill="#B8955A"/>`;
+  const yurt=`<g transform="translate(250 168)"><path d="M0 60 V30 Q40 -6 80 30 V60Z" fill="#F5EBDD"/><path d="M0 30 Q40 -6 80 30" stroke="#C25B3A" stroke-width="4" fill="none"/><path d="M14 38 H66 M10 48 H70" stroke="#C25B3A" stroke-width="2.5"/><rect x="32" y="36" width="16" height="24" fill="#8C5A4A"/></g>`;
+  const chest=`<g transform="translate(70 196)"><rect width="74" height="40" rx="5" fill="#8C5A4A"/><path d="M0 12 H74" stroke="#5E3A2E" stroke-width="3"/><rect x="31" y="14" width="12" height="10" rx="2" fill="#E0B84A"/>${[10,24,40,56].map((x,i)=>`<circle class="glow" style="animation-delay:-${i*.5}s" cx="${x+4}" cy="-6" r="5" fill="${["#FFD166","#7CC23A","#FF8A5B","#9C8FFF"][i]}"/>`).join("")}</g>`;
+  const seedP=(x,y,sc=1)=>`<g transform="translate(${x} ${y}) scale(${sc})"><ellipse cx="0" cy="0" rx="13" ry="17" fill="#6C5BFF"/><ellipse cx="-4" cy="-6" rx="4" ry="6" fill="#B9AFFF" opacity=".6"/><path class="glow" d="M0 -5 L2 0 L7 1 L2 3 L0 9 L-2 3 L-7 1 L-2 0Z" fill="#FFE27A"/></g>`;
+  const B=(o)=>`<g transform="translate(${o.x} ${o.y}) scale(${o.sc||.55})"><g class="tb-bob">${bari({mood:o.mood||"happy",wave:o.wave,size:200,lvl:o.lvl??1}).replace(/<svg[^>]*>/,"").replace(/<\/svg>$/,"")}</g></g>`;
+  switch(s){
+    case "steppe": return sky("#1B1645","#4A3E8C")+stars+`<circle cx="330" cy="60" r="22" fill="#FFF4C2"/>`+steppe+yurt+chest+`<g transform="translate(176 170)"><circle cx="0" cy="0" r="12" fill="#E9C9A6"/><path d="M-14 4 Q0 -22 14 4 L12 10 H-12Z" fill="#C25B3A"/><path d="M-16 12 Q0 60 16 12Z" fill="#7A3B5C"/></g>`;
+    case "seeds": return sky("#2A2160","#5B4FA8")+stars+`<rect x="40" y="200" width="320" height="16" rx="8" fill="#8C5A4A"/>`+[[80,"#8C6A4A"],[130,"#A0805A"],[180,"#6B8E4E"],[280,"#B37A4C"],[330,"#7A6A5A"]].map(([x,c])=>`<ellipse cx="${x}" cy="186" rx="12" ry="15" fill="${c}"/>`).join("")+seedP(232,182,1.1)+`<circle class="glow" cx="232" cy="182" r="34" fill="#FFD166" opacity=".18"/>`;
+    case "ask": return sky("#2A2160","#6A5EBD")+stars+steppe+`<g transform="translate(120 150)"><circle cx="0" cy="0" r="16" fill="#E9C9A6"/><path d="M-18 6 Q0 -28 18 6 L16 12 H-16Z" fill="#C25B3A"/><path d="M-22 16 Q0 90 22 16Z" fill="#7A3B5C"/><path d="M20 30 Q40 34 54 50" stroke="#7A3B5C" stroke-width="9" fill="none" stroke-linecap="round"/></g>`+seedP(196,198,1.3)+`<g class="glow"><circle cx="196" cy="198" r="40" fill="#FFD166" opacity=".16"/></g><g transform="translate(232 120)"><rect width="120" height="42" rx="14" fill="#fff"/><path d="M14 42 L6 56 L28 42Z" fill="#fff"/><text x="60" y="27" text-anchor="middle" font-size="18" font-weight="800" fill="#4E3FD9" font-family="Nunito,sans-serif">Бәрі!</text></g>`;
+    case "leaves": return sky("#3E3490","#8C80E0")+`<circle cx="200" cy="150" r="110" fill="#FFE7A0" opacity=".18" class="glow"/>`+steppe+B({x:145,y:92,sc:.55,mood:"joy",lvl:2})+`<g class="tw"><path d="M110 90 l4 10 l10 4 l-10 4 l-4 10 l-4 -10 l-10 -4 l10 -4z" fill="#FFE27A"/><path d="M290 110 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#FFE27A"/></g>`;
+    case "wind": return sky("#6FA8E8","#CFE3FF")+`<path d="M0 250 Q80 220 160 240 Q240 260 400 230 V300 H0Z" fill="#7CC23A"/><path d="M250 250 L300 170 L350 250Z" fill="#8E9CC4"/><path d="M286 192 L300 170 L314 192Z" fill="#fff"/><rect x="0" y="262" width="400" height="38" fill="#3E86C4" opacity=".7"/>`+[60,110,160].map((y,i)=>`<path class="windl" style="animation-delay:-${i*.6}s" d="M20 ${y} Q120 ${y-20} 220 ${y} T400 ${y-10}" stroke="#fff" stroke-width="4" fill="none" opacity=".7" stroke-linecap="round"/>`).join("")+`<g class="tb-fly">${B({x:150,y:70,sc:.42,mood:"joy",wave:true,lvl:2})}</g>`+["tea","pagoda","yurt","colosseum"].map((g,i)=>`<g class="tw" style="animation-delay:-${i*.6}s" transform="translate(${30+i*95} ${18+(i%2)*20}) scale(1.6)">${GLYPHS[g]||""}</g>`).join("");
+    case "door": return sky("#FFD9A8","#FFF1DC")+`<rect x="0" y="236" width="400" height="64" fill="#D9C2A2"/><rect x="230" y="70" width="110" height="170" rx="6" fill="#8C5A4A"/><rect x="242" y="84" width="86" height="142" rx="4" fill="#A86E54"/><circle cx="318" cy="160" r="5" fill="#E0B84A"/><rect x="220" y="232" width="130" height="10" rx="4" fill="#C25B3A"/>`+[0,1,2].map(i=>`<path class="windl" style="animation-delay:-${i*.5}s" d="M10 ${150+i*24} Q60 ${140+i*24} 110 ${150+i*24}" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>`).join("")+B({x:100,y:110,sc:.58,mood:"happy",wave:true,lvl:2});
+    case "now": default: return sky("#4E3FD9","#9C8FFF")+stars+`<path d="M0 240 H400 V300 H0Z" fill="#2A2160"/>`+[[20,60],[70,90],[130,50],[250,80],[310,60],[360,100]].map(([x,h])=>`<rect x="${x}" y="${240-h}" width="40" height="${h}" fill="#3B3080"/>`).join("")+`<g class="tw">${[60,140,280,340].map(x=>`<rect x="${x}" y="200" width="6" height="8" fill="#FFE27A"/>`).join("")}</g>`+B({x:130,y:70,sc:.62,mood:"joy",lvl:5});
+  }
+}
+let taleI=0, taleFirst=false;
+function openStory(first){taleI=0;taleFirst=!!first;try{localStorage.setItem("bari-tale","1");}catch(e){}drawTale();}
+function drawTale(){
+  const p=TALE[taleI], last=taleI===TALE.length-1;
+  openSheet(`<div class="tale"><div class="tale-pic" key="${taleI}"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">${taleScene(p.s)}</svg></div>
+    <span class="label">Сказка о BARI · ${taleI+1} из ${TALE.length}</span>
+    <div class="tale-txt">${p.t.split("\n").map((l,i)=>`<p style="animation-delay:${i*.35}s">${esc(gx(l))}</p>`).join("")}</div>
+    <div class="tale-dots">${TALE.map((_,i)=>`<i class="${i===taleI?"on":""}"></i>`).join("")}</div>
+    <div class="actions"><button class="ghost" id="taleBack" ${taleI?"":"disabled"}>Назад</button>${last?`<button class="primary" id="taleTour">${ic("spark")}Экскурсия по BARI</button>`:`<button class="primary" id="taleNext">Дальше</button>`}</div>
+    <button class="ghost" id="taleX">${last?"Закрыть":"Пропустить"}</button></div>`);
+  const g=i=>document.getElementById(i);
+  g("taleBack").onclick=()=>{if(taleI>0){taleI--;drawTale();}};
+  if(g("taleNext")) g("taleNext").onclick=()=>{taleI++;sfx("soft");drawTale();};
+  if(g("taleTour")) g("taleTour").onclick=()=>{closeSheet();startTour();};
+  g("taleX").onclick=()=>{closeSheet();try{localStorage.setItem("bari-tale","1");}catch(e){}if(taleFirst&&!last)startTour();};
+}
+
 let forYouOpen=null;
 function forYouHtml(k){
   const d=(typeof dayDoc==="function"?dayDoc(k):{})||{}, j=journeyFor(k), q=quoteOfDay(k), ideasN=Object.values(ideas).filter(x=>x&&!x.used).length;
@@ -4148,7 +4282,7 @@ function helpSlide(key,i,n){
 }
 function openHelp(key){
   openSheet(helpSlide(key,0,1)+`<div class="actions"><button class="ghost" id="hTour">Вся экскурсия</button><button class="primary" id="hOk">${ic("check")}Понятно</button></div>`);
-  document.getElementById("hOk").onclick=closeSheet; document.getElementById("hTour").onclick=()=>openTour(0);
+  document.getElementById("hOk").onclick=closeSheet; document.getElementById("hTour").onclick=()=>startTour();
 }
 function openTour(i=0){
   const n=TOUR.length;
@@ -4161,7 +4295,7 @@ function openTour(i=0){
 function markToured(){try{localStorage.setItem("bari-toured","1");}catch(e){} if(!settings.toured&&store&&store.saveSettings) store.saveSettings({...settings,toured:true});}
 document.body.insertAdjacentHTML("beforeend",`<button class="help-fab" id="helpFab" aria-label="Подсказка по этому экрану">?</button>`);
 document.getElementById("helpFab").onclick=()=>openHelp(view);
-document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))openTour(0);if(e.target.closest?.("#addHelp"))openHelp("add");});
+document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))startTour();if(e.target.closest?.("#addHelp"))openHelp("add");});
 
 /* ---------- personalisation: niche, priorities, own travel route ---------- */
 const NICHES=[
@@ -4234,7 +4368,7 @@ async function obFinish(edit){
   const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],hobbies:d.hobbies||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
   if(habits&&(!edit||!settings.habits)) next.habits=habits;
   await store.saveSettings(next); obDraft=null;
-  if(edit){closeSheet();toast("Сохранила! Маршрут обновлён.");} else openTour(0);
+  if(edit){closeSheet();toast("Сохранила! Маршрут обновлён.");} else openStory(true);
 }
 /* niche ideas for everyone except the owner (owner has the detailed work card) */
 let nicheIdeas={};

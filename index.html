@@ -614,6 +614,18 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .ob-top{display:flex;gap:12px;align-items:center}
 .ob-projects{display:grid;gap:6px}
 .ob-kids{display:flex;gap:8px;margin-top:6px}
+.help-fab{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:max(12px,env(safe-area-inset-right,0px));z-index:7;width:38px;height:38px;border-radius:50%;border:0;background:color-mix(in srgb,var(--surface) 82%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--accent);font:800 19px var(--body);box-shadow:0 4px 14px rgba(30,27,46,.15);cursor:pointer}
+#login:not([hidden]) ~ .help-fab{display:none}
+.help-top{display:flex;gap:12px;align-items:center}
+.help-top h3{margin:2px 0 0;font-family:var(--display);font-size:19px;display:flex;gap:6px;align-items:center}
+.help-list{margin:12px 0 0;padding-left:20px;display:grid;gap:9px;line-height:1.5;font-size:15px}
+.help-list b{color:var(--accent)}
+.tour-dots{display:flex;gap:6px;justify-content:center;margin:14px 0 4px}
+.tour-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.tour-dots i.on{background:var(--accent);width:20px;border-radius:99px}
+.add-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.add-head h3{margin:0}
+.add-tip{margin:6px 0 10px;font-size:13.5px;line-height:1.45;color:var(--muted);background:var(--accent-soft);padding:8px 12px;border-radius:12px}
 .status{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
@@ -1205,7 +1217,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено в плане":"ждёт Claude"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div>${window.sbClient?`<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Как пользоваться BARI</button>${window.sbClient?`<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("pin")}Где я бываю</h2>
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
@@ -1282,7 +1294,7 @@ const projPick=(sel,filter)=>settings.projects.filter(filter).map(p=>`<button da
 const STAGE_LABEL={idea:"Придумать",script:"Сценарий",text:"Текст",shoot:"Съёмка",design:"Дизайн",edit:"Монтаж",post:"Выложить"};
 function openAdd(){
   const work=settings.projects.filter(p=>p.kind!=="home");
-  const st={kind:"content",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",homeStage:"me",ptime:postTime(work[0]?.id)};
+  const st={kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",homeStage:"me",ptime:postTime(work[0]?.id)};
   const dateRow=(label)=>`<div class="field"><label class="label" for="aDate">${label}</label>
       <div class="row"><button type="button" class="tog" data-qd="0" aria-pressed="${st.date===todayKey()}">Сегодня</button><button type="button" class="tog" data-qd="1" aria-pressed="${st.date===addDays(todayKey(),1)}">Завтра</button><input id="aDate" type="date" value="${st.date}" min="${todayKey()}" style="flex:1"></div></div>`;
   const draw=()=>{
@@ -1313,8 +1325,9 @@ function openAdd(){
       <div class="field" style="flex:1"><label class="label" for="aTime">Время</label><input id="aTime" type="time" value="${esc(st.time)}"></div></div>`;
     }
     openSheet(`
-      <h3>${ic("plus")}Добавить в план</h3>
-      <div class="pick">${[["content","Контент","film"],["task","Задача","task"],["home","Дом и я","heart"]].map(([k,n,i])=>`<button data-kind="${k}" aria-pressed="${st.kind===k}">${ic(i)}${n}</button>`).join("")}</div>
+      <div class="add-head"><h3>${ic("plus")}Добавить в план</h3><button type="button" class="mini-btn" id="addHelp">? Как записывать</button></div>
+      <p class="add-tip">${st.kind==="content"?"Укажи дату выхода и нужные этапы — я разложу их по дням до публикации.":st.kind==="task"?"Пиши действие с результатом: «Отправить КП клиенту», а не «КП». Оцени время честно — большое дело раздели на шаги по 1–2 часа.":"Дела для дома и себя не съедают рабочий лимит. Время укажи, только если оно важно."}</p>
+      <div class="pick">${[["content","Контент","film"],["task","Задача","task"],["home","Дом и я","heart"]].filter(x=>x[0]!=="content"||contentMode()).map(([k,n,i])=>`<button data-kind="${k}" aria-pressed="${st.kind===k}">${ic(i)}${n}</button>`).join("")}</div>
       <div class="field"><label class="label" for="aTitle">Название</label><input id="aTitle" type="text" value="${esc(st.title)}" placeholder="${st.kind==="home"?"Например: испечь круассаны":st.kind==="task"?"Например: отправить отчёт директору":"Например: рилс про страх выступления"}"></div>
       ${body}
       <div class="actions"><button class="ghost" id="aCancel">Отмена</button><button class="primary" id="aSave">${ic("check")}Добавить</button></div>`);
@@ -2500,9 +2513,11 @@ function openOnboarding(edit){
       <div class="ob-projects">${names.slice(0,5).map((n,i)=>`<input class="ob-p" data-i="${i}" value="${esc(n)}" placeholder="${["Например, работа","Учёба","Хобби","Клиент","Ещё"][i]}" style="border-left:6px solid var(${OB_COLORS[i]})">`).join("")}</div></div>
     <div class="row"><label style="flex:1">Начинаю в<input id="obStart" type="time" value="${esc(s.dayStart||"10:00")}"></label><label style="flex:1">Заканчиваю в<input id="obEnd" type="time" value="${esc(s.dayEnd||"18:00")}"></label></div>
     <label>Сколько часов в день готова работать<input id="obLimit" type="number" min="1" max="12" step="0.5" inputmode="decimal" value="${esc(String(s.limit||4))}"></label>
+    <div><span class="label">Ведёшь соцсети или делаешь контент?</span><div class="ob-kids"><button class="pick-c ${contentMode()?"on":""}" data-cont="1">Да</button><button class="pick-c ${!contentMode()?"on":""}" data-cont="0">Нет</button></div><p class="tip" style="margin:4px 0 0">Тогда появится режим «Контент»: я сама разложу идею, текст, съёмку и монтаж по дням до публикации.</p></div>
     <div><span class="label">Есть дети?</span><div class="ob-kids"><button class="pick-c ${hasKids()?"on":""}" data-kids="1">Да</button><button class="pick-c ${!hasKids()?"on":""}" data-kids="0">Нет</button></div><p class="tip" style="margin:4px 0 0">Тогда BARI будет предлагать идеи, чем заняться вместе.</p></div>
     <button class="primary" id="obSave">${ic("check")}${edit?"Сохранить":"Начать"}</button></div>`);
-  let kids=hasKids();
+  let kids=hasKids(), cont=contentMode();
+  document.querySelectorAll("[data-cont]").forEach(b=>b.onclick=()=>{cont=b.dataset.cont==="1";document.querySelectorAll("[data-cont]").forEach(z=>z.classList.toggle("on",z===b));});
   document.querySelectorAll("[data-kids]").forEach(b=>b.onclick=()=>{kids=b.dataset.kids==="1";document.querySelectorAll("[data-kids]").forEach(z=>z.classList.toggle("on",z===b));});
   document.getElementById("obSave").onclick=async()=>{
     const name=document.getElementById("obName").value.trim();
@@ -2511,10 +2526,88 @@ function openOnboarding(edit){
     const projects=list.map((n,i)=>n?(old[i]?{...old[i],name:n}:{id:"p"+i+"-"+(slug(n)||"x").slice(0,12),name:n,color:OB_COLORS[i],icon:OB_ICONS[i]}):null).filter(Boolean);
     if(!projects.length) projects.push({id:"work",name:"Работа",color:OB_COLORS[0],icon:OB_ICONS[0]});
     const homes=(settings.projects||[]).filter(p=>p.kind==="home"); 
-    await store.saveSettings({...settings,name,kids,onboarded:true,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)});
-    closeSheet(); toast(name?`Рад знакомству, ${name}! Нажми «Добавить», чтобы поставить первую задачу.`:"Готово! Нажми «Добавить», чтобы поставить первую задачу.");
+    await store.saveSettings({...settings,name,kids,content:cont,onboarded:true,dayStart:document.getElementById("obStart").value||"10:00",dayEnd:document.getElementById("obEnd").value||"18:00",limit:Number(document.getElementById("obLimit").value)||4,projects:projects.concat(homes.length?homes:HOME_PROJECTS)});
+    if(edit){closeSheet();toast("Сохранила!");} else openTour(0);
   };
 }
+
+/* ---------- help: per-screen guide + first-run tour ---------- */
+const contentMode=()=>settings.content!==undefined?!!settings.content:isOwner();
+const HELP={
+  intro:{t:"Привет! Я BARI",m:"joy",o:"",p:["«Бәрі» по-казахски — «всё». Здесь всё в одном месте: работа, дом, ты сама и немного мира каждый день.","Я покажу, что где лежит. Это займёт минуту.","Вернуться к экскурсии можно в любой момент: «Ритм» → «О себе» → «Как пользоваться BARI»."]},
+  today:{t:"Сегодня — твой день",m:"happy",i:"sun",p:[
+    "<b>Кольцо</b> показывает, сколько работы на сегодня и сколько уже сделано. Если запланировано больше твоего лимита часов, я предупрежу.",
+    "<b>Блоки дня</b> — задачи, собранные в блоки по проектам, с временем. Начинаешь задачу — жми <b>▶</b>: я засеку время, а когда оно выйдет, спрошу, закончила ли. Готово — <b>✓</b>. Не успела — <b>«Завтра»</b>.",
+    "<b>«Добавить»</b> внизу справа — новая задача. Как записывать правильно, подскажу прямо там.",
+    "<b>«Как ты сегодня?»</b> — настроение и энергия. По ним я подстраиваю советы.",
+    "<b>Привычки дня</b>: нажми, чтобы отметить, удерживай, чтобы сбросить.",
+    "Ниже — <b>копилка идей</b>, <b>быстрые ссылки</b> и карточка <b>«Забота»</b>: идеи для себя и дома."]},
+  add:{t:"Как записывать задачи",m:"think",i:"plus",p:[
+    "<b>Одна задача — одно действие с результатом.</b> «Отправить КП клиенту», а не просто «КП».",
+    "<b>Оцени время честно</b>: 15 минут, час, два. Я соберу из задач блоки по 1–2 часа и не дам переполнить день.",
+    "<b>Большое дело раздели</b> на шаги по 1–2 часа. Так легче начать и видно прогресс.",
+    "<b>Время ставь, только если оно важно</b> (встреча, звонок). Остальное я расставлю сама.",
+    "<b>«Дом и я»</b> — уборка, выпечка, отдых, книги. Они не съедают рабочий лимит.",
+    "<b>«Контент»</b> (если ведёшь соцсети): укажи дату выхода и этапы — я разложу идею, текст, съёмку и монтаж по дням до публикации."]},
+  week:{t:"Неделя",m:"think",i:"cal",p:[
+    "Сверху — <b>итог недели</b>: что сделано и сколько времени ушло.",
+    "Полоса дней показывает загрузку. Нажми на день, чтобы увидеть его план.",
+    "Если день перегружен, перенеси часть задач на свободный: открой задачу и нажми «Завтра» или поменяй дату."]},
+  rhythm:{t:"Ритм — настройки под тебя",m:"happy",i:"sliders",p:[
+    "<b>О себе</b> — имя, проекты, дети. Здесь же экскурсия и выход из аккаунта.",
+    "<b>Рабочее время</b> и лимит часов в день: больше лимита я планировать не дам.",
+    "<b>Регулярные дела</b> — то, что повторяется (каждый день, по понедельникам). Я сама создаю их на две недели вперёд.",
+    "<b>Где я бываю</b> — дни в офисе или у клиента, <b>Занятые периоды</b> — отпуск и поездки: туда задачи не встанут.",
+    "<b>Сколько реально уходит</b> — когда пользуешься таймером ▶, я считаю настоящее время и предлагаю поправить оценки.",
+    "<b>Заметки для Claude</b> — пожелания, которые учтёт Claude, когда будет помогать с планом."]},
+  me:{t:"Я — 20 минут для себя",m:"joy",i:"spark",p:[
+    "<b>Путешествие:</b> каждый месяц я «живу» в новой стране, каждую неделю — в новом городе. Фон, факты, слова и наклейки — всё про этот город. Флажки сверху — маршрут на год.",
+    "<b>Урок дня</b> на 5 минут. Тема зависит от дня недели: пн — история, вт — искусство, ср — язык, чт — кино, пт — кухня, сб — книги, вс — квиз недели. Новые уроки появляются каждое утро.",
+    "В конце урока <b>мини-тест</b>: за ответы — баллы и серия дней подряд.",
+    "<b>Паспорт путешественника:</b> пройди 3 урока в городе — получишь штамп города.",
+    "<b>Награды BARI</b> — медали за серии, привычки, книги и идеи.",
+    "<b>Мир сегодня</b> — 6 главных новостей утра, коротко и с фразой для разговора."]},
+  code:{t:"Код — казахский культурный код",m:"happy",i:"star",p:[
+    "Каждый день — <b>карточка</b>: традиция, искусство, еда, личность или пословица.",
+    "Прочитала — нажми <b>«В Қоржын»</b>. Қоржын — твоя коллекция, собери все карточки.",
+    "<b>Мини-квиз</b> «О чём это?» помогает запомнить, а <b>цитата дня</b> — повод подумать.",
+    "В карточках есть идея для поста и подсказка, как рассказать об этом ребёнку."]},
+  lib:{t:"Книги",m:"happy",i:"book",p:[
+    "<b>Комната живая — нажимай на предметы.</b> Часы — таймер чтения на 20 минут, лампа, радио со звуком дождя, окно, кот Бәрік и цветок, который растёт от прочитанных книг.",
+    "<b>Полка города</b> — легенды, мифы и истории города недели.",
+    "<b>Моя полка:</b> «Добавить книгу» → Читаю / Прочитано / Хочу. У «Читаю» есть прогресс по страницам, а когда дочитаешь — оценка и главная мысль. Прочитанные книги встают на полку в комнате.",
+    "<b>Подборки BARI</b> с объяснением, почему стоит прочитать. «Хочу» добавляет книгу на полку.",
+    "<b>Цель на год</b> — сколько книг хочешь прочитать."]},
+  bari:{t:"Я, BARI",m:"wink",o:"",p:[
+    "<b>Нажми на меня</b> — скажу цитату дня. Ещё раз — расскажу, в чьём я образе в этом месяце. Дальше — новые цитаты.",
+    "<b>Удерживай</b> — погладить. <b>Быстро нажми 4 раза</b> — будет щекотно.",
+    "Я переодеваюсь: каждый месяц — герой классической книги, а когда цитирую — в образ автора. Ночью сплю в колпаке.",
+    "Кнопка <b>«?»</b> в правом верхнем углу всегда объяснит экран, на котором ты сейчас."]}
+};
+const TOUR=["intro","today","add","week","rhythm","me","code","lib","bari"];
+function helpSlide(key,i,n){
+  const h=HELP[key], list=h.p.filter(x=>hasKids()||!/ребёнк|детей|дети/.test(x)||key==="rhythm");
+  return `<div class="help-slide">
+    <div class="help-top">${bari({mood:h.m,size:76,wave:key==="intro",outfit:monthLook().o})}<div><span class="label">${n>1?`${i+1} из ${n}`:"Подсказка"}</span><h3>${h.i?ic(h.i):""}${esc(h.t)}</h3></div></div>
+    <ul class="help-list">${list.map(x=>`<li>${x}</li>`).join("")}</ul>
+  </div>`;
+}
+function openHelp(key){
+  openSheet(helpSlide(key,0,1)+`<div class="actions"><button class="ghost" id="hTour">Вся экскурсия</button><button class="primary" id="hOk">${ic("check")}Понятно</button></div>`);
+  document.getElementById("hOk").onclick=closeSheet; document.getElementById("hTour").onclick=()=>openTour(0);
+}
+function openTour(i=0){
+  const n=TOUR.length;
+  openSheet(helpSlide(TOUR[i],i,n)+`<div class="tour-dots">${TOUR.map((_,j)=>`<i class="${j===i?"on":""}"></i>`).join("")}</div>
+    <div class="actions">${i>0?`<button class="ghost" id="tBack">Назад</button>`:`<button class="ghost" id="tSkip">Пропустить</button>`}<button class="primary" id="tNext">${i<n-1?"Дальше":ic("check")+"Начнём!"}</button></div>`);
+  const b=document.getElementById("tBack"); if(b) b.onclick=()=>openTour(i-1);
+  const s=document.getElementById("tSkip"); if(s) s.onclick=()=>{closeSheet();markToured();};
+  document.getElementById("tNext").onclick=()=>{if(i<n-1){const nv={today:"today",week:"week",rhythm:"rhythm",me:"me",code:"code",lib:"lib"}[TOUR[i+1]];if(nv&&nv!==view){view=nv;render();}openTour(i+1);}else{closeSheet();markToured();view="today";render();}};
+}
+function markToured(){try{localStorage.setItem("bari-toured","1");}catch(e){} if(!settings.toured&&store&&store.saveSettings) store.saveSettings({...settings,toured:true});}
+document.body.insertAdjacentHTML("beforeend",`<button class="help-fab" id="helpFab" aria-label="Подсказка по этому экрану">?</button>`);
+document.getElementById("helpFab").onclick=()=>openHelp(view);
+document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))openTour(0);if(e.target.closest?.("#addHelp"))openHelp("add");});
 
 /* ---------- «Я»: 20 minutes of erudition, tied to the city of the week ---------- */
 const TOPICS=[
@@ -2537,7 +2630,7 @@ const TOPIC_BRIEF={
 };
 let erud={}, digest={}, meBusy=false, meErr="", meCtl=null;
 const meToday=()=>todayKey();
-function lessonFor(k){return erud[k]||null;}
+function lessonFor(k){const e=erud[k]||null, f=window.BARI_FIXES?.lessons?.[k];return e&&f?{...e,...f}:e;}
 function meStats(){
   const days=Object.values(erud).filter(e=>e&&e.done);
   const points=days.reduce((s,e)=>s+10+5*(e.correct||0),0);
@@ -2808,6 +2901,7 @@ async function startApp(sb,session){
   render();
 }
 render();
+fetch("content/fixes.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{if(j){window.BARI_FIXES=j;try{render();}catch(e){}}}).catch(()=>{});
 (async()=>{
   if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
   const cfg=window.BARI_CONFIG||{};

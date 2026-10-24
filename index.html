@@ -494,6 +494,23 @@ a.mini-btn{text-decoration:none;color:var(--ink)}
 .medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .medal{display:grid;justify-items:center;gap:3px;text-align:center;opacity:.5;filter:grayscale(1);background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
 .medal-c{position:relative}
+.par-tog{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--muted);margin-top:10px;line-height:1.35}.par-tog input{margin-top:2px}
+.done-list{margin-top:10px}.done-list summary{cursor:pointer;font-weight:700;color:var(--muted);display:flex;gap:6px;align-items:center;padding:6px 0}
+.ci-big{justify-items:center;text-align:center}.ci-yes{width:100%;font-size:18px;padding:16px}
+.soon-card{display:flex;gap:10px;align-items:center;background:var(--accent-soft);border-radius:16px;padding:10px 12px;margin:8px 0}
+.upd{justify-items:stretch}.upd>svg{justify-self:center}.upd-list{display:grid;gap:8px}.upd-i{background:var(--surface-2);border-radius:14px;padding:10px 12px}.upd-i p{margin:2px 0 0}
+.next-rw{display:flex;gap:12px;align-items:center;background:var(--accent-soft);border-radius:16px;padding:12px;width:100%;box-sizing:border-box}.next-rw>div{display:grid;gap:2px}.next-rw small{color:var(--muted)}
+.lvl-path{display:grid;gap:6px;width:100%}
+.lp{display:grid;grid-template-columns:28px 28px 1fr auto;gap:10px;align-items:center;text-align:left;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;opacity:.55}
+.lp.on{opacity:1;background:var(--accent-soft);border-color:transparent;cursor:pointer}.lp.next{opacity:1;border:2px dashed var(--accent)}
+.lp-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-weight:800;font-size:13px}.lp.on .lp-n{background:var(--accent);color:#fff}
+.lp>div{display:grid}.lp small{color:var(--muted);font-size:12px}
+svg.bari .bari-star.gold path:first-of-type{fill:#FFC93C}svg.bari .bari-star.gold{filter:drop-shadow(0 0 6px #FFD166)}
+.hero-cat{position:absolute;right:calc(var(--bx,0px)*-1 + 170px);bottom:118px;width:64px;z-index:2;pointer-events:none}
+.hero-cat .cat-tail{animation:catTail 2.6s ease-in-out infinite;transform-origin:62px 50px}@keyframes catTail{50%{transform:rotate(-14deg)}}
+.hero-flowers{position:absolute;left:0;right:0;bottom:96px;width:100%;height:36px;z-index:1;pointer-events:none}
+.rp-soon{position:absolute;top:4px;right:4px;font-size:9.5px;font-weight:800;background:#FFD166;color:#5A3A00;border-radius:6px;padding:1px 5px}
+
 svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animation:bariBreath 3.6s ease-in-out infinite}
 @keyframes bariBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.985)}}
 .tour2{position:fixed;inset:0;z-index:60}
@@ -1006,7 +1023,8 @@ const workTasks=arr=>arr.filter(t=>!isHome(t));
 const dotHtml=id=>`<span class="dot" style="background:var(${proj(id).color})"></span>`;
 const tile=(t,cls="tile")=>`<span class="${cls}" style="--pc:var(${proj(t.project).color})">${ic(STAGES[t.stage]?.icon||"task")}</span>`;
 const projTile=p=>`<span class="tile" style="--pc:var(${p.color})">${ic(p.icon||"task")}</span>`;
-const load=(k,extra=[])=>workTasks(tasks.concat(extra)).filter(t=>t.date===k).reduce((s,t)=>s+Number(t.hours||0),0);
+const isPar=t=>t.par===true||(t.par!==false&&(/сторис|репост/i.test(t.title||"")||["stories","repost"].includes(t.stage)));
+const load=(k,extra=[])=>workTasks(tasks.concat(extra)).filter(t=>t.date===k&&!isPar(t)).reduce((s,t)=>s+Number(t.hours||0),0);
 const sortTasks=arr=>arr.slice().sort((a,b)=>(a.done-b.done)||((a.time||"~")>(b.time||"~")?1:(a.time||"~")<(b.time||"~")?-1:0)||(STAGE_ORDER.indexOf(a.stage)-STAGE_ORDER.indexOf(b.stage))||(a.title>b.title?1:-1));
 const uid=()=>"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const blockFor=k=>(settings.blocks||[]).find(b=>k>=b.from&&k<=b.to);
@@ -1075,9 +1093,10 @@ function daySchedule(k,live=false){
   const running=live?list.find(t=>t.startedAt):null;
   const rows=[]; let cur=live?Math.max(ds,isToday?nowM:ds):ds;
   if(running&&isToday){const s=nowM-sessionMin(running);rows.push({t:running,start:s,dur:Math.max(dur(running)+sessionMin(running),sessionMin(running))});cur=Math.max(cur,s+rows[0].dur);}
-  const fixed=list.filter(t=>t!==running&&parseHM(effTime(t))!==null).map(t=>({t,start:parseHM(effTime(t)),dur:dur(t)})).sort((a,b)=>a.start-b.start);
+  const par=list.filter(t=>t!==running&&isPar(t));
+  const fixed=list.filter(t=>t!==running&&!isPar(t)&&parseHM(effTime(t))!==null).map(t=>({t,start:parseHM(effTime(t)),dur:dur(t)})).sort((a,b)=>a.start-b.start);
   const pIdx=t=>settings.projects.findIndex(p=>p.id===t.project);
-  const flex=sortTasks(list.filter(t=>t!==running&&parseHM(effTime(t))===null)).sort((a,b)=>(b.done-a.done)||(pIdx(a)-pIdx(b)));
+  const flex=sortTasks(list.filter(t=>t!==running&&!isPar(t)&&parseHM(effTime(t))===null)).sort((a,b)=>(b.done-a.done)||((a.due||"9999")>(b.due||"9999")?1:(a.due||"9999")<(b.due||"9999")?-1:0)||(pIdx(a)-pIdx(b)));
   let fi=0;
   for(const t of flex){
     const d=dur(t);
@@ -1085,6 +1104,7 @@ function daySchedule(k,live=false){
     rows.push({t,start:cur,dur:d}); cur+=d;
   }
   while(fi<fixed.length) rows.push(fixed[fi++]);
+  for(const t of par){const tm=parseHM(effTime(t));rows.push({t,start:tm!==null?tm:(live&&isToday?Math.max(ds,nowM):ds),dur:dur(t),par:true});}
   rows.sort((a,b)=>a.start-b.start);
   const end=rows.reduce((m,r)=>Math.max(m,r.start+r.dur),isToday?nowM:ds);
   return {rows,end,ds,de,nowM,isToday};
@@ -1111,7 +1131,7 @@ function checkinHtml(ci,big){
 async function handleCi(action,id){
   const t=tasks.find(x=>x.id===id); if(!t) return;
   const k=todayKey(), nowD=new Date(), nowM=nowD.getHours()*60+nowD.getMinutes();
-  if(action==="done"){await stopTrack(t,{done:true});sfx("done");restToast(t);}
+  if(action==="done"){await stopTrack(t,{done:true,...(spentTotal(t)<1?{spentMin:planMin(t)}:{})});sfx("done");restToast(t);}
   else if(action==="start") await startTrack(t);
   else if(action==="more"){const n={...t,hours:Number(t.hours||0)+0.25}; if(t.startedAt) await store.saveTask(n); else await startTrack(n); warned.delete(t.id);}
   else if(action==="tomorrow") await stopTrack(t,{date:addDays(k,1)});
@@ -1289,12 +1309,14 @@ function renderToday(){
   else if(live.end>live.de) note=`<p class="note bad">До ${esc(settings.dayEnd)} не успеваешь: с такой скоростью закончишь в ${fmtHM(live.end)}. Перенеси что-нибудь на завтра.</p>`;
   else if(total>lim) note=`<p class="note bad">План больше лимита на ${fmtH(total-lim)}. Перенеси что-нибудь.</p>`;
   else note=`<p class="note">Если без затяжек, закончишь к <b style="color:var(--ink)">${fmtHM(live.end)}</b>. Дальше ты свободна.</p>`;
+  const lateDue=sch.isToday?live.rows.filter(r=>!r.par&&r.t.due&&r.t.due<=k&&r.start+r.dur>live.de):[];
+  if(lateDue.length) note+=`<p class="note bad">Срок сегодня, но не влезает до ${esc(settings.dayEnd)}: «${esc(lateDue[0].t.title)}». Начни с неё или перенеси другое.</p>`;
   const ringCls=total>lim?"over":(work.length&&!open.length?"full":"");
   const daysTo=nextBlk?Math.round((fromKey(nextBlk.from)-fromKey(k))/864e5):null;
   let runBanner="";
   if(running){const pm=planMin(running), sp=spentTotal(running), ov=pm>0&&sp>pm;
     runBanner=`<div class="banner run ${ov?"":"ok"}"><span class="tile" style="--pc:var(${ov?"--warn":"--ok"})">${ic("timer")}</span><div style="flex:1;min-width:0"><b>Сейчас: ${esc(running.title)}</b><br><span class="hours">${fmtMin(sp)} из ${fmtMin(pm)}</span>${ov?` · вышла за план на <b class="hours">${fmtMin(sp-pm)}</b>. Закругляйся или перенеси остаток на завтра.`:` · осталось ${fmtMin(pm-sp)}`}</div><button class="mini-btn" data-track="${running.id}">${ic("pause")}Пауза</button></div>`;}
-  const groups=blockGroups(sch.rows);
+  const groups=blockGroups((sch.isToday?live:sch).rows);
   let tl="", nowDone=!sch.isToday;
   const nowLine=()=>`<div class="now-line"><span class="hours">${fmtHM(sch.nowM)}</span></div>`;
   for(const g of groups){
@@ -1320,6 +1342,7 @@ function renderToday(){
       <p class="greet">${esc(greet)}${userName()?", "+esc(userName()):""}</p>${lg.sub?`<p class="greet-sub">${esc(lg.sub)}</p>`:""}
       ${levelChip()}
       ${cityChipsHtml(k)}
+      ${heroExtras()}
       <button class="scene-bari" id="bariBtn" aria-label="BARI">${bari(bariState)}</button>
       <div class="bubble" id="bariBubble" hidden role="status"></div>
     </div>
@@ -1345,7 +1368,7 @@ function renderToday(){
     ${overdue.length?`<h2>${ic("reset")}Хвосты<span class="count">${overdue.length}</span></h2><div class="list">${overdue.map(t=>taskRow(t,true)).join("")}</div>
       <div style="margin-top:10px"><button class="mini-btn" id="moveOverdue">${ic("right")}Перенести все на сегодня</button></div>`:""}
     <h2>${ic("timer")}Блоки дня<span class="count hours">${esc(settings.dayStart)}–${esc(settings.dayEnd)} · ${fmtH(total)} / ${fmtH(lim)}</span></h2>
-    ${sch.rows.length?`<div class="tl">${tl}</div>${mcp?`${mcp?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="mini-btn" data-cal="${k}">${ic("cal")}В Google Календарь</button><button class="mini-btn" data-cal="${addDays(k,1)}">${ic("cal")}Завтра в календарь</button></div>`:""}`:""}<p class="tip" style="margin-top:8px;font-size:13px">Нажимай ${ic("play")} когда начинаешь задачу: так видно, сколько она реально занимает.</p>`:(work.length?"":`<div class="empty"><span class="tile">${ic("sun")}</span>Нажми «Добавить», чтобы поставить задачу на сегодня.</div>`)}
+    ${(sch.isToday?live:sch).rows.length||doneL.length?`<div class="tl">${tl}</div>${sch.isToday&&doneL.length?`<details class="done-list"><summary>${ic("check")} Сделано сегодня · ${doneL.length}</summary><div class="list">${doneL.map(t=>taskRow(t)).join("")}</div></details>`:""}${mcp?`${mcp?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="mini-btn" data-cal="${k}">${ic("cal")}В Google Календарь</button><button class="mini-btn" data-cal="${addDays(k,1)}">${ic("cal")}Завтра в календарь</button></div>`:""}`:""}<p class="tip" style="margin-top:8px;font-size:13px">Нажимай ${ic("play")} когда начинаешь задачу: так видно, сколько она реально занимает.</p>`:(work.length?"":`<div class="empty"><span class="tile">${ic("sun")}</span>Нажми «Добавить», чтобы поставить задачу на сегодня.</div>`)}
     <h2>${ic("check")}Привычки</h2>
     ${habitsCard(k)}
     <h2 style="color:var(--home)">${ic("heart")}Для себя и дома</h2>
@@ -1434,7 +1457,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>`:""}
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -1513,7 +1536,7 @@ const projPick=(sel,filter)=>settings.projects.filter(filter).map(p=>`<button da
 const STAGE_LABEL={idea:"Придумать",script:"Сценарий",text:"Текст",shoot:"Съёмка",design:"Дизайн",edit:"Монтаж",post:"Выложить"};
 function openAdd(){
   const work=settings.projects.filter(p=>p.kind!=="home");
-  const st={kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",end:"",timed:false,note:"",homeStage:"me",ptime:postTime(work[0]?.id)};
+  const st={kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",end:"",timed:false,note:"",par:false,homeStage:"me",ptime:postTime(work[0]?.id)};
   const span=()=>{const a=parseHM(st.time),b=parseHM(st.end);if(a===null||b===null)return 0;const d=(b-a+1440)%1440;return d||1440;};
   const fixNight=()=>{st.note="";if(!st.timed||st.date!==todayKey())return;const a=parseHM(st.time);if(a===null)return;const n=new Date(),nowM=n.getHours()*60+n.getMinutes();
     if(a<nowM-15&&a<360){const tm=addDays(todayKey(),1);st.date=tm;st.note=gx(`${st.time} сегодня уже прошло — поставила на ночь с ${["воскресенья","понедельника","вторника","среды","четверга","пятницы","субботы"][n.getDay()]} на ${["воскресенье","понедельник","вторник","среду","четверг","пятницу","субботу"][(n.getDay()+1)%7]}.`);}
@@ -1523,7 +1546,7 @@ function openAdd(){
       <div class="row"><button type="button" class="tog" data-tm="0" aria-pressed="${!st.timed}">Любое</button><button type="button" class="tog" data-tm="1" aria-pressed="${st.timed}">С … до …</button></div>
       ${st.timed?`<div class="row" style="margin-top:8px"><div class="field" style="flex:1"><label class="label" for="aFrom">С</label><input id="aFrom" type="time" value="${esc(st.time)}"></div><div class="field" style="flex:1"><label class="label" for="aTo">До</label><input id="aTo" type="time" value="${esc(st.end)}"></div></div>`
       :`<div class="seg" style="margin-top:8px">${[.5,1,2,3,4].map(h=>`<button type="button" class="mini-btn ${st.hours===h?"on":""}" data-hq="${h}">${h<1?"30 мин":h+" ч"}</button>`).join("")}<input id="aHours" type="number" min="0.25" step="0.25" value="${st.hours}" aria-label="Часов" style="width:80px"></div>`}
-      <p class="tip when-line">${esc(whenLine())}</p>${st.note?`<p class="tip when-note">${esc(st.note)}</p>`:""}</div>`;
+      <p class="tip when-line">${esc(whenLine())}</p>${st.note?`<p class="tip when-note">${esc(st.note)}</p>`:""}<label class="par-tog"><input type="checkbox" id="aPar" ${st.par?"checked":""}> Можно делать параллельно с другими делами — не занимает время в плане</label></div>`;
   const dateRow=(label)=>`<div class="field"><label class="label" for="aDate">${label}</label>
       <div class="row"><button type="button" class="tog" data-qd="0" aria-pressed="${st.date===todayKey()}">Сегодня</button><button type="button" class="tog" data-qd="1" aria-pressed="${st.date===addDays(todayKey(),1)}">Завтра</button><input id="aDate" type="date" value="${st.date}" min="${todayKey()}" style="flex:1"></div></div>`;
   const draw=()=>{
@@ -1569,6 +1592,7 @@ function openAdd(){
     q("[data-qd]",b=>{st.date=addDays(todayKey(),Number(b.dataset.qd));st.note="";});
     q("[data-tm]",b=>{st.timed=b.dataset.tm==="1";if(st.timed&&!st.time){const n=new Date();const m=Math.ceil((n.getHours()*60+n.getMinutes())/30)*30%1440;st.time=hm(m);st.end=hm(m+Math.round(st.hours*60));}fixNight();});
     q("[data-hq]",b=>{st.hours=Number(b.dataset.hq);});
+    const apr=document.getElementById("aPar"); if(apr) apr.onchange=()=>{st.par=apr.checked;};
     document.getElementById("aDate").onchange=e=>{if(e.target.value){st.date=e.target.value;st.note="";draw();}};
     const af=document.getElementById("aFrom"); if(af) af.onchange=()=>{const old=span();st.time=af.value;if(old&&parseHM(st.time)!==null)st.end=hm(parseHM(st.time)+old);fixNight();draw();};
     const at=document.getElementById("aTo"); if(at) at.onchange=()=>{st.end=at.value;draw();};
@@ -1585,7 +1609,7 @@ function openAdd(){
         for(const p of items) await store.saveTask({id:uid(),title,project:st.project,stage:p.stage,date:p.date,hours:p.hours,done:false,publish:st.stages.includes("post")?date:"",piece,time:p.stage==="post"?st.ptime:""});
       } else if(st.kind==="task"){
         closeSheet();
-        await store.saveTask({id:uid(),title,project:st.project,stage:"task",date,hours:st.hours,done:false,piece,time:st.time});
+        await store.saveTask({id:uid(),title,project:st.project,stage:"task",date,hours:st.hours,done:false,piece,time:st.time,...(st.par?{par:true}:{}),});
       } else {
         closeSheet();
         const pid=st.homeStage==="read"?"books":st.homeStage==="bake"?"bake":"house";
@@ -1615,6 +1639,7 @@ function openEdit(id){
       </div>
       ${pm>0&&sp>=1?`<p class="tip ${sp>pm?"danger":""}">${sp>pm?`Вышла за план на ${fmtMin(sp-pm)}.`:`До конца плана ${fmtMin(pm-sp)}.`}</p>`:""}
       ${t.publish&&t.stage!=="post"&&t.stage!=="task"?`<p class="tip">Выход контента: ${niceWd(t.publish)}</p>`:""}
+      <label class="par-tog"><input type="checkbox" id="ePar" ${isPar(t)?"checked":""}> Параллельно с другими делами</label>
       ${isHome(t)||t.done?"":`<button class="ghost" id="eTrack">${ic(run?"pause":"play")}${run?"Пауза":"Начать сейчас"}</button>`}
       <div class="actions"><button class="ghost danger" id="eDel">${confirmDel?"Точно удалить?":ic("trash")}</button><button class="ghost" id="eCancel">Отмена</button><button class="primary" id="eSave">Сохранить</button></div>`);
     const g=i=>document.getElementById(i);
@@ -1623,6 +1648,7 @@ function openEdit(id){
     g("eHours").oninput=e=>{t.hours=Number(e.target.value)||t.hours;syncEnd();}; g("eTime").onchange=e=>{t.time=e.target.value.trim();syncEnd();};
     g("eEnd").onchange=e=>{const a=parseHM(t.time||""),b=parseHM(e.target.value);if(a===null||b===null)return;const d=((b-a+1440)%1440)||1440;t.hours=Math.round(d/60*100)/100;g("eHours").value=t.hours;};
     g("eSpent").oninput=e=>t.spentEdited=Math.max(0,Number(e.target.value)||0);
+    g("ePar").onchange=e=>{t.par=e.target.checked;};
     g("eMinus").onclick=()=>{t.date=addDays(t.date,-1);draw();};
     g("ePlus").onclick=()=>{t.date=addDays(t.date,1);draw();};
     g("eCancel").onclick=closeSheet;
@@ -1765,9 +1791,10 @@ function bari(o={}){
   <g class="bari-look"><g class="bari-eyes" style="animation-delay:-${(Math.random()*4).toFixed(1)}s">${eyes3}</g></g>
   <ellipse cx="57" cy="126" rx="12" ry="8" fill="#FF7B86" opacity=".5" filter="url(#X${id})"/><ellipse cx="143" cy="126" rx="12" ry="8" fill="#FF7B86" opacity=".5" filter="url(#X${id})"/>
   ${mouth}
-  <g class="bari-star"><circle cx="100" cy="174" r="26" fill="url(#G${id})"/>
+  <g class="bari-star ${(o.lvl??window.bariLvl??1)>=5?"gold":""}"><circle cx="100" cy="174" r="${(o.lvl??window.bariLvl??1)>=5?34:26}" fill="url(#G${id})"/>
   <path d="M100 159 C101.6 170 104.5 172.5 115 174 C104.5 175.5 101.6 178 100 189 C98.4 178 95.5 175.5 85 174 C95.5 172.5 98.4 170 100 159Z" fill="#FFE27A"/>
   <path d="M100 164 C100.8 171 102 172.5 107 174 C102 175 100.8 176.5 100 182 C99.2 176.5 98 175 93 174 C98 172.5 99.2 171 100 164Z" fill="#FFF8D6"/></g>
+  ${(o.lvl??window.bariLvl??1)>=3&&!o.noScarf&&!(o.prop||"").includes("M42 146")?TRAVEL_SCARF:""}
   ${o.outfit?outfitSvg(o.outfit):""}
   <g class="bari-leaf" style="animation-delay:-${(Math.random()*3).toFixed(1)}s">${sproutSvg(o.lvl??window.bariLvl??3,id)}</g>
   </g>
@@ -2147,7 +2174,7 @@ const OCCASIONS=[
 ];
 const HOOKS=["«3 ошибки, которые совершают почти все родители, когда…»","«Никто не говорит вам об этом, но…»","«Если ваш ребёнок стесняется — досмотрите до конца»","«Мы спросили 10 родителей в Атырау…»","«Сколько на самом деле стоит учёба в…»","«POV: ваш ребёнок впервые выходит на сцену»","«Хотела бы я знать это раньше…»","«Стоп. Не делайте этого, пока не посмотрите видео»","«Вот что происходит, когда ребёнок 7 дней в лагере»","«Самый частый вопрос, который нам задают:»","«Миф или правда?»","«Объясню за 30 секунд»","«Это видео сэкономит вам месяц поисков»","«До и после: одна неделя»","«Вы знали, что…?»","«Одно дело, которое стоит сделать до конца года»","«Почему умные дети боятся отвечать у доски»","«Не покупайте кофе, пока не узнаете это»","«Сохраните, чтобы не потерять»","«Отвечаем на ваш вопрос в директ»","«Как бы я поступала в 2027, если бы начинала сначала»","«Один день из жизни студента в…»","«Тест: какой вы родитель?»","«Сравним: учёба в Корее и в Китае»","«Это снимали не для рекламы»","«Мы сделали это впервые в Атырау»","«Повторите это упражнение вместе с ребёнком»","«Только честно: вы бы так смогли?»","«3 фразы, которые убивают уверенность ребёнка»","«Что скрывается за этим фасадом?»"];
 const LEVELS=[[0,"Семечко"],[200,"Росток"],[550,"Листик"],[1100,"Побег"],[1900,"Бутон"],[3000,"Цветение"],[4500,"Деревце"],[6500,"Сад"]];
-const XP={work:3,home:2,lesson:8,right:3,mura:2};
+const XP={work:3,home:2,lesson:8,right:3,mura:2,closed:5};
 const STORY=[
   {h:"Глава 1. Семечко",t:"Ветер долго нёс по степи маленькое семечко и уронил его к твоему порогу. Внутри кто-то спал и тихо сопел. Это был BARI — от казахского «бәрі», «всё». Он ещё не знает, что умеет, но уже знает, чего хочет: узнать всё на свете."},
   {h:"Глава 2. Росток",t:"Каждое твоё закрытое дело — капля воды. Их набралось столько, что семечко треснуло, и BARI высунул наружу зелёную макушку. Первое, что он увидел, — тебя. Теперь он уверен: вы команда."},
@@ -2162,7 +2189,7 @@ function xpTotal(){
   const t=workTasks(tasks).filter(x=>x.done).length*XP.work+tasks.filter(x=>x.done&&isHome(x)).length*XP.home;
   const l=Object.values(erud).filter(e=>e&&e.done).reduce((s,e)=>s+XP.lesson+XP.right*(e.correct||0),0);
   const m=Object.keys(codeProg?.read||{}).length*XP.mura;
-  return t+l+m;
+  return t+l+m+closedDays()*XP.closed;
 }
 function levelOf(xp){let i=0;for(let n=0;n<LEVELS.length;n++) if(xp>=LEVELS[n][0]) i=n;const cur=LEVELS[i],next=LEVELS[i+1];return {n:i+1,name:cur[1],from:cur[0],to:next?next[0]:cur[0],pct:next?Math.min(100,Math.round((xp-cur[0])/(next[0]-cur[0])*100)):100};}
 function levelChip(){
@@ -2172,15 +2199,15 @@ function levelChip(){
 function storyHtml(n){const st=STORY[n-1];return `<div class="story"><span class="label">${esc(st.h)}</span><p>${esc(gx(st.t))}</p></div>`;}
 function openLevel(n){
   if(n)sfx("chime");
-  const xp=xpTotal(), L=levelOf(xp), show=n||L.n;
+  const xp=xpTotal(), L=levelOf(xp), show=n||L.n, ppd=xpPerDay(), left=Math.max(0,L.to-xp), eta=L.to>L.from?Math.ceil(left/ppd):0, nx=LEVEL_REWARDS[L.n];
   openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">${bari({mood:"joy",wave:true,prop:PROPS.spark,size:120,lvl:show})}
     <h3>${n?"Новая глава!":"История BARI"}</h3><p class="tip">Уровень ${L.n} · ${L.name} · ${xp} баллов</p>
     <div class="lvl-bar big"><i style="width:${L.pct}%"></i></div>
-    <p class="tip">${L.to>L.from?`До главы «${LEVELS[L.n]?.[1]||""}» осталось ${L.to-xp} баллов.`:gx("Ты дошла до конца истории!")}</p>
+    ${nx?`<div class="next-rw">${glyph(nx.g,34)}<div style="text-align:left"><span class="label">На уровне ${nx.n} тебя ждёт</span><b>${esc(nx.t)}</b><small>${esc(nx.d)}</small><small>Осталось ${left} баллов${eta&&eta<=90?` · в твоём темпе примерно ${eta} ${plural(eta,"день","дня","дней")}`:""}</small></div></div>`:`<p class="tip">${gx("Ты дошла до конца истории!")} Сад BARI цветёт.</p>`}
     ${storyHtml(show)}
-    <div class="lvl-list">${LEVELS.map((x,i)=>`<button class="${i<L.n?"on":""}" ${i<L.n?`data-ch="${i+1}"`:"disabled"}>${i+1}. ${i<L.n?x[1]:"???"}</button>`).join("")}</div>
-    <p class="tip">Баллы: +${XP.work} за рабочую задачу, +${XP.home} за дело для себя и дома, +${XP.lesson} за урок и +${XP.right} за каждый верный ответ, +${XP.mura} за статью «Мұра». Следующие главы открываются всё реже — как в настоящей книге.</p>
-    <button class="ghost" id="ciClose">Закрыть</button></div>`);
+    <div class="lvl-path">${LEVEL_REWARDS.map(r=>{const on=r.n<=L.n;return `<button class="lp ${on?"on":""} ${r.n===L.n+1?"next":""}" ${on?`data-ch="${r.n}"`:"disabled"}><span class="lp-n">${r.n}</span>${glyph(r.g,24)}<div><b>${on||r.n===L.n+1?esc(r.t):"???"}</b><small>${on?esc(r.d):r.n===L.n+1?"следующая награда":"откроется позже"}</small></div>${on?ic("check"):""}</button>`;}).join("")}</div>
+    <p class="tip">Как набирать баллы: +${XP.work} за рабочую задачу, +${XP.home} за дело для себя и дома, +${XP.lesson} за урок и +${XP.right} за верный ответ, +${XP.mura} за статью «Мұра», +${XP.closed} бонус за день, где закрыты все рабочие задачи. Сейчас ты набираешь ~${ppd} в день.</p>
+    <div class="row"><button class="ghost" data-story>${ic("book")}Сказка о BARI</button><button class="ghost" id="ciClose">Закрыть</button></div></div>`);
   document.querySelectorAll("#sheetIn [data-ch]").forEach(b=>b.onclick=()=>{const box=document.querySelector("#sheetIn .story");if(box)box.outerHTML=storyHtml(Number(b.dataset.ch));});
   document.getElementById("ciClose").onclick=closeSheet;
 }
@@ -3336,8 +3363,9 @@ const ACT_LINES={tea:["Чай с молоком — по-казахски!","П�
 function bariAct(){
   if(document.hidden||reducedMotion()||window.bariMusic) return;
   const btn=document.getElementById("bariBtn"), hero=document.querySelector(".city-hero"), st=window.bariStateNow;
-  if(!btn||!hero||!st||st.mood==="sleep"||!document.getElementById("sheet").hidden) return;
+  if(!btn||!hero||!st||!document.getElementById("sheet").hidden) return;
   const bub=document.getElementById("bariBubble"); if(bub&&!bub.hidden) return;
+  if(st.mood==="sleep"){if(Math.random()<.45&&bub){const c=journeyFor(todayKey()).city;const L=["Zzz…",`Мне снится ${c}…`,"Тсс… я сплю. И тебе пора 🌙","Ммм… баурсаки…","Завтра погуляем по городу. Zzz"];bub.textContent=L[Math.floor(Math.random()*L.length)];bub.hidden=false;btn.querySelector("svg.bari")?.classList.add("r-sway");setTimeout(()=>{bub.hidden=true;btn.querySelector("svg.bari")?.classList.remove("r-sway");},4500);}return;}
   const tot=BARI_ACTS.reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, act=BARI_ACTS[0].k;
   for(const x of BARI_ACTS){if((r-=x.w)<0){act=x.k;break;}}
   const svg=btn.querySelector("svg.bari");
@@ -4142,7 +4170,7 @@ function taleScene(s){
   }
 }
 let taleI=0, taleFirst=false;
-function openStory(first){taleI=0;taleFirst=!!first;try{localStorage.setItem("bari-tale","1");}catch(e){}drawTale();}
+function openStory(first){if((window.bariLvl||1)>=7&&!TALE.some(x=>x.secret))TALE.push({s:"now",secret:true,t:"Секретная глава. Однажды ночью BARI спросил әже во сне: «А что будет, когда мой сад вырастет?» Әже ответила: «Тогда ты станешь семечком для кого-то ещё». С тех пор BARI бережёт каждое твоё семечко — дела, слова, книги — чтобы однажды ими поделиться."});taleI=0;taleFirst=!!first;try{localStorage.setItem("bari-tale","1");}catch(e){}drawTale();}
 function drawTale(){
   const p=TALE[taleI], last=taleI===TALE.length-1;
   openSheet(`<div class="tale"><div class="tale-pic" key="${taleI}"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">${taleScene(p.s)}</svg></div>
@@ -4157,6 +4185,84 @@ function drawTale(){
   if(g("taleTour")) g("taleTour").onclick=()=>{closeSheet();startTour();};
   g("taleX").onclick=()=>{closeSheet();try{localStorage.setItem("bari-tale","1");}catch(e){}if(taleFirst&&!last)startTour();};
 }
+
+/* ---------- notifications → app: ?ci=id (ask), ?done=id, ?snooze=id, ?start=id ---------- */
+function handleDeepLink(qs){
+  const p=new URLSearchParams(qs===undefined?location.search:qs); const act=["done","snooze","start","ci"].find(a=>p.has(a)); if(!act) return;
+  const id=p.get(act); let tries=0;
+  const go=async()=>{const t=tasks.find(x=>x.id===id); if(!t||!store){if(++tries<30) return setTimeout(go,500); return;}
+    try{history.replaceState(null,"",location.pathname);}catch(e){}
+    if(act==="done"){if(!t.done){await handleCi("done",id);}toast(gx(`Отмечено: «${t.title}» — сделала`));}
+    else if(act==="start"){if(!t.startedAt)await startTrack(t);toast(`▶ Засекаю время: «${t.title}»`);}
+    else if(act==="snooze"){await handleCi("more",id);toast("Добавила 15 минут — напомню снова");}
+    else openCiSheet(t);};
+  go();
+}
+function openCiSheet(t){
+  if(t.done){toast("Уже отмечено ✓");return;}
+  openSheet(`<div class="ci-sheet ci-big">${bari({mood:"think",size:96})}<h3 style="margin:0">${esc(gx("Сделала"))} «${esc(t.title)}»?</h3><p class="tip" style="margin:0">${esc(proj(t.project).name)}${t.startedAt?` · идёт уже ${fmtMin(spentTotal(t))}`:""}</p>
+    <button class="primary ci-yes" data-cib="done">${ic("check")}${esc(gx("Да, сделала"))}</button>
+    <div class="row"><button class="ghost" data-cib="more">+15 минут</button>${t.startedAt?"":`<button class="ghost" data-cib="start">${ic("play")}Начинаю</button>`}<button class="ghost" data-cib="tomorrow">На завтра</button></div>
+    <button class="ghost" data-cib="x">Позже</button></div>`);
+  document.querySelectorAll("#sheetIn [data-cib]").forEach(b=>b.onclick=async()=>{const a=b.dataset.cib;closeSheet();if(a!=="x")await handleCi(a,t.id);});
+}
+try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.deep)handleDeepLink(new URL(e.data.deep,location.href).search);});}catch(e){}
+setTimeout(()=>handleDeepLink(),1500);
+
+/* ---------- updates, bug reports, coming-soon cities ---------- */
+const CHANGELOG=[
+ {d:"2026-10-25",t:"Уведомления с кнопками «Сделала» и «+15 минут», расписание по реальному времени, параллельные дела, путь уровней с наградами"},
+ {d:"2026-10-24",t:"Сказка о BARI, экскурсия по приложению, объёмный BARI, генератор идей, студия контента, деньги, погода в городе, паспорт"},
+ {d:"2026-10-23",t:"Мелодии городов, звуки, забота о себе, сувениры с историями, все 46 городов маршрута"}
+];
+let BACKLOG=null;
+async function loadBacklog(){if(BACKLOG!==null)return BACKLOG;BACKLOG=[];try{const r=await fetch("content/backlog.json",{cache:"no-cache"});if(r.ok){BACKLOG=await r.json();render();}}catch(e){}return BACKLOG;}
+setTimeout(loadBacklog,2500);
+const citySoon=city=>Array.isArray(BACKLOG)&&BACKLOG.some(x=>x.city===city);
+const countrySoon=country=>{const jn=JOURNEY.find(x=>x.country===country);return !!(jn&&Array.isArray(BACKLOG)&&BACKLOG.length&&jn.cities.every(([c])=>citySoon(c)));};
+function soonCityNote(){
+  const j=journeyFor(meToday()); if(!citySoon(j.city)) return "";
+  return `<div class="soon-card">${bari({mood:"think",size:64,arms:"hold",prop:`<g transform="translate(140 110) scale(2)">${GLYPHS.book2}</g>`})}<div><b>BARI пишет уроки про ${esc(j.city)} ✍️</b><p class="tip" style="margin:4px 0 0">Наклейки, легенды, факты и слова города уже есть. Уроки появятся в ближайших обновлениях — а пока BARI берёт урок из соседнего города.</p></div></div>`;
+}
+function openUpdates(){
+  const bl=Array.isArray(BACKLOG)?BACKLOG:[]; const by={}; bl.forEach(x=>{(by[x.country]=by[x.country]||[]).push(x.city);});
+  openSheet(`<div class="ci-sheet upd">${bari({mood:"joy",size:84,wave:true})}<h3 style="margin:0">Что нового в BARI</h3>
+    <div class="upd-list">${CHANGELOG.map(c=>`<div class="upd-i"><span class="label">${esc(nice(c.d))}</span><p>${esc(c.t)}</p></div>`).join("")}</div>
+    <span class="label">Что BARI сейчас готовит</span>
+    ${Object.keys(by).length?`<p class="tip" style="margin:0">Уроки для этих городов ещё пишутся — по одному городу в день:</p><ul class="m-tips">${Object.entries(by).map(([c,l])=>`<li>${flag(c,16)} <b>${esc(c)}</b>: ${l.map(esc).join(", ")}</li>`).join("")}</ul>`:`<p class="tip">Все уроки на месте 🎉</p>`}
+    <span class="label">Нашла ошибку или есть идея?</span>
+    <textarea id="bugT" rows="3" placeholder="Например: в Токио показало итальянское слово"></textarea>
+    <button class="primary" id="bugSend">${ic("send")}Отправить</button>
+    <p class="tip" style="margin:0">Сообщение уйдёт тому, кто поделился с тобой BARI${isOwner()?" — или вставь его в чат с Claude":""}.</p>
+    <button class="ghost" id="updX">Закрыть</button></div>`);
+  document.getElementById("updX").onclick=closeSheet;
+  document.getElementById("bugSend").onclick=async()=>{const t=document.getElementById("bugT").value.trim();if(!t){document.getElementById("bugT").focus();return;}
+    const txt=`BARI · сообщение об ошибке\n${t}\n\nЭкран: ${view} · ${new Date().toLocaleString("ru-RU")} · ${navigator.userAgent.slice(0,60)}`;
+    try{if(navigator.share){await navigator.share({text:txt});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");};
+}
+document.addEventListener("click",e=>{if(e.target.closest?.("[data-updates]"))openUpdates();});
+/* ---------- level path: rewards you can see ahead ---------- */
+const LEVEL_REWARDS=[
+ {n:1,g:"apple",t:"Семечко просыпается",d:"BARI появляется у тебя дома"},
+ {n:2,g:"bicycle",t:"Первые шаги",d:"BARI гуляет по улице, пьёт чай и показывает обычаи стран"},
+ {n:3,g:"lantern",t:"Шарф путешественника",d:"BARI надевает тёплый полосатый шарф"},
+ {n:4,g:"heart",t:"Кошка Ақ мамық в гостях",d:"на главном экране рядом с BARI появляется кошка"},
+ {n:5,g:"spark2",t:"Золотая звезда",d:"звезда на груди BARI становится золотой и сияет"},
+ {n:6,g:"flower",t:"Цветы на улице",d:"вокруг BARI распускаются цветы"},
+ {n:7,g:"book2",t:"Секретная глава сказки",d:"в «Сказке о BARI» открывается новая страница"},
+ {n:8,g:"tree",t:"Сад BARI",d:"финал истории: сад на главном экране"}
+];
+function xpPerDay(){const from=addDays(todayKey(),-13);let x=0;
+  x+=workTasks(tasks).filter(t=>t.done&&t.date>=from&&t.date<=todayKey()).length*XP.work+tasks.filter(t=>t.done&&isHome(t)&&t.date>=from&&t.date<=todayKey()).length*XP.home;
+  x+=Object.values(erud).filter(e=>e&&e.done&&e.date>=from).reduce((s,e)=>s+XP.lesson+XP.right*(e.correct||0),0);
+  return Math.max(1,Math.round(x/14));}
+function closedDays(){const by={};for(const t of workTasks(tasks)){if(!t.date||t.date>todayKey())continue;(by[t.date]=by[t.date]||[]).push(t);}return Object.values(by).filter(l=>l.length&&l.every(t=>t.done)).length;}
+function heroExtras(){const l=window.bariLvl||1;let h="";
+  if(l>=6) h+=`<svg class="hero-flowers" viewBox="0 0 400 40" preserveAspectRatio="none">${Array.from({length:l>=8?22:12},(_,i)=>{const x=10+i*(l>=8?18:33),c=["#FF8FB1","#FFD166","#FF8A5B","#C9A0FF"][i%4];return `<g transform="translate(${x} 30)"><path d="M0 0 V-12" stroke="#4F9A5A" stroke-width="2"/>${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-17" rx="3" ry="5" fill="${c}" transform="rotate(${a} 0 -12)"/>`).join("")}<circle cx="0" cy="-12" r="2.4" fill="#FFF4C2"/></g>`;}).join("")}</svg>`;
+  if(l>=4) h+=`<svg class="hero-cat" viewBox="0 0 80 60" aria-label="Кошка Ақ мамық"><ellipse cx="40" cy="56" rx="26" ry="4" fill="#000" opacity=".12"/><path d="M18 52 Q14 30 30 26 L34 12 L40 24 L46 12 L50 26 Q66 30 62 52Z" fill="#FAF7F2" stroke="#D9D2C6" stroke-width="1.5"/><circle cx="34" cy="34" r="2.4" fill="#4F9A5A"/><circle cx="46" cy="34" r="2.4" fill="#4F9A5A"/><path d="M38 39 L40 41 L42 39" stroke="#E5677D" stroke-width="1.6" fill="none"/><path class="cat-tail" d="M62 50 Q76 46 72 32" stroke="#FAF7F2" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`;
+  return h;}
+const TRAVEL_SCARF=`<g class="bari-scarf"><path d="M44 150 Q100 172 156 150 L158 162 Q100 186 42 162Z" fill="#E5532E"/><path d="M60 156 L62 168 M80 161 L81 174 M100 163 V176 M120 161 L119 174 M140 156 L138 168" stroke="#FFD166" stroke-width="4"/><path d="M128 160 L136 196 L150 192 L140 158Z" fill="#E5532E"/><path d="M131 172 L144 169 M133 182 L146 179" stroke="#FFD166" stroke-width="3"/></g>`;
 
 let forYouOpen=null;
 function forYouHtml(k){
@@ -4349,7 +4455,7 @@ function obStep3(edit){
   const draw=()=>{
     openSheet(`<div class="ci-sheet ob">
       <div class="ob-top">${bari({mood:"joy",wave:true,size:80,prop:PROPS.spark})}<div><span class="label">Шаг 3 из 3</span><h3 style="margin:2px 0 0">Куда отправимся?</h3><p class="tip" style="margin:4px 0 0">Каждый месяц — новая страна, каждую неделю — новый город. Уроки, факты и фон приложения будут про него. Нажимай страны в том порядке, в каком хочешь путешествовать.</p></div></div>
-      <div class="route-pick">${JOURNEY.map(jn=>{const i=d.route.indexOf(jn.country);return `<button class="rp ${i>=0?"on":""}" data-rc="${esc(jn.country)}">${i>=0?`<b class="rp-n">${i+1}</b>`:""}${flag(jn.country,30)}<span>${esc(jn.country)}</span><small>${esc(jn.cities.slice(0,2).map(c=>c[0]).join(", "))}…</small></button>`;}).join("")}</div>
+      <div class="route-pick">${JOURNEY.map(jn=>{const i=d.route.indexOf(jn.country);return `<button class="rp ${i>=0?"on":""}" data-rc="${esc(jn.country)}" style="position:relative">${countrySoon(jn.country)?`<span class="rp-soon">уроки скоро</span>`:""}${i>=0?`<b class="rp-n">${i+1}</b>`:""}${flag(jn.country,30)}<span>${esc(jn.country)}</span><small>${esc(jn.cities.slice(0,2).map(c=>c[0]).join(", "))}…</small></button>`;}).join("")}</div>
       <div class="row"><button class="ghost" id="rpSurprise">${ic("spark")}Удиви меня</button><button class="ghost" id="rpClear">Сбросить</button></div>
       <p class="tip" style="margin:0">${d.route.length?`Маршрут: ${d.route.map(esc).join(" → ")}`:"Можно выбрать несколько стран или довериться BARI."}</p>
       <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obSave">${ic("check")}${edit?"Сохранить":"Поехали!"}</button></div></div>`);
@@ -4457,8 +4563,8 @@ async function notifCheck(){
   syncReminders(true);
   let srv="";
   try{const cfg=window.BARI_CONFIG||{};const r=await fetch(`${cfg.supabaseUrl}/functions/v1/push?check=${encodeURIComponent(window.sbUserId||"")}`,{headers:{apikey:cfg.supabaseAnonKey}});const j=await r.json();
-    add(j.version===2,`Сервер обновлён${j.version===2?"":" — нужно заново вставить код функции push"}`);
-    if(j.version===2){add(j.subscriptions>0,`Сервер видит подписок: ${j.subscriptions}`);add(j.reminders>0,`Напоминаний впереди: ${j.reminders}`);(j.test||[]).forEach(x=>add(x==="ok",x==="ok"?"Сервер отправил тестовое уведомление":"Ошибка отправки: "+esc(x)));}
+    add(j.version>=3,`Сервер обновлён${j.version>=3?"":" — нужно заново вставить код функции push (версия 3)"}`);
+    if(j.version>=2){add(j.subscriptions>0,`Сервер видит подписок: ${j.subscriptions}`);add(j.reminders>0,`Напоминаний впереди: ${j.reminders}`);(j.test||[]).forEach(x=>add(x==="ok",x==="ok"?"Сервер отправил тестовое уведомление":"Ошибка отправки: "+esc(x)));}
     srv=`<details><summary>Технические детали</summary><pre class="diag-pre">${esc(JSON.stringify(j,null,1))}</pre></details>`;
   }catch(e){add(false,"Сервер не ответил: "+esc(e.message||String(e)));}
   openSheet(`<div class="ci-sheet"><h3 style="margin:0">Проверка уведомлений</h3><ul class="diag">${lines.join("")}</ul>${srv}<p class="tip" style="margin:0">Если пришли оба тестовых уведомления — всё работает. Если нет — сделай скриншот этого окна и ${isOwner()?"пришли Claude":"отправь тому, кто поделился с тобой BARI"}.</p><button class="primary" id="dgOk">Понятно</button></div>`);
@@ -4517,11 +4623,11 @@ function buildReminders(k){
   for(const r of open){
     if(r.t.startedAt){
       const st=new Date(r.t.startedAt), left=Math.max(5,planMin(r.t)-(Number(r.t.spentMin)||0)), end=new Date(st.getTime()+left*60000), em=end.getHours()*60+end.getMinutes();
-      items.push({key:`${k}-${r.t.id}-run-${r.t.startedAt}`,at:end.toISOString(),title:gx(`Уже ${hm(em)}. Сделала?`),body:`Время на «${r.t.title}» по плану вышло. Отметь ✓, продли или перенеси.`});
+      items.push({key:`${k}-${r.t.id}-run-${r.t.startedAt}`,at:end.toISOString(),title:gx(`Уже ${hm(em)}. Сделала?`),body:`Время на «${r.t.title}» по плану вышло. Отметь ✓, продли или перенеси.`,url:`./?ci=${r.t.id}`,tid:r.t.id,actions:[{action:"done",title:gx("✓ Сделала")},{action:"snooze",title:"+15 минут"}]});
       continue;
     }
-    items.push({key:`${k}-${r.t.id}-s-${Math.round(r.start)}`,at:at(r.start),title:`Пора: ${r.t.title}`,body:`${proj(r.t.project).name} · до ${hm(r.start+r.dur)}. Нажми ▶ в BARI, когда начнёшь.`});
-    items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:gx(`Уже ${hm(r.start+r.dur)}. Сделала?`),body:`«${r.t.title}» — отметь ✓ или перенеси.`});
+    items.push({key:`${k}-${r.t.id}-s-${Math.round(r.start)}`,at:at(r.start),title:`Пора: ${r.t.title}`,body:`${proj(r.t.project).name} · до ${hm(r.start+r.dur)}. Нажми «Начать» — я засеку время.`,url:`./?ci=${r.t.id}`,tid:r.t.id,actions:[{action:"start",title:"▶ Начать"},{action:"done",title:gx("✓ Уже сделала")}]});
+    items.push({key:`${k}-${r.t.id}-e-${Math.round(r.start+r.dur)}`,at:at(r.start+r.dur),title:gx(`Уже ${hm(r.start+r.dur)}. Сделала?`),body:`«${r.t.title}» — нажми «Сделала» или «+15 минут».`,url:`./?ci=${r.t.id}`,tid:r.t.id,actions:[{action:"done",title:gx("✓ Сделала")},{action:"snooze",title:"+15 минут"}]});
   }
   items.push(...careItems(k,sc));
   if(studioOn()) for(const x of storiesOn(k).filter(x=>!x.done&&parseHM(x.at||"")!==null)) items.push({key:`${k}-st-${x.id}`,at:at(parseHM(x.at)),title:`Сторис ${proj(x.project).name} · ${x.at}`,body:String(x.text).slice(0,110)});
@@ -4629,7 +4735,8 @@ function renderMe(){
     lesson=`<div class="lesson-start">
       <span class="tile big">${ic(tp.icon)}</span>
       <div><span class="label">Тема дня · ${esc(j.city)}</span><h3>${tp.name}: ${esc(j.city)}</h3><p class="tip">${TOPIC_BRIEF[tp.k].split(".")[0]}. Примерно 5 минут чтения и 4 вопроса.</p></div>
-      ${meErr?`<div class="banner">${esc(meErr)}</div>`:""}
+      ${soonCityNote()}
+      ${meErr&&!citySoon(j.city)?`<div class="banner">${esc(meErr)}</div>`:""}
       <button class="primary" id="startLesson" ${meBusy?"disabled":""}>${meBusy?`${ic("timer")}Открываю урок…`:ready?`${ic("play")}Начать урок`:ready===false?`${ic("timer")}Урок появится около 8:00`:`${ic("timer")}Загружаю…`}</button>
       ${meBusy?`<button class="ghost" id="stopLesson">Отменить</button>`:""}
     </div>`;

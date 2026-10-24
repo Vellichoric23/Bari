@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
   // diagnostics for one user: ?check=<user id> → what the server sees and a test push
   const check = qs.get("check");
   if (check) {
-    const out: Record<string, unknown> = { now: new Date().toISOString(), version: 2 };
+    const out: Record<string, unknown> = { now: new Date().toISOString(), version: 3 };
     const { data: subs, error: e1 } = await sb.from("docs").select("id, data").eq("col", "push").eq("user_id", check);
     out.subscriptions = subs?.length ?? 0; if (e1) out.subsError = e1.message;
     const { data: rems, error: e2 } = await sb.from("docs").select("id, data").eq("col", "remind").eq("user_id", check);
@@ -48,11 +48,11 @@ Deno.serve(async (req) => {
   const days = [-1, 0, 1].map((o) => ymd(new Date(now + o * 864e5)));
   const { data: rems } = await sb.from("docs").select("user_id, id, data").eq("col", "remind").in("id", days);
 
-  const due: { user: string; key: string; title: string; body: string }[] = [];
+  const due: { user: string; key: string; title: string; body: string; url?: string; tid?: string; actions?: unknown }[] = [];
   for (const r of rems ?? []) {
     for (const it of (r.data?.items ?? [])) {
       const t = Date.parse(it.at);
-      if (t <= now && t > now - 15 * 60e3) due.push({ user: r.user_id, key: `${r.user_id}|${it.key}`, title: it.title, body: it.body });
+      if (t <= now && t > now - 15 * 60e3) due.push({ user: r.user_id, key: `${r.user_id}|${it.key}`, title: it.title, body: it.body, url: it.url, tid: it.tid, actions: it.actions });
     }
   }
   if (!due.length) return json({ sent: 0 });
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
   for (const d of todo) {
     for (const s of (subs ?? []).filter((x) => x.user_id === d.user)) {
       try {
-        await webpush.sendNotification(s.data, JSON.stringify({ title: d.title, body: d.body, tag: d.key }));
+        await webpush.sendNotification(s.data, JSON.stringify({ title: d.title, body: d.body, tag: d.key, url: d.url, tid: d.tid, actions: d.actions }));
         sent++;
       } catch (e) {
         const code = (e as { statusCode?: number }).statusCode;

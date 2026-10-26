@@ -285,6 +285,8 @@ input[type=time]{font:600 15px var(--body);color:var(--ink);background:var(--sur
 .p-leaf i:nth-child(4n){background:#C9783B}
 .p-snow i{background:#fff;border-radius:50%;width:7px;height:7px}
 .p-petal i{background:#FFB3C7;border-radius:70% 0 70% 0;width:9px;height:9px}
+.p-rain i{background:linear-gradient(#fff0,#C9D6E8);width:2px;height:16px;border-radius:2px;animation-name:rainFall!important;opacity:.7}
+@keyframes rainFall{0%{transform:translate(0,0)}100%{transform:translate(-30px,105vh)}}
 .p-spark i{background:#FFE27A;border-radius:50%;width:5px;height:5px;box-shadow:0 0 8px #FFD166}
 @keyframes fall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(40px,210px) rotate(320deg)}}
 @media (prefers-reduced-motion: reduce){.scene-bari .bari,.bari-star,.particles i{animation:none}}
@@ -1886,11 +1888,16 @@ function journeyFor(k){
 function seasonOf(d=new Date()){const m=d.getMonth()+1;return m>=3&&m<=5?"spring":m>=6&&m<=8?"summer":m>=9&&m<=11?"autumn":"winter";}
 function todOf(d=new Date()){const h=d.getHours();return h<5?"night":h<11?"morning":h<17?"day":h<21?"evening":"night";}
 const SKY={
-  autumn:{morning:["#FFD9B8","#FFF1E2"],day:["#BFD3FF","#FFEBD8"],evening:["#F59E7A","#FFD3A8"],night:["#2B2560","#5A4B9C"],hill:["#E7A659","#C9783B"],ground:"#B8743C"},
-  winter:{morning:["#DDE6FF","#FFFFFF"],day:["#BFD7FF","#F2F6FF"],evening:["#A9A2E8","#F3D6E8"],night:["#1E2550","#3E4C8C"],hill:["#F4F7FF","#DCE4FA"],ground:"#E8EEFF"},
-  spring:{morning:["#FFE3EE","#FFF8F0"],day:["#BFE4FF","#F4FFF0"],evening:["#F8B4C8","#FFE3C4"],night:["#28305E","#4B4A92"],hill:["#BDE59B","#8CCB6A"],ground:"#7DBA5A"},
-  summer:{morning:["#FFE8B0","#FFF8E6"],day:["#9FD6FF","#E8F8FF"],evening:["#FF9E7A","#FFD08A"],night:["#1F2A5C","#3D4A96"],hill:["#A8D86A","#76B748"],ground:"#6AA83F"}
+  autumn:{morning:["#FFC79A","#FFEBD6"],day:["#A9C4F5","#FFE2C2"],evening:["#EE7F55","#FFC58F"],night:["#2B2560","#5A4B9C"],hill:["#E39A4A","#B8692E"],ground:"#B8743C"},
+  winter:{morning:["#D3DDF5","#FFFFFF"],day:["#C9D8F2","#F4F7FD"],evening:["#9C97D8","#EFD4E6"],night:["#18204A","#34407E"],hill:["#FFFFFF","#E3EAF8"],ground:"#F4F7FF"},
+  wet:{morning:["#B9C2D3","#E8ECF2"],day:["#AEB9CC","#E3E8EF"],evening:["#8E8AAE","#D9CBD6"],night:["#1C2240","#3A4470"],hill:["#8FA98A","#6F8C6C"],ground:"#7E9A7A"},
+  spring:{morning:["#FFD6E6","#FFF6F0"],day:["#A8DCFF","#F2FFEC"],evening:["#F6A6C0","#FFE0BF"],night:["#28305E","#4B4A92"],hill:["#A8E07E","#74C24E"],ground:"#7DBA5A"},
+  summer:{morning:["#FFDC8A","#FFF5DA"],day:["#5EB8F5","#D8F2FF"],evening:["#FF8A5C","#FFC870"],night:["#1A2660","#3A4A9A"],hill:["#8FD048","#5CA92E"],ground:"#5FA035"}
 };
+const SNOWY=new Set(["Финляндия","Казахстан","Южная Корея","Япония","Узбекистан","Турция"]);
+const MILD=new Set(["Испания","Греция","Мексика"]);
+// what the season looks like in this city: snowy winter, rainy winter, or a warm "winter" that stays green
+function citySeason(country,se,wx){if(wx&&wx.snow)return "winter";if(se!=="winter")return se;return SNOWY.has(country)?"winter":MILD.has(country)?"spring":"wet";}
 function landmark(mark,c){
   const f=`fill="${c}"`;
   switch(mark){
@@ -1950,9 +1957,11 @@ function sceneSvg(k,opts={}){
   </svg>`;
 }
 function particlesHtml(){
-  const se=seasonOf(); if(reducedMotion()) return "";
-  const n=8, glyph={autumn:"leaf",winter:"snow",spring:"petal",summer:"spark"}[se];
-  return `<div class="particles p-${glyph}" aria-hidden="true">${Array.from({length:n},(_,i)=>`<i style="left:${(i*13+7)%100}%;animation-delay:${(i*1.3)%8}s;animation-duration:${8+(i%4)*2}s"></i>`).join("")}</div>`;
+  if(reducedMotion()) return "";
+  const j=journeyFor(todayKey()), wx=typeof weatherNow==="function"?weatherNow(j.city):null, se=window.bariSeasonOverride||citySeason(j.country,seasonOf(),wx);
+  const kind=wx&&wx.rain&&se!=="winter"?"rain":{autumn:"leaf",winter:"snow",spring:"petal",summer:"spark",wet:"rain"}[se];
+  const n=kind==="rain"?40:kind==="snow"?34:kind==="summer"?10:18;
+  return `<div class="particles p-${kind}" aria-hidden="true">${Array.from({length:n},(_,i)=>`<i style="left:${(i*37+7)%100}%;animation-delay:-${((i*1.7)%9).toFixed(1)}s;animation-duration:${kind==="rain"?1.1+(i%4)*.2:7+(i%5)*2}s;${kind==="snow"?`width:${4+(i%4)*2}px;height:${4+(i%4)*2}px;`:""}"></i>`).join("")}</div>`;
 }
 
 /* ---------- full-screen city: season + time of day + landmark + street ---------- */
@@ -2063,12 +2072,12 @@ const COUNTRY_ITEMS={
   "Великобритания":[["tea","Чай в пять"],["bus","Даблдекер"],["tower","Биг-Бен"],["bun","Сконы"],["column","Музеи"]]
 };
 const itemsFor=j=>CITY_ITEMS[j.city]||COUNTRY_ITEMS[j.country]||[["tree","Прогулка"]];
-const FOLIAGE={autumn:["#E58A3A","#F2B33D","#C9783B","#D9A441"],winter:["#FFFFFF","#EEF3FF","#DCE6FA","#FFFFFF"],spring:["#FFB3C7","#FFD1DC","#9FD06B","#FFC2D4"],summer:["#7CC23A","#5FA82E","#A6D85A","#6DB33F"]};
+const FOLIAGE={wet:["#5E8A5A","#6F9C64","#4E7A4E","#7FA872"],autumn:["#E58A3A","#F2B33D","#C9783B","#D9A441"],winter:["#FFFFFF","#EEF3FF","#DCE6FA","#FFFFFF"],spring:["#FFB3C7","#FFD1DC","#9FD06B","#FFC2D4"],summer:["#7CC23A","#5FA82E","#A6D85A","#6DB33F"]};
 const STONE={registan:"#D9B48A",kalyan:"#C9A27A",khiva:"#C9A27A",istanbul:"#B8B0A8",balloon:"#E2C49A",castle:"#7E7468",binnenhof:"#A0523C",domtower:"#9C8C78",giralda:"#D9A06A",lake:"#A84E3A",colosseum:"#C98F58",dome:"#C7895A",venice:"#B97A55",spires:"#EFE6DA",volcano:"#8C6A5A",towers:"#C9744A",tower:"#B9AFFF",pagoda:"#E85A4A",eiffel:"#8A7666",windmill:"#C9783B",temple:"#F6F1E8",pyramid:"#D9A96A",mountains:"#8E9CC4",forest:"#3E8E5A",sea:"#E9DCC8"};
 const FACADES={"Узбекистан":["#D9B48A","#C9A27A","#E3C69E","#BF9466"],"Турция":["#E8D9C4","#C96F53","#F2E6D0","#B85C45","#E9C46A"],"Нидерланды":["#9C4A36","#7E3B2C","#B5654A","#6E4A3A","#C27B5A"],"Великобритания":["#A85A44","#8E4A3A","#C9B79C","#B86A50"],"Мексика":["#F2A541","#E5677D","#2EC4B6","#F7D154","#9B5DE5"],"Испания":["#F6EFE2","#EBD9B4","#F2E3C6","#E3C9A0"],"Южная Корея":["#F4ECE0","#E9DCC8","#EFE4D2"],"Финляндия":["#B5422F","#D9A441","#F4F1EA","#8C3B2E"],"Италия":["#F2C48D","#E8A87C","#F5D7A1","#D98E5F","#F0B98A"],"Япония":["#F4ECE0","#E9D7C3","#D8C3A5","#F2E6D8"],"Франция":["#F3EBDD","#E9DCC8","#F6F0E6","#DCCFBB"],"Казахстан":["#F4ECE0","#E9D7C3","#C9D6E3","#F2E3C6"],default:["#F3E6D3","#E9D2B6","#F6EBDD","#DCC3A5"]};
 function cityBgSvg(k,W=400){
   /* the city fills the top half of the screen (behind the greeting); a quiet piazza continues below the cards */
-  const j=journeyFor(k), now=new Date(), se=seasonOf(now), td=todOf(now), S=SKY[se], sky=S[td], night=td==="night", eve=td==="evening";
+  const j=journeyFor(k), now=new Date(), wx=typeof weatherNow==="function"?weatherNow(j.city):null, se=window.bariSeasonOverride||citySeason(j.country,seasonOf(now),wx), td=todOf(now), S=SKY[se], sky=S[td], night=td==="night", eve=td==="evening";
   const leaf=FOLIAGE[se], fac=FACADES[j.country]||FACADES.default, roof=j.country==="Италия"?"#C25B3A":"#8C5A4A";
   const dim=night?"filter:brightness(.55) saturate(.8)":eve?"filter:brightness(.9) saturate(1.05)":"";
   const BASE=336, cx=Math.round(W*.34);
@@ -2076,32 +2085,39 @@ function cityBgSvg(k,W=400){
   const sun=night?`<circle cx="${sx}" cy="64" r="20" fill="#FFF4C2"/><circle cx="${sx+8}" cy="57" r="17" fill="${sky[0]}"/>${Array.from({length:Math.round(W/14)},(_,i)=>`<circle cx="${(i*67)%W}" cy="${12+(i*43)%200}" r="${i%3?1.1:1.8}" fill="#fff" opacity="${.5+(i%4)/8}"/>`).join("")}`
     :`<circle cx="${td==="morning"?Math.round(W*.15):sx}" cy="${td==="day"?58:110}" r="30" fill="#FFE7A0" opacity=".95"/><circle cx="${td==="morning"?Math.round(W*.15):sx}" cy="${td==="day"?58:110}" r="48" fill="#FFE7A0" opacity=".25"/>`;
   const clouds=night?"":[[.18,92,1],[.6,140,.8],[.9,70,.7],[.4,40,.6]].map(([f,y,sc])=>`<g transform="translate(${Math.round(W*f)} ${y}) scale(${sc})" fill="#fff" opacity=".8"><ellipse cx="0" cy="0" rx="34" ry="14"/><ellipse cx="22" cy="-8" rx="22" ry="14"/><ellipse cx="-20" cy="-4" rx="18" ry="11"/></g>`).join("");
-  let x=-6, houses="", i=0;
+  let x=-6, houses="", i=0, caps="";
   while(x<W+10){const w=44+((i*37)%30), h=70+((i*53)%60), c=fac[i%fac.length];
     if(x+w>cx-150&&x<cx+150){x=cx+150;i++;continue;}
     houses+=houseSvg(j.country,x,w,h,c,i,night,BASE);
+    if(se==="winter") caps+=`<path d="M${x-3} ${BASE-h+2} q${w/4} -9 ${w/2+3} -4 q${w/4} -5 ${w/2+3} 4 v5 q-${w/2} 7 -${w+6} 0z" fill="#fff"/>`;
     x+=w+2; i++;}
   const tx=[];for(let t=30;t<W;t+=110) tx.push(t);
   const tree=(t,n,base)=>{const c1=leaf[n%4],c2=leaf[(n+1)%4];
     return se==="winter"?`<rect x="${t-3}" y="${base-34}" width="6" height="34" fill="#7A5A44"/><path d="M${t} ${base-32} l-14 -22 M${t} ${base-26} l16 -20 M${t} ${base-40} l0 -26" stroke="#7A5A44" stroke-width="3" stroke-linecap="round"/><ellipse cx="${t}" cy="${base-56}" rx="16" ry="5" fill="#fff"/>`
       :`<rect x="${t-3}" y="${base-36}" width="6" height="36" fill="#7A5A44"/><circle cx="${t}" cy="${base-54}" r="24" fill="${c1}"/><circle cx="${t-15}" cy="${base-42}" r="16" fill="${c2}"/><circle cx="${t+16}" cy="${base-44}" r="17" fill="${c2}"/>`;};
-  const trees=tx.map((t,n)=>countryTree(j.country,t,n,BASE+30,se,leaf)||tree(t,n,BASE+30)).join("");
+  const trees=tx.map((t,n)=>countryTree(j.country,t,n,BASE+30,se,leaf)||tree(t,n,BASE+30)).join("")+(se==="spring"?tx.map((t,n)=>[0,1,2,3,4].map(q=>`<circle cx="${t-18+((q*13+n*7)%36)}" cy="${BASE-74+((q*17+n*5)%40)}" r="3.2" fill="${["#fff","#FFD1DC","#FFF2A8"][q%3]}"/>`).join("")).join(""):"");
   const lamps=tx.map(t=>t+55).filter(l=>l<W).map(lx=>`<rect x="${lx}" y="${BASE-16}" width="3" height="50" fill="#3B3560"/><circle cx="${lx+1.5}" cy="${BASE-18}" r="5" fill="${night||eve?"#FFE27A":"#F4F1FF"}"/>${night?`<circle cx="${lx+1.5}" cy="${BASE-18}" r="18" fill="#FFE27A" opacity=".25"/>`:""}`).join("");
-  const plaza=se==="winter"?"#EEF2FF":night?"#3A3466":"#E9DFD0";
-  const stones=Array.from({length:Math.round(W*430/900)},(_,n)=>`<rect x="${(n*53)%W}" y="${440+(n*37)%420}" width="14" height="7" rx="3" fill="${se==="winter"?"#DCE4FA":night?"#463F78":"#DCCFBB"}"/>`).join("");
+  const plaza=night?(se==="winter"?"#4A5288":"#3A3466"):{winter:"#F7F9FF",wet:"#B9BFC6",spring:"#E4EDD5",summer:"#F1E2C4",autumn:"#E6D3B8"}[se]||"#E9DFD0";
+  const grass={winter:"#FFFFFF",wet:"#6E8C6A",spring:"#8FD06A",summer:"#5FA035",autumn:"#C69A55"}[se];
+  const puddles=se==="wet"||(wx&&wx.rain)?Array.from({length:Math.round(W/90)},(_,n)=>`<ellipse cx="${30+(n*97)%W}" cy="${470+(n*83)%360}" rx="${26+(n%3)*8}" ry="6" fill="#9FB4C8" opacity=".7"/>`).join(""):"";
+  const drifts=se==="winter"?Array.from({length:Math.round(W/70)},(_,n)=>`<ellipse cx="${(n*83)%W}" cy="${452+(n*61)%380}" rx="${30+(n%4)*10}" ry="9" fill="#fff"/>`).join(""):"";
+  const flowers=se==="spring"||se==="summer"?Array.from({length:Math.round(W/22)},(_,n)=>`<circle cx="${(n*29)%W}" cy="${BASE+26-(n%3)*3}" r="3" fill="${se==="spring"?["#FF8FAB","#FFD166","#fff","#C69CFF"][n%4]:["#FFD166","#FF6B6B","#fff"][n%3]}"/>`).join(""):"";
+  const rays=se==="summer"&&!night&&!eve?`<g opacity=".35" stroke="#FFE7A0" stroke-width="5" stroke-linecap="round">${Array.from({length:12},(_,n)=>{const a=n*Math.PI/6,cxs=td==="morning"?Math.round(W*.15):sx,cys=td==="day"?58:110;return `<path d="M${(cxs+Math.cos(a)*56).toFixed(0)} ${(cys+Math.sin(a)*56).toFixed(0)} L${(cxs+Math.cos(a)*78).toFixed(0)} ${(cys+Math.sin(a)*78).toFixed(0)}"/>`;}).join("")}</g>`:"";
+  const fog=se==="wet"?`<rect width="${W}" height="${BASE}" fill="#DDE3EA" opacity=".28"/>`:"";
+  const stones=Array.from({length:Math.round(W*430/900)},(_,n)=>`<rect x="${(n*53)%W}" y="${440+(n*37)%420}" width="14" height="7" rx="3" fill="${se==="winter"?"#E6ECFB":night?"#463F78":se==="wet"?"#A6ADB6":se==="spring"?"#D2DEC0":"#DCCFBB"}"/>`).join("");
   const fallen=se==="autumn"?Array.from({length:Math.round(W/30)},(_,n)=>`<path transform="translate(${(n*71)%W} ${450+(n*59)%400}) rotate(${n*47})" d="M0 0 C-6 -4 -5 -12 2 -14 C6 -8 5 -3 0 0Z" fill="${leaf[n%4]}" opacity=".85"/>`).join(""):se==="spring"?Array.from({length:Math.round(W/34)},(_,n)=>`<circle cx="${(n*71)%W}" cy="${450+(n*59)%400}" r="3" fill="#FFB3C7" opacity=".8"/>`).join(""):"";
   return `<svg viewBox="0 0 ${W} 860" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
-    <defs><linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".4" stop-color="${sky[1]}"/></linearGradient></defs>
-    <rect width="${W}" height="860" fill="url(#cbg)"/>${sun}${clouds}
+    <defs><filter id="snowcap" x="-5%" y="-10%" width="110%" height="120%"><feOffset in="SourceAlpha" dy="5" result="o"/><feComposite in="SourceAlpha" in2="o" operator="out" result="edge"/><feFlood flood-color="#fff"/><feComposite in2="edge" operator="in" result="snow"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="snow"/></feMerge></filter><linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".4" stop-color="${sky[1]}"/></linearGradient></defs>
+    <rect width="${W}" height="860" fill="url(#cbg)"/>${se==="wet"&&!night?"":sun}${rays}${se==="wet"?clouds+clouds.replace(/fill="#fff"/g,'fill="#C9CFD8"'):clouds}
     ${backdropSvg(j.country,W,BASE,S,dim,se,j.city)}
-    <g transform="translate(${cx-206} ${BASE-231}) scale(1.65)" style="${dim}">${landmark(j.mark,STONE[j.mark]||"#E9DCC8")}</g>
-    <g style="${dim}">${houses}${streetExtras(j.country,W,BASE,night,se)}</g>
-    ${se==="winter"?`<rect y="${BASE-4}" width="${W}" height="6" fill="#fff"/>`:""}
-    <rect y="${BASE}" width="${W}" height="32" fill="${se==="winter"?"#F4F7FF":"#CFC6B8"}" style="${dim}"/>
+    <g transform="translate(${cx-206} ${BASE-231}) scale(1.65)" style="${dim}"><g ${se==="winter"?'filter="url(#snowcap)"':""}>${landmark(j.mark,STONE[j.mark]||"#E9DCC8")}</g></g>
+    <g style="${dim}">${houses}${caps}${streetExtras(j.country,W,BASE,night,se)}</g>${fog}
+    ${se==="winter"?`<rect y="${BASE-6}" width="${W}" height="8" rx="4" fill="#fff"/>`:""}
+    <rect y="${BASE}" width="${W}" height="32" fill="${grass}" style="${dim}"/>${flowers}
     <g style="${dim}">${trees}</g>${lamps}
-    <rect y="${BASE+30}" width="${W}" height="70" fill="${night?"#2A2550":"#7E7698"}"/>
+    <rect y="${BASE+30}" width="${W}" height="70" fill="${night?"#2A2550":se==="wet"?"#6B6F82":"#7E7698"}"/>${se==="winter"?`<rect y="${BASE+30}" width="${W}" height="7" fill="#fff" opacity=".9"/><rect y="${BASE+94}" width="${W}" height="7" fill="#fff" opacity=".9"/>`:""}
     <path d="${Array.from({length:Math.ceil(W/100)},(_,n)=>`M${20+n*100} ${BASE+65} H${70+n*100}`).join(" ")}" stroke="#F4F1FF" stroke-width="4" opacity=".6"/>
-    <rect y="${BASE+100}" width="${W}" height="${860-BASE-100}" fill="${plaza}"/>${stones}${fallen}
+    <rect y="${BASE+100}" width="${W}" height="${860-BASE-100}" fill="${plaza}"/>${stones}${puddles}${drifts}${fallen}
   </svg>`;
 }
 function cityChipsHtml(k){
@@ -2112,7 +2128,7 @@ function mountCityBg(k){
   let bg=document.getElementById("cityBg");
   if(!bg){bg=document.createElement("div");bg.id="cityBg";bg.setAttribute("aria-hidden","true");document.body.prepend(bg);}
   const W=Math.max(400,Math.round(860*innerWidth/Math.max(1,innerHeight)/20)*20);
-  const key=k+"|"+journeyFor(k).city+"|"+todOf()+"|"+seasonOf()+"|"+W;
+  const wxk=weatherNow(journeyFor(k).city), key=k+"|"+journeyFor(k).city+"|"+todOf()+"|"+citySeason(journeyFor(k).country,seasonOf(),wxk)+"|"+(wxk&&wxk.rain?"r":"")+"|"+W;
   if(bg.dataset.key!==key){bg.dataset.key=key;bg.innerHTML=cityBgSvg(k,W)+particlesHtml();document.documentElement.classList.toggle("city-night",todOf()==="night");}
   if(!mountCityBg.r){mountCityBg.r=1;addEventListener("resize",()=>{clearTimeout(mountCityBg.t);mountCityBg.t=setTimeout(()=>mountCityBg(todayKey()),250);});}
 }
@@ -4645,6 +4661,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"Фон живёт по сезону и климату города: снег на крышах и памятниках, дождь и лужи, цветение, летнее солнце, листопад"},
  {d:"2026-10-26",t:"«Польза для тебя» в уроках: как применить тему в своей профессии"},
  {d:"2026-10-26",t:"Праздники с близкими: Блайнд-бокс, Манито, Көрісу-почта и Тайный шеф — игры с тайной жеребьёвкой по ссылке, идеи праздников и вишлист"},
  {d:"2026-10-26",t:"Анонс маршрута на год (нажми на флажки), звук BARI при открытии, кнопки «Сказка о BARI» и «Маршрут» в подсказке «?»"},

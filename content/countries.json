@@ -52,12 +52,89 @@
    {
     "name": "Турку",
     "slug": "turku",
-    "mark": "towers"
+    "mark": "castle"
    },
    {
     "name": "Тампере",
     "slug": "tampere",
-    "mark": "sea"
+    "mark": "lake"
+   }
+  ]
+ },
+ {
+  "country": "Великобритания",
+  "lang": "английский",
+  "cities": [
+   {
+    "name": "Лондон",
+    "slug": "london",
+    "mark": "bigben"
+   },
+   {
+    "name": "Оксфорд",
+    "slug": "oksford",
+    "mark": "spires"
+   },
+   {
+    "name": "Эдинбург",
+    "slug": "edinburg",
+    "mark": "castle"
+   },
+   {
+    "name": "Бат",
+    "slug": "bat",
+    "mark": "temple"
+   }
+  ]
+ },
+ {
+  "country": "Казахстан",
+  "lang": "казахский",
+  "cities": [
+   {
+    "name": "Атырау",
+    "slug": "atyrau",
+    "mark": "zhaiyk"
+   },
+   {
+    "name": "Актау",
+    "slug": "aktau",
+    "mark": "aktau"
+   },
+   {
+    "name": "Уральск",
+    "slug": "uralsk",
+    "mark": "dome"
+   },
+   {
+    "name": "Астана",
+    "slug": "astana",
+    "mark": "tower"
+   },
+   {
+    "name": "Бурабай",
+    "slug": "burabay",
+    "mark": "okzhetpes"
+   },
+   {
+    "name": "Караганда",
+    "slug": "karaganda",
+    "mark": "kopyor"
+   },
+   {
+    "name": "Алматы",
+    "slug": "almaty",
+    "mark": "mountains"
+   },
+   {
+    "name": "Туркестан",
+    "slug": "turkestan",
+    "mark": "yasawi"
+   },
+   {
+    "name": "Шымкент",
+    "slug": "shymkent",
+    "mark": "dome"
    }
   ]
  },
@@ -68,7 +145,7 @@
    {
     "name": "Токио",
     "slug": "tokio",
-    "mark": "tower"
+    "mark": "tokyotower"
    },
    {
     "name": "Киото",
@@ -78,64 +155,12 @@
    {
     "name": "Осака",
     "slug": "osaka",
-    "mark": "pagoda"
+    "mark": "jcastle"
    },
    {
     "name": "Нара",
     "slug": "nara",
     "mark": "forest"
-   }
-  ]
- },
- {
-  "country": "Франция",
-  "lang": "французский",
-  "cities": [
-   {
-    "name": "Париж",
-    "slug": "parizh",
-    "mark": "eiffel"
-   },
-   {
-    "name": "Лион",
-    "slug": "lion",
-    "mark": "dome"
-   },
-   {
-    "name": "Прованс",
-    "slug": "provans",
-    "mark": "windmill"
-   },
-   {
-    "name": "Ницца",
-    "slug": "nicca",
-    "mark": "sea"
-   }
-  ]
- },
- {
-  "country": "Казахстан",
-  "lang": "казахский",
-  "cities": [
-   {
-    "name": "Алматы",
-    "slug": "almaty",
-    "mark": "mountains"
-   },
-   {
-    "name": "Туркестан",
-    "slug": "turkestan",
-    "mark": "dome"
-   },
-   {
-    "name": "Астана",
-    "slug": "astana",
-    "mark": "tower"
-   },
-   {
-    "name": "Атырау",
-    "slug": "atyrau",
-    "mark": "sea"
    }
   ]
  },
@@ -151,43 +176,17 @@
    {
     "name": "Гаага",
     "slug": "gaaga",
-    "mark": "towers"
+    "mark": "binnenhof"
    },
    {
     "name": "Утрехт",
     "slug": "utreht",
-    "mark": "spires"
+    "mark": "domtower"
    },
    {
     "name": "Роттердам",
     "slug": "rotterdam",
-    "mark": "sea"
-   }
-  ]
- },
- {
-  "country": "Испания",
-  "lang": "испанский",
-  "cities": [
-   {
-    "name": "Мадрид",
-    "slug": "madrid",
-    "mark": "dome"
-   },
-   {
-    "name": "Барселона",
-    "slug": "barselona",
-    "mark": "spires"
-   },
-   {
-    "name": "Севилья",
-    "slug": "sevilya",
-    "mark": "tower"
-   },
-   {
-    "name": "Валенсия",
-    "slug": "valensiya",
-    "mark": "sea"
+    "mark": "erasmus"
    }
   ]
  },
@@ -218,6 +217,84 @@
   ]
  },
  {
+  "country": "Франция",
+  "lang": "французский",
+  "cities": [
+   {
+    "name": "Париж",
+    "slug": "parizh",
+    "mark": "eiffel"
+   },
+   {
+    "name": "Лион",
+    "slug": "lion",
+    "mark": "dome"
+   },
+   {
+    "name": "Прованс",
+    "slug": "provans",
+    "mark": "windmill"
+   },
+   {
+    "name": "Ницца",
+    "slug": "nicca",
+    "mark": "sea"
+   }
+  ]
+ },
+ {
+  "country": "Испания",
+  "lang": "испанский",
+  "cities": [
+   {
+    "name": "Мадрид",
+    "slug": "madrid",
+    "mark": "dome"
+   },
+   {
+    "name": "Барселона",
+    "slug": "barselona",
+    "mark": "spires"
+   },
+   {
+    "name": "Севилья",
+    "slug": "sevilya",
+    "mark": "giralda"
+   },
+   {
+    "name": "Валенсия",
+    "slug": "valensiya",
+    "mark": "artsci"
+   }
+  ]
+ },
+ {
+  "country": "Южная Корея",
+  "lang": "корейский",
+  "cities": [
+   {
+    "name": "Сеул",
+    "slug": "seul",
+    "mark": "seoultower"
+   },
+   {
+    "name": "Кёнджу",
+    "slug": "kendzhu",
+    "mark": "pagoda"
+   },
+   {
+    "name": "Пусан",
+    "slug": "pusan",
+    "mark": "sea"
+   },
+   {
+    "name": "Чеджу",
+    "slug": "chedzhu",
+    "mark": "volcano"
+   }
+  ]
+ },
+ {
   "country": "Мексика",
   "lang": "испанский",
   "cities": [
@@ -240,58 +317,6 @@
     "name": "Гвадалахара",
     "slug": "gvadalahara",
     "mark": "dome"
-   }
-  ]
- },
- {
-  "country": "Южная Корея",
-  "lang": "корейский",
-  "cities": [
-   {
-    "name": "Сеул",
-    "slug": "seul",
-    "mark": "tower"
-   },
-   {
-    "name": "Кёнджу",
-    "slug": "kendzhu",
-    "mark": "pagoda"
-   },
-   {
-    "name": "Пусан",
-    "slug": "pusan",
-    "mark": "sea"
-   },
-   {
-    "name": "Чеджу",
-    "slug": "chedzhu",
-    "mark": "volcano"
-   }
-  ]
- },
- {
-  "country": "Великобритания",
-  "lang": "английский",
-  "cities": [
-   {
-    "name": "Лондон",
-    "slug": "london",
-    "mark": "tower"
-   },
-   {
-    "name": "Оксфорд",
-    "slug": "oksford",
-    "mark": "spires"
-   },
-   {
-    "name": "Эдинбург",
-    "slug": "edinburg",
-    "mark": "towers"
-   },
-   {
-    "name": "Бат",
-    "slug": "bat",
-    "mark": "temple"
    }
   ]
  }

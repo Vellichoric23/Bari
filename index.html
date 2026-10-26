@@ -1833,16 +1833,17 @@ const BARI_LINES=["Один шаг — уже движение.","Не всё с
 const JOURNEY=[
   {from:"2026-10",country:"Италия",lang:"итальянский",cities:[["Рим","colosseum"],["Флоренция","dome"],["Венеция","venice"],["Милан","spires"],["Неаполь","volcano"],["Болонья","towers"]]},
   {from:"2026-12",country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Рованиеми","forest"],["Турку","castle"],["Тампере","lake"]]},
-  {from:"2027-01",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","jcastle"],["Нара","forest"]]},
-  {from:"2027-02",country:"Франция",lang:"французский",cities:[["Париж","eiffel"],["Лион","dome"],["Прованс","windmill"],["Ницца","sea"]]},
-  {from:"2027-03",country:"Казахстан",lang:"казахский",cities:[["Алматы","mountains"],["Туркестан","yasawi"],["Астана","tower"],["Атырау","zhaiyk"]]},
-  {from:"2027-04",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","binnenhof"],["Утрехт","domtower"],["Роттердам","erasmus"]]},
-  {from:"2027-05",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
+  {from:"2027-01",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","castle"],["Бат","temple"]]},
+  {from:"2027-02",country:"Казахстан",lang:"казахский",cities:[["Атырау","zhaiyk"],["Актау","aktau"],["Уральск","dome"],["Астана","tower"],["Бурабай","okzhetpes"],["Караганда","kopyor"],["Алматы","mountains"],["Туркестан","yasawi"],["Шымкент","dome"]]},
+  {from:"2027-04",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","jcastle"],["Нара","forest"]]},
+  {from:"2027-05",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","binnenhof"],["Утрехт","domtower"],["Роттердам","erasmus"]]},
   {from:"2027-06",country:"Греция",lang:"греческий",cities:[["Афины","temple"],["Санторини","sea"],["Крит","mountains"],["Дельфы","temple"]]},
-  {from:"2027-07",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]},
-  {from:"2027-08",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]},
-  {from:"2027-09",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","castle"],["Бат","temple"]]}
+  {from:"2027-07",country:"Франция",lang:"французский",cities:[["Париж","eiffel"],["Лион","dome"],["Прованс","windmill"],["Ницца","sea"]]},
+  {from:"2027-08",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
+  {from:"2027-09",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]},
+  {from:"2027-10",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]}
 ];
+const JOURNEY_WHY={"Италия":"осень и урожай","Финляндия":"Лапландия и Новый год","Великобритания":"зимний Лондон и уютные чайные","Казахстан":"дом — от Каспия до Тянь-Шаня, а в конце Наурыз","Япония":"цветение сакуры","Нидерланды":"тюльпаны","Греция":"начало лета и море","Франция":"лаванда в Провансе","Испания":"летние фиесты","Южная Корея":"праздник урожая Чхусок","Мексика":"подготовка ко Дню мёртвых"};
 const JOURNEY_START="2026-10-19";
 function journeyFor(k){
   if(typeof hasRoute==="function"&&settings&&hasRoute()) return routeJourney(k);
@@ -1893,6 +1894,9 @@ function landmark(mark,c){
     case "yasawi": return `<rect x="150" y="98" width="44" height="42" fill="#C9A57A"/><rect x="156" y="88" width="32" height="12" fill="#B8936A"/><ellipse cx="172" cy="86" rx="20" ry="18" fill="#2FA4A0"/><path d="M160 80 Q172 62 184 80" stroke="#7AD3CC" stroke-width="2" fill="none"/><rect x="86" y="56" width="62" height="84" fill="#C9A57A"/><path d="M100 140 V90 Q117 66 134 90 V140Z" fill="#8E6E4C"/><rect x="86" y="56" width="62" height="8" fill="#2FA4A0"/><g stroke="#6E5A40" stroke-width="2"><path d="M86 72 H72 M86 88 H74 M148 72 H160"/></g>`;
     case "zhaiyk": return `<path d="M36 128 Q130 46 224 128" stroke="#F4F6FA" stroke-width="6" fill="none"/><path d="M36 128 H224" stroke="#E4E1EC" stroke-width="5"/>${[0,1,2,3,4,5,6,7].map(i=>{const x=60+i*20,y=128-Math.sqrt(Math.max(0,1-Math.pow((x-130)/94,2)))*68;return `<path d="M${x} ${y.toFixed(0)} V126" stroke="#E4E1EC" stroke-width="1.6"/>`;}).join("")}<g><rect x="196" y="98" width="3" height="28" fill="#5B5470"/><rect x="186" y="92" width="24" height="10" rx="2" fill="#F4F6FA"/><text x="198" y="100" font-size="6" text-anchor="middle" fill="#4E3FD9" font-family="sans-serif">EU | AS</text></g>`;
     case "lake": return `<g ${f}><rect x="68" y="98" width="92" height="42"/><path d="M68 98 L84 86 L100 98 L116 86 L132 98 L148 86 L160 98Z"/><rect x="166" y="36" width="12" height="104"/></g><g fill="#fff" opacity=".35">${[0,1,2,3,4].map(i=>`<rect x="${76+i*17}" y="108" width="8" height="12" rx="4"/>`).join("")}</g><path d="M170 30 Q160 18 174 10" stroke="#C9C2D4" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>`;
+    case "aktau": return `<rect ${f} x="96" y="66" width="72" height="74"/><g fill="#fff" opacity=".35">${[0,1,2,3,4,5,6].map(r=>[0,1,2,3].map(c=>`<rect x="${102+c*16}" y="${72+r*9}" width="9" height="5"/>`).join("")).join("")}</g><rect x="124" y="40" width="16" height="26" fill="#F4F6FA"/><rect x="124" y="48" width="16" height="6" fill="#E5532E"/><path d="M120 40 H144 L132 26Z" fill="#E5532E"/><circle cx="132" cy="34" r="3" fill="#FFE27A"/><path d="M140 34 L176 26 M140 34 L176 42" stroke="#FFE27A" stroke-width="2" opacity=".6"/>`;
+    case "okzhetpes": return `<path ${f} d="M70 140 L92 92 L104 104 L120 60 L136 50 L148 74 L162 70 L178 140Z"/><path d="M126 58 L136 50 L142 62" fill="#fff" opacity=".3"/>${[0,1,2,3].map(i=>`<path d="M${60+i*42+(i>1?60:0)} 140 l7 -28 l7 28z" fill="#2E5E4E"/>`).join("")}`;
+    case "kopyor": return `<rect fill="#5E5470" x="78" y="112" width="104" height="28"/><path d="M104 112 L124 50 L144 112 M114 82 H134" stroke="#5E5470" stroke-width="6" fill="none"/><circle cx="124" cy="48" r="13" fill="none" stroke="#5E5470" stroke-width="5"/><circle cx="124" cy="48" r="3" fill="#5E5470"/><path d="M124 48 L124 35 M124 48 L135 55 M124 48 L113 55" stroke="#5E5470" stroke-width="2.5"/><g fill="#fff" opacity=".35">${[0,1,2,3,4].map(i=>`<rect x="${86+i*19}" y="120" width="9" height="10"/>`).join("")}</g>`;
     case "sea": return `<rect x="150" y="56" width="14" height="84" fill="#F4F6FA"/><rect x="150" y="72" width="14" height="10" fill="#E5532E"/><rect x="150" y="100" width="14" height="10" fill="#E5532E"/><path d="M146 56 H168 L157 42Z" fill="#E5532E"/><circle cx="157" cy="50" r="3" fill="#FFE27A"/><g transform="translate(70 104)"><path d="M0 22 H44 L36 32 H8Z" fill="#8C5A4A"/><path d="M22 0 V22 H4Z" fill="#F4F6FA"/><path d="M24 4 V22 H40Z" fill="#E9DCC8"/></g>`;
     default: return `<rect ${f} x="70" y="118" width="40" height="22"/><path ${f} d="M70 118 L90 104 L110 118Z"/><rect ${f} x="150" y="70" width="10" height="70"/><path ${f} d="M146 70 H164 L155 58Z"/>`;
   }
@@ -1964,10 +1968,15 @@ const GLYPHS={
   temple:`<path d="M3 8l9-5 9 5z" fill="#F6F1E8"/><g fill="#EDE6DA"><rect x="5" y="9" width="2" height="9"/><rect x="9" y="9" width="2" height="9"/><rect x="13" y="9" width="2" height="9"/><rect x="17" y="9" width="2" height="9"/></g><rect x="3" y="18" width="18" height="2" fill="#EDE6DA"/>`,
   tower:`<path d="M11 2h2l2 19H9z" fill="#8C7DFF"/><rect x="8" y="9" width="8" height="2" rx="1" fill="#6C5BFF"/>`
 };
-const GLYPH_ALIAS={tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat",castle:"tower",binnenhof:"tower",domtower:"tower",erasmus:"boat",giralda:"tower",artsci:"dome",jcastle:"pagoda",yasawi:"dome",zhaiyk:"boat",lake:"boat"};
+const GLYPH_ALIAS={aktau:"tower",okzhetpes:"mountain",kopyor:"tower",tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat",castle:"tower",binnenhof:"tower",domtower:"tower",erasmus:"boat",giralda:"tower",artsci:"dome",jcastle:"pagoda",yasawi:"dome",zhaiyk:"boat",lake:"boat"};
 const glyph=(n,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${GLYPHS[n]||GLYPHS[GLYPH_ALIAS[n]]||GLYPHS.tree}</svg>`;
 /* what to see and taste: city first, then country */
 const CITY_ITEMS={
+  "Актау":[["boat","Каспий"],["tower","Маяк на доме"],["mountain","Бозжыра"],["bus","Адреса-цифры"],["tea","Шұбат"]],
+  "Уральск":[["boat","Жайық"],["dome","Собор"],["column","Пушкин и Пугачёв"],["flower","Маншук"],["yurt","Хан Ордасы"]],
+  "Бурабай":[["boat","Озеро Бурабай"],["mountain","Окжетпес"],["column","Жумбактас"],["tree","Сосновый бор"],["tea","Кумыс"]],
+  "Караганда":[["tower","Шахтёрская слава"],["column","Долинка"],["tree","Центральный парк"],["dome","Собор Фатимы"],["tea","Чай с молоком"]],
+  "Шымкент":[["bun","Тандыр-самса"],["dome","Сайрам"],["mountain","Ордабасы"],["apple","Базар"],["tea","Көк шай"]],
   "Рованиеми":[["bun","Корвапуусти"],["espresso","Кофе"],["tree","Лес"],["boat","Реки"],["mountain","Северное сияние"]],
   "Лион":[["croissant","Круассан"],["baguette","Бушоны"],["espresso","Кафе"],["bicycle","Велосипед"],["eiffel","Башня Фурвьер"]],
   "Туркестан":[["tea","Чай с молоком"],["bun","Баурсаки"],["yurt","Киіз үй"],["apple","Сады"],["mountain","Каратау"]],
@@ -3390,7 +3399,7 @@ const COFFEE={
       "Раф придумали в Москве в конце 1990-х в кофейне Coffee Bean: бариста взбивали эспрессо со сливками и ванильным сахаром для постоянного гостя Рафаэля. Напиток разошёлся по странам бывшего СССР, а в Италии его почти никто не знает.",
       "Кофе по-турецки, который варят в турке, — родственник казахстанских кофеен. Турецкая кофейная культура внесена в список нематериального наследия ЮНЕСКО в 2013 году.",
       "Казахстан не выращивает кофе: всё зерно привозят. Поэтому каждая местная обжарка — это выбор, из какой страны и с какой фермы везти зерно."],
-    cities:{"Атырау":"Атырау — родина Burka Coffee: отсюда сеть разошлась по Казахстану, а рядом с кофейней работает магазин зерна и чая.","Астана":"В Астане тоже есть Burka Coffee — кофейня, которая родом из Атырау.","Алматы":"В Алматы много кофеен со своей обжаркой. Скоро здесь откроется и Burka Coffee."}},
+    cities:{"Атырау":"Атырау — родина Burka Coffee: отсюда сеть разошлась по Казахстану, а рядом с кофейней работает магазин зерна и чая.","Астана":"В Астане тоже есть Burka Coffee — кофейня, которая родом из Атырау.","Актау":"В Актау есть Burka Coffee — кофе с видом на Каспий, родом из соседнего Атырау.","Уральск":"В Уральске тоже есть Burka Coffee — атырауский кофе на берегу Жайыка.","Шымкент":"На юге, в Шымкенте, тоже есть Burka Coffee. А ещё здесь любят зелёный чай.","Алматы":"В Алматы много кофеен со своей обжаркой. Скоро здесь откроется и Burka Coffee."}},
   "Нидерланды":{
     how:"Голландцы пьют кофе часто: утром, в 10 часов (koffietijd) и после обеда. К чашке подают одно печенье — и банку закрывают. Koffie verkeerd, «неправильный кофе», — это когда молока больше, чем кофе.",
     word:["Een koffie, alstublieft","Один кофе, пожалуйста"],
@@ -3763,11 +3772,13 @@ function streetExtras(country,W,B,night,se){
   if(country==="Нидерланды") ex.push(`<rect y="${B+6}" width="${W}" height="10" fill="#5B8FB0" opacity=".7"/>`);
   return ex.join("");
 }
-const WATER_CITIES={"Ницца":"sea","Пусан":"sea","Роттердам":"river","Валенсия":"sea","Атырау":"river","Тампере":"lake","Хельсинки":"sea","Барселона":"sea","Чеджу":"sea","Неаполь":"sea","Турку":"sea","Амстердам":"river"};
+const WATER_CITIES={"Актау":"sea","Уральск":"river","Бурабай":"lake","Ницца":"sea","Пусан":"sea","Роттердам":"river","Валенсия":"sea","Атырау":"river","Тампере":"lake","Хельсинки":"sea","Барселона":"sea","Чеджу":"sea","Неаполь":"sea","Турку":"sea","Амстердам":"river"};
 function waterBand(W,B,kind,dim){const top=kind==="river"?B-46:B-64;return `<g style="${dim}"><rect y="${top}" width="${W}" height="${B-top}" fill="${kind==="lake"?"#5E8FB8":"#3E86C4"}" opacity=".75"/>${Array.from({length:Math.ceil(W/60)},(_,n)=>`<path d="M${n*60+8} ${top+14+(n%3)*12} q8 -5 16 0 t16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".45"/>`).join("")}</g>`;}
 function backdropSvg(country,W,B,S,dim,se,city){
   const wk=WATER_CITIES[city];
-  if(country==="Казахстан"&&(city==="Астана"||city==="Атырау")) return `<path d="M0 ${B-58} Q${W*.3} ${B-74} ${W*.6} ${B-62} T${W} ${B-66} V${B} H0Z" fill="${se==="winter"?"#E8EEF8":"#D9C38A"}" opacity=".9" style="${dim}"/>${wk?waterBand(W,B,wk,dim):""}`;
+  if(country==="Казахстан"&&city==="Бурабай") return backdropSvg(country,W,B,S,dim,se,"")+waterBand(W,B,"lake",dim);
+  if(country==="Казахстан"&&city==="Шымкент") return backdropSvg(country,W,B,S,dim,se,"Туркестан");
+  if(country==="Казахстан"&&["Астана","Атырау","Актау","Уральск","Караганда"].includes(city)) return `<path d="M0 ${B-58} Q${W*.3} ${B-74} ${W*.6} ${B-62} T${W} ${B-66} V${B} H0Z" fill="${se==="winter"?"#E8EEF8":"#D9C38A"}" opacity=".9" style="${dim}"/>${wk?waterBand(W,B,wk,dim):""}`;
   if(country==="Казахстан"&&city==="Туркестан") return `<path d="M0 ${B-70} L${W*.2} ${B-110} L${W*.38} ${B-80} L${W*.6} ${B-120} L${W*.8} ${B-86} L${W} ${B-104} V${B} H0Z" fill="#B39A7A" opacity=".75" style="${dim}"/>`;
   if(wk&&country!=="Греция") return `<path d="M0 250 Q${W*.22} 214 ${W*.5} 240 T${W} 228 V${B} H0Z" fill="${country==="Финляндия"?"#5E7A6A":S.hill[0]}" opacity=".75" style="${dim}"/>${waterBand(W,B,wk,dim)}`;
   if(country==="Казахстан") return `<path d="M0 ${B-60} L${W*.12} 150 L${W*.24} 205 L${W*.4} 120 L${W*.55} 190 L${W*.7} 135 L${W*.86} 200 L${W} 160 V${B} H0Z" fill="#8FA3C8" opacity=".85" style="${dim}"/><path d="M${W*.4-26} 156 L${W*.4} 120 L${W*.4+24} 152 L${W*.4+8} 160 L${W*.4-6} 150Z M${W*.7-24} 166 L${W*.7} 135 L${W*.7+22} 165Z M${W*.12-20} 180 L${W*.12} 150 L${W*.12+18} 178Z" fill="#FFFFFF" style="${dim}"/>`;
@@ -4095,7 +4106,7 @@ function planExtras(P){
 /* ---------- live weather in the city of the week + travel passport ---------- */
 const CITY_GEO={"Рим":[41.9,12.5],"Флоренция":[43.77,11.25],"Венеция":[45.44,12.33],"Милан":[45.46,9.19],"Неаполь":[40.85,14.27],"Болонья":[44.49,11.34],
 "Хельсинки":[60.17,24.94],"Рованиеми":[66.5,25.73],"Турку":[60.45,22.27],"Тампере":[61.5,23.76],"Токио":[35.68,139.69],"Киото":[35.01,135.77],"Осака":[34.69,135.5],"Нара":[34.69,135.8],
-"Париж":[48.86,2.35],"Лион":[45.76,4.84],"Прованс":[43.53,5.45],"Ницца":[43.7,7.27],"Алматы":[43.24,76.89],"Туркестан":[43.3,68.27],"Астана":[51.17,71.45],"Атырау":[47.11,51.92],
+"Париж":[48.86,2.35],"Лион":[45.76,4.84],"Прованс":[43.53,5.45],"Ницца":[43.7,7.27],"Алматы":[43.24,76.89],"Туркестан":[43.3,68.27],"Астана":[51.17,71.45],"Атырау":[47.11,51.92],"Актау":[43.65,51.17],"Уральск":[51.23,51.37],"Бурабай":[53.08,70.3],"Караганда":[49.8,73.1],"Шымкент":[42.32,69.59],
 "Амстердам":[52.37,4.9],"Гаага":[52.08,4.3],"Утрехт":[52.09,5.12],"Роттердам":[51.92,4.48],"Мадрид":[40.42,-3.7],"Барселона":[41.39,2.17],"Севилья":[37.39,-5.98],"Валенсия":[39.47,-0.38],
 "Афины":[37.98,23.73],"Санторини":[36.39,25.46],"Крит":[35.34,25.13],"Дельфы":[38.48,22.5],"Мехико":[19.43,-99.13],"Оахака":[17.07,-96.72],"Юкатан":[20.97,-89.62],"Гвадалахара":[20.67,-103.35],
 "Сеул":[37.57,126.98],"Кёнджу":[35.86,129.22],"Пусан":[35.18,129.08],"Чеджу":[33.5,126.53],"Лондон":[51.51,-0.13],"Оксфорд":[51.75,-1.26],"Эдинбург":[55.95,-3.19],"Бат":[51.38,-2.36]};
@@ -4370,6 +4381,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+{d:"2026-10-26",t:"Новый маршрут по сезонам и Казахстан на два месяца: Атырау, Актау, Уральск, Астана, Бурабай, Караганда, Алматы, Туркестан, Шымкент"},
  {d:"2026-10-26",t:"Страны, которые BARI ещё готовит, помечены «скоро» и откроются сами"},
  {d:"2026-10-26",t:"Burka: осеннее меню и женская Burka в Атырау с дофаминовым меню"},
  {d:"2026-10-26",t:"Кофейня-партнёр Burka Coffee: BARI пьёт кофе из их стаканчика"},
@@ -4594,8 +4606,10 @@ const mondayOf=k=>{const d=fromKey(k);d.setDate(d.getDate()-((d.getDay()+6)%7));
 function routeJourney(k){
   const r=settings.route, start=settings.routeStart||mondayOf(todayKey());
   const wk=Math.max(0,Math.floor((fromKey(k)-fromKey(start))/(7*864e5)));
-  const jn=JOURNEY.find(x=>x.country===r[Math.floor(wk/4)%r.length])||JOURNEY[0];
-  const [city,mark]=jn.cities[wk%4%jn.cities.length];
+  const L=r.map(c=>(JOURNEY.find(x=>x.country===c)||JOURNEY[0]).cities.length), tot=L.reduce((a,b)=>a+b,0)||1;
+  let w=wk%tot, i=0; while(i<L.length-1&&w>=L[i]){w-=L[i];i++;}
+  const jn=JOURNEY.find(x=>x.country===r[i])||JOURNEY[0];
+  const [city,mark]=jn.cities[w%jn.cities.length];
   return {country:jn.country,lang:jn.lang,city,mark,week:wk};
 }
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};

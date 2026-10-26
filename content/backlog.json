@@ -12,6 +12,12 @@
   "lang": "корейский"
  },
  {
+  "city": "Астана",
+  "slug": "astana",
+  "country": "Казахстан",
+  "lang": "казахский"
+ },
+ {
   "city": "Самарканд",
   "slug": "samarkand",
   "country": "Узбекистан",
@@ -58,12 +64,6 @@
   "slug": "gaaga",
   "country": "Нидерланды",
   "lang": "нидерландский"
- },
- {
-  "city": "Флоренция",
-  "slug": "florenciya",
-  "country": "Италия",
-  "lang": "итальянский"
  },
  {
   "city": "Венеция",
@@ -132,8 +132,8 @@
   "lang": "корейский"
  },
  {
-  "city": "Актау",
-  "slug": "aktau",
+  "city": "Бурабай",
+  "slug": "burabay",
   "country": "Казахстан",
   "lang": "казахский"
  },
@@ -144,26 +144,20 @@
   "lang": "казахский"
  },
  {
-  "city": "Астана",
-  "slug": "astana",
-  "country": "Казахстан",
-  "lang": "казахский"
- },
- {
-  "city": "Бурабай",
-  "slug": "burabay",
-  "country": "Казахстан",
-  "lang": "казахский"
- },
- {
-  "city": "Алматы",
-  "slug": "almaty",
+  "city": "Актау",
+  "slug": "aktau",
   "country": "Казахстан",
   "lang": "казахский"
  },
  {
   "city": "Туркестан",
   "slug": "turkestan",
+  "country": "Казахстан",
+  "lang": "казахский"
+ },
+ {
+  "city": "Алматы",
+  "slug": "almaty",
   "country": "Казахстан",
   "lang": "казахский"
  },

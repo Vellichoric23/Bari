@@ -45,11 +45,6 @@
     "mark": "dome"
    },
    {
-    "name": "Рованиеми",
-    "slug": "rovaniemi",
-    "mark": "forest"
-   },
-   {
     "name": "Турку",
     "slug": "turku",
     "mark": "castle"
@@ -58,6 +53,11 @@
     "name": "Тампере",
     "slug": "tampere",
     "mark": "lake"
+   },
+   {
+    "name": "Рованиеми",
+    "slug": "rovaniemi",
+    "mark": "forest"
    }
   ]
  },
@@ -79,11 +79,27 @@
     "name": "Эдинбург",
     "slug": "edinburg",
     "mark": "castle"
+   }
+  ]
+ },
+ {
+  "country": "Южная Корея",
+  "lang": "корейский",
+  "cities": [
+   {
+    "name": "Кёнджу",
+    "slug": "kendzhu",
+    "mark": "pagoda"
    },
    {
-    "name": "Бат",
-    "slug": "bat",
-    "mark": "temple"
+    "name": "Пусан",
+    "slug": "pusan",
+    "mark": "sea"
+   },
+   {
+    "name": "Сеул",
+    "slug": "seul",
+    "mark": "seoultower"
    }
   ]
  },
@@ -129,6 +145,43 @@
   ]
  },
  {
+  "country": "Узбекистан",
+  "lang": "узбекский",
+  "cities": [
+   {
+    "name": "Самарканд",
+    "slug": "samarkand",
+    "mark": "registan"
+   },
+   {
+    "name": "Бухара",
+    "slug": "buhara",
+    "mark": "kalyan"
+   },
+   {
+    "name": "Хива",
+    "slug": "hiva",
+    "mark": "khiva"
+   }
+  ]
+ },
+ {
+  "country": "Турция",
+  "lang": "турецкий",
+  "cities": [
+   {
+    "name": "Стамбул",
+    "slug": "stambul",
+    "mark": "istanbul"
+   },
+   {
+    "name": "Каппадокия",
+    "slug": "kappadokiya",
+    "mark": "balloon"
+   }
+  ]
+ },
+ {
   "country": "Япония",
   "lang": "японский",
   "cities": [
@@ -151,32 +204,6 @@
     "name": "Нара",
     "slug": "nara",
     "mark": "forest"
-   }
-  ]
- },
- {
-  "country": "Нидерланды",
-  "lang": "нидерландский",
-  "cities": [
-   {
-    "name": "Амстердам",
-    "slug": "amsterdam",
-    "mark": "windmill"
-   },
-   {
-    "name": "Гаага",
-    "slug": "gaaga",
-    "mark": "binnenhof"
-   },
-   {
-    "name": "Утрехт",
-    "slug": "utreht",
-    "mark": "domtower"
-   },
-   {
-    "name": "Роттердам",
-    "slug": "rotterdam",
-    "mark": "erasmus"
    }
   ]
  },
@@ -211,6 +238,16 @@
   "lang": "французский",
   "cities": [
    {
+    "name": "Ницца",
+    "slug": "nicca",
+    "mark": "sea"
+   },
+   {
+    "name": "Прованс",
+    "slug": "provans",
+    "mark": "windmill"
+   },
+   {
     "name": "Париж",
     "slug": "parizh",
     "mark": "eiffel"
@@ -219,16 +256,6 @@
     "name": "Лион",
     "slug": "lion",
     "mark": "dome"
-   },
-   {
-    "name": "Прованс",
-    "slug": "provans",
-    "mark": "windmill"
-   },
-   {
-    "name": "Ницца",
-    "slug": "nicca",
-    "mark": "sea"
    }
   ]
  },
@@ -263,11 +290,6 @@
   "lang": "испанский",
   "cities": [
    {
-    "name": "Мехико",
-    "slug": "mehiko",
-    "mark": "pyramid"
-   },
-   {
     "name": "Оахака",
     "slug": "oahaka",
     "mark": "mountains"
@@ -281,32 +303,37 @@
     "name": "Гвадалахара",
     "slug": "gvadalahara",
     "mark": "dome"
+   },
+   {
+    "name": "Мехико",
+    "slug": "mehiko",
+    "mark": "pyramid"
    }
   ]
  },
  {
-  "country": "Южная Корея",
-  "lang": "корейский",
+  "country": "Нидерланды",
+  "lang": "нидерландский",
   "cities": [
    {
-    "name": "Сеул",
-    "slug": "seul",
-    "mark": "seoultower"
+    "name": "Гаага",
+    "slug": "gaaga",
+    "mark": "binnenhof"
    },
    {
-    "name": "Кёнджу",
-    "slug": "kendzhu",
-    "mark": "pagoda"
+    "name": "Амстердам",
+    "slug": "amsterdam",
+    "mark": "windmill"
    },
    {
-    "name": "Пусан",
-    "slug": "pusan",
-    "mark": "sea"
+    "name": "Утрехт",
+    "slug": "utreht",
+    "mark": "domtower"
    },
    {
-    "name": "Чеджу",
-    "slug": "chedzhu",
-    "mark": "volcano"
+    "name": "Роттердам",
+    "slug": "rotterdam",
+    "mark": "erasmus"
    }
   ]
  }

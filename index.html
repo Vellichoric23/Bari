@@ -592,6 +592,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .when-note{margin:4px 0 0;color:var(--accent)}
 .seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .news-top{display:flex;gap:12px;align-items:center;text-align:left}.news-list{display:grid;gap:10px;margin:12px 0}.news-it{display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface-2);border-radius:14px;padding:10px}.news-it>div{flex:1;min-width:0}.news-it p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}.news-g{flex:none;width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center}
+.holi{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#FFF1C9,#FFE0EC);border-radius:16px;padding:10px 12px;margin-bottom:10px}.holi b{display:block;font-size:14.5px}.holi p{margin:2px 0 0;font-size:13px;line-height:1.4}
 .partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.p-women{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e6}.p-women>b{font-size:14px;color:#7F2D33}.p-women p{margin:4px 0;font-size:13px}.p-hits{margin-top:8px}.p-hits summary{font-weight:700;font-size:13px;color:#7F2D33;cursor:pointer}.p-hits p{margin:6px 0;font-size:13px}.p-hits p b{display:inline;font-size:13.5px}.partner-cup{flex:none;width:64px;height:64px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
 .cd-music{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:14px;padding:8px 10px;margin:10px 0}
@@ -1833,19 +1834,40 @@ const BARI_LINES=["Один шаг — уже движение.","Не всё с
 
 /* journey: one country per month, one city per week */
 const JOURNEY=[
-  {from:"2026-10",country:"Италия",lang:"итальянский",cities:[["Рим","colosseum"],["Флоренция","dome"],["Венеция","venice"],["Милан","spires"],["Неаполь","volcano"],["Болонья","towers"]]},
-  {from:"2026-12",country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Рованиеми","forest"],["Турку","castle"],["Тампере","lake"]]},
-  {from:"2027-01",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","castle"],["Бат","temple"]]},
-  {from:"2027-02",country:"Казахстан",lang:"казахский",cities:[["Атырау","zhaiyk"],["Актау","aktau"],["Уральск","dome"],["Астана","tower"],["Бурабай","okzhetpes"],["Алматы","mountains"],["Туркестан","yasawi"]]},
-  {from:"2027-04",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","jcastle"],["Нара","forest"]]},
-  {from:"2027-05",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","binnenhof"],["Утрехт","domtower"],["Роттердам","erasmus"]]},
-  {from:"2027-06",country:"Греция",lang:"греческий",cities:[["Афины","temple"],["Санторини","sea"],["Крит","mountains"],["Дельфы","temple"]]},
-  {from:"2027-07",country:"Франция",lang:"французский",cities:[["Париж","eiffel"],["Лион","dome"],["Прованс","windmill"],["Ницца","sea"]]},
-  {from:"2027-07",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
-  {from:"2027-08",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]},
-  {from:"2027-09",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]}
+  {country:"Италия",lang:"итальянский",cities:[["Рим","colosseum"],["Флоренция","dome"],["Венеция","venice"],["Милан","spires"],["Неаполь","volcano"],["Болонья","towers"]]},
+  {country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Турку","castle"],["Тампере","lake"],["Рованиеми","forest"]]},
+  {country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","castle"]]},
+  {country:"Южная Корея",lang:"корейский",cities:[["Кёнджу","pagoda"],["Пусан","sea"],["Сеул","seoultower"]]},
+  {country:"Казахстан",lang:"казахский",cities:[["Атырау","zhaiyk"],["Актау","aktau"],["Уральск","dome"],["Астана","tower"],["Бурабай","okzhetpes"],["Алматы","mountains"],["Туркестан","yasawi"]]},
+  {country:"Узбекистан",lang:"узбекский",cities:[["Самарканд","registan"],["Бухара","kalyan"],["Хива","khiva"]]},
+  {country:"Турция",lang:"турецкий",cities:[["Стамбул","istanbul"],["Каппадокия","balloon"]]},
+  {country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","jcastle"],["Нара","forest"]]},
+  {country:"Греция",lang:"греческий",cities:[["Афины","temple"],["Санторини","sea"],["Крит","mountains"],["Дельфы","temple"]]},
+  {country:"Франция",lang:"французский",cities:[["Ницца","sea"],["Прованс","windmill"],["Париж","eiffel"],["Лион","dome"]]},
+  {country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
+  {country:"Мексика",lang:"испанский",cities:[["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"],["Мехико","pyramid"]]},
+  {country:"Нидерланды",lang:"нидерландский",cities:[["Гаага","binnenhof"],["Амстердам","windmill"],["Утрехт","domtower"],["Роттердам","erasmus"]]}
 ];
-const JOURNEY_WHY={"Италия":"осень и урожай","Финляндия":"Лапландия и Новый год","Великобритания":"зимний Лондон и уютные чайные","Казахстан":"дом — от Каспия до Тянь-Шаня","Япония":"цветение сакуры","Нидерланды":"тюльпаны","Греция":"начало лета и море","Франция":"лаванда в Провансе","Испания":"летние фиесты","Южная Корея":"праздник урожая Чхусок","Мексика":"какао, кукуруза и древние пирамиды"};
+// 52 weeks = one year, so every country meets its holiday again next year
+const HOLIDAYS=[
+ {d:"12-06",country:"Финляндия",t:"День независимости Финляндии",x:"6 декабря финны ставят на окна две свечи — тихий и красивый обычай. В Хельсинки проходит факельное шествие студентов."},
+ {d:"12-16",t:"Тәуелсіздік күні — День Независимости Казахстана",x:"Тәуелсіздік күні құтты болсын! 16 декабря 1991 года Казахстан стал независимым."},
+ {d:"12-24",to:"12-26",country:"Финляндия",t:"Рождество в Лапландии",x:"В Рованиеми — деревня Йоулупукки на Полярном круге. Финны встречают Рождество в сауне, с рисовой кашей и свечами."},
+ {d:"12-31",to:"01-01",t:"Новый год!",x:"Жаңа жылыңызбен! Пусть в новом году будет много открытий и мало суеты."},
+ {d:"2027-02-06",to:"2027-02-08",country:"Южная Корея",t:"Соллаль — корейский Новый год",x:"Семьи собираются вместе, надевают ханбок, кланяются старшим и едят суп ттоккук с рисовыми лепёшками: съел тарелку — стал на год старше."},
+ {d:"03-08",t:"8 Марта",x:"С праздником! Сегодня — цветы, тепло и забота о себе."},
+ {d:"03-21",to:"03-23",t:"Наурыз мейрамы құтты болсын!",x:"Наурыз — праздник весны и нового года по солнцу. Варят наурыз-көже из семи продуктов, ставят юрты и ходят в гости. В Узбекистане его тоже празднуют — как Навруз."},
+ {d:"04-10",to:"04-30",country:"Турция",t:"Фестиваль тюльпанов в Стамбуле",x:"Весь апрель Стамбул цветёт: миллионы тюльпанов в парках, особенно в Эмиргане. Тюльпан — символ города."},
+ {d:"05-05",country:"Япония",t:"Кодомо-но хи — День детей",x:"Над домами в Японии развеваются карпы-кои из ткани — коинобори: карп плывёт против течения, как ребёнок, который растёт сильным."},
+ {d:"07-14",country:"Франция",t:"14 июля — национальный праздник Франции",x:"Парад на Елисейских Полях и салют над Эйфелевой башней. Праздник в память о взятии Бастилии в 1789 году."},
+ {d:"09-15",to:"09-16",country:"Мексика",t:"День независимости Мексики",x:"В ночь на 16 сентября на главных площадях кричат «¡Viva México!» — так вспоминают призыв священника Идальго в 1810 году."},
+ {d:"2027-09-21",country:"Нидерланды",t:"Принсьесдаг в Гааге",x:"В третий вторник сентября король едет в золотой карете и открывает новый политический год в Гааге."},
+ {d:"10-25",t:"Республика күні",x:"25 октября — День Республики Казахстан."}
+];
+function holidayToday(k){const md=k.slice(5),j=journeyFor(k);
+  return HOLIDAYS.filter(h=>{const full=h.d.length>5,from=full?h.d:h.d,to=h.to||h.d;const cur=full?k:md;
+    const inR=from<=to?(cur>=from&&cur<=to):(cur>=from||cur<=to);return inR&&(!h.country||h.country===j.country);});}
+const JOURNEY_WHY_OLD={"Италия":"осень и урожай","Финляндия":"Лапландия и Новый год","Великобритания":"зимний Лондон и уютные чайные","Казахстан":"дом — от Каспия до Тянь-Шаня","Япония":"цветение сакуры","Нидерланды":"тюльпаны","Греция":"начало лета и море","Франция":"лаванда в Провансе","Испания":"летние фиесты","Южная Корея":"праздник урожая Чхусок","Мексика":"какао, кукуруза и древние пирамиды"};
 const JOURNEY_START="2026-10-19";
 function journeyFor(k){
   if(typeof hasRoute==="function"&&settings&&hasRoute()) return routeJourney(k);
@@ -1899,6 +1921,11 @@ function landmark(mark,c){
     case "aktau": return `<rect ${f} x="96" y="66" width="72" height="74"/><g fill="#fff" opacity=".35">${[0,1,2,3,4,5,6].map(r=>[0,1,2,3].map(c=>`<rect x="${102+c*16}" y="${72+r*9}" width="9" height="5"/>`).join("")).join("")}</g><rect x="124" y="40" width="16" height="26" fill="#F4F6FA"/><rect x="124" y="48" width="16" height="6" fill="#E5532E"/><path d="M120 40 H144 L132 26Z" fill="#E5532E"/><circle cx="132" cy="34" r="3" fill="#FFE27A"/><path d="M140 34 L176 26 M140 34 L176 42" stroke="#FFE27A" stroke-width="2" opacity=".6"/>`;
     case "okzhetpes": return `<path ${f} d="M70 140 L92 92 L104 104 L120 60 L136 50 L148 74 L162 70 L178 140Z"/><path d="M126 58 L136 50 L142 62" fill="#fff" opacity=".3"/>${[0,1,2,3].map(i=>`<path d="M${60+i*42+(i>1?60:0)} 140 l7 -28 l7 28z" fill="#2E5E4E"/>`).join("")}`;
     case "kopyor": return `<rect fill="#5E5470" x="78" y="112" width="104" height="28"/><path d="M104 112 L124 50 L144 112 M114 82 H134" stroke="#5E5470" stroke-width="6" fill="none"/><circle cx="124" cy="48" r="13" fill="none" stroke="#5E5470" stroke-width="5"/><circle cx="124" cy="48" r="3" fill="#5E5470"/><path d="M124 48 L124 35 M124 48 L135 55 M124 48 L113 55" stroke="#5E5470" stroke-width="2.5"/><g fill="#fff" opacity=".35">${[0,1,2,3,4].map(i=>`<rect x="${86+i*19}" y="120" width="9" height="10"/>`).join("")}</g>`;
+    case "registan": return `<rect ${f} x="52" y="72" width="6" height="68"/><rect ${f} x="202" y="72" width="6" height="68"/><rect ${f} x="58" y="96" width="44" height="44"/><rect ${f} x="104" y="78" width="52" height="62"/><rect ${f} x="158" y="96" width="44" height="44"/><path d="M68 96 Q80 76 92 96Z" fill="#2FA4A9"/><path d="M168 96 Q180 76 192 96Z" fill="#2FA4A9"/><path d="M116 140 V104 Q130 88 144 104 V140Z" fill="#2B5F8A" opacity=".85"/><path d="M72 140 V116 Q80 106 88 116 V140Z" fill="#2B5F8A" opacity=".7"/><path d="M172 140 V116 Q180 106 188 116 V140Z" fill="#2B5F8A" opacity=".7"/><g fill="#2FA4A9" opacity=".8"><rect x="104" y="80" width="52" height="5"/><rect x="52" y="74" width="6" height="4"/><rect x="202" y="74" width="6" height="4"/></g>`;
+    case "kalyan": return `<path ${f} d="M118 140 L123 44 H137 L142 140Z"/><rect ${f} x="117" y="32" width="26" height="13"/><path ${f} d="M117 32 Q130 20 143 32Z"/><g fill="#fff" opacity=".28">${[0,1,2,3,4,5].map(i=>`<rect x="${121+i*.6}" y="${56+i*14}" width="${18-i*1.2}" height="3"/>`).join("")}</g><rect ${f} x="150" y="104" width="64" height="36"/><path d="M160 104 Q182 72 204 104Z" fill="#2FA4A9"/><path d="M174 140 V118 Q182 110 190 118 V140Z" fill="#2B5F8A" opacity=".7"/>`;
+    case "khiva": return `<path d="M108 140 L112 66 H148 L152 140Z" fill="#2FA4A9"/><g ${f}>${[0,1,2,3,4].map(i=>`<rect x="${111-i*.4}" y="${74+i*14}" width="${38+i*.8}" height="5"/>`).join("")}</g><rect x="110" y="62" width="40" height="6" fill="#1F7F84"/><path ${f} d="M30 140 V114 h8 v-6 h8 v6 h8 v-6 h8 v6 h8 v-6 h8 v6 h6 V140Z"/><path ${f} d="M168 140 V114 h8 v-6 h8 v6 h8 v-6 h8 v6 h8 v-6 h8 v6 h8 V140Z"/>`;
+    case "istanbul": return `<rect ${f} x="64" y="58" width="6" height="82"/><path ${f} d="M64 58 L67 40 L70 58Z"/><rect ${f} x="190" y="58" width="6" height="82"/><path ${f} d="M190 58 L193 40 L196 58Z"/><rect ${f} x="80" y="108" width="100" height="32"/><path ${f} d="M98 108 Q130 58 162 108Z"/><path ${f} d="M82 112 Q96 94 110 112Z"/><path ${f} d="M150 112 Q164 94 178 112Z"/><path d="M130 66 v-8" stroke="#E9C46A" stroke-width="2"/><circle cx="130" cy="55" r="3" fill="#E9C46A"/><g fill="#fff" opacity=".35">${[0,1,2,3,4,5].map(i=>`<rect x="${88+i*15}" y="118" width="7" height="12" rx="3.5"/>`).join("")}</g>`;
+    case "balloon": return `<path ${f} d="M54 140 Q60 96 68 140Z"/><ellipse ${f} cx="61" cy="98" rx="10" ry="5"/><path ${f} d="M78 140 Q86 80 96 140Z"/><ellipse ${f} cx="87" cy="82" rx="12" ry="6"/><path ${f} d="M168 140 Q176 90 186 140Z"/><ellipse ${f} cx="177" cy="92" rx="11" ry="5"/><path ${f} d="M100 140 Q130 110 160 140Z"/><g><ellipse cx="140" cy="40" rx="17" ry="20" fill="#E5532E"/><path d="M123 40 Q140 34 157 40" stroke="#FFD166" stroke-width="4" fill="none"/><path d="M130 57 L136 66 M150 57 L144 66" stroke="#6B4630"/><rect x="135" y="66" width="10" height="7" fill="#8C5A4A"/></g><g><ellipse cx="196" cy="58" rx="10" ry="12" fill="#2FA4A9"/><rect x="193" y="74" width="6" height="4" fill="#8C5A4A"/><path d="M190 68 L194 74 M202 68 L198 74" stroke="#6B4630"/></g><g><ellipse cx="80" cy="30" rx="8" ry="9.5" fill="#FFD166"/><rect x="78" y="43" width="4" height="3" fill="#8C5A4A"/></g>`;
     case "sea": return `<rect x="150" y="56" width="14" height="84" fill="#F4F6FA"/><rect x="150" y="72" width="14" height="10" fill="#E5532E"/><rect x="150" y="100" width="14" height="10" fill="#E5532E"/><path d="M146 56 H168 L157 42Z" fill="#E5532E"/><circle cx="157" cy="50" r="3" fill="#FFE27A"/><g transform="translate(70 104)"><path d="M0 22 H44 L36 32 H8Z" fill="#8C5A4A"/><path d="M22 0 V22 H4Z" fill="#F4F6FA"/><path d="M24 4 V22 H40Z" fill="#E9DCC8"/></g>`;
     default: return `<rect ${f} x="70" y="118" width="40" height="22"/><path ${f} d="M70 118 L90 104 L110 118Z"/><rect ${f} x="150" y="70" width="10" height="70"/><path ${f} d="M146 70 H164 L155 58Z"/>`;
   }
@@ -1970,10 +1997,15 @@ const GLYPHS={
   temple:`<path d="M3 8l9-5 9 5z" fill="#F6F1E8"/><g fill="#EDE6DA"><rect x="5" y="9" width="2" height="9"/><rect x="9" y="9" width="2" height="9"/><rect x="13" y="9" width="2" height="9"/><rect x="17" y="9" width="2" height="9"/></g><rect x="3" y="18" width="18" height="2" fill="#EDE6DA"/>`,
   tower:`<path d="M11 2h2l2 19H9z" fill="#8C7DFF"/><rect x="8" y="9" width="8" height="2" rx="1" fill="#6C5BFF"/>`
 };
-const GLYPH_ALIAS={aktau:"tower",okzhetpes:"mountain",kopyor:"tower",tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat",castle:"tower",binnenhof:"tower",domtower:"tower",erasmus:"boat",giralda:"tower",artsci:"dome",jcastle:"pagoda",yasawi:"dome",zhaiyk:"boat",lake:"boat"};
+const GLYPH_ALIAS={registan:"dome",kalyan:"tower",khiva:"tower",istanbul:"dome",balloon:"lantern",aktau:"tower",okzhetpes:"mountain",kopyor:"tower",tokyotower:"tower",seoultower:"tower",bigben:"tower",venice:"gondola",mountains:"mountain",forest:"tree",sea:"boat",castle:"tower",binnenhof:"tower",domtower:"tower",erasmus:"boat",giralda:"tower",artsci:"dome",jcastle:"pagoda",yasawi:"dome",zhaiyk:"boat",lake:"boat"};
 const glyph=(n,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${GLYPHS[n]||GLYPHS[GLYPH_ALIAS[n]]||GLYPHS.tree}</svg>`;
 /* what to see and taste: city first, then country */
 const CITY_ITEMS={
+  "Самарканд":[["dome","Регистан"],["column","Обсерватория Улугбека"],["bun","Самаркандский нон"],["lantern","Бумага"],["apple","Сиаб-базар"]],
+  "Бухара":[["tower","Минарет Калян"],["boat","Ляби-Хауз"],["column","Ходжа Насреддин"],["bowl","Плов"],["flower","Золотое шитьё"]],
+  "Хива":[["tower","Ичан-Кала"],["dome","Кальта-Минор"],["column","Аль-Хорезми"],["tree","Деревянные колонны"],["tea","Колодец Хейвак"]],
+  "Стамбул":[["boat","Босфор"],["tulip","Тюльпаны"],["tea","Чай в тюльпане"],["espresso","Турецкий кофе"],["bun","Симит"]],
+  "Каппадокия":[["lantern","Воздушные шары"],["mountain","Каменные столбы"],["column","Подземный город"],["bowl","Гончары Аваноса"],["tower","Голубятни"]],
   "Актау":[["boat","Каспий"],["tower","Маяк на доме"],["mountain","Бозжыра"],["bus","Адреса-цифры"],["tea","Шұбат"]],
   "Уральск":[["boat","Жайық"],["dome","Собор"],["column","Пушкин и Пугачёв"],["flower","Маншук"],["yurt","Хан Ордасы"]],
   "Бурабай":[["boat","Озеро Бурабай"],["mountain","Окжетпес"],["column","Жумбактас"],["tree","Сосновый бор"],["tea","Кумыс"]],
@@ -2013,6 +2045,8 @@ const CITY_ITEMS={
   "Болонья":[["towers","Две башни"],["pasta","Тальятелле болоньезе"],["column","Портики"],["cheese","Пармезан"],["bicycle","Велосипеды"]]
 };
 const COUNTRY_ITEMS={
+  "Узбекистан":[["bowl","Плов"],["bun","Лепёшки"],["tea","Зелёный чай"],["dome","Медресе"],["apple","Базар"]],
+  "Турция":[["tea","Чай"],["espresso","Турецкий кофе"],["tulip","Тюльпаны"],["bun","Симит"],["dome","Мечети"]],
   "Финляндия":[["bun","Корвапуусти"],["espresso","Кофе"],["tree","Лес"],["boat","Озёра"],["mountain","Северное сияние"]],
   "Япония":[["sushi","Суши"],["bowl","Рамен"],["tea","Матча"],["flower","Сакура"],["pagoda","Храмы"]],
   "Франция":[["croissant","Круассан"],["baguette","Багет"],["espresso","Кафе"],["bicycle","Велосипед"],["eiffel","Эйфелева башня"]],
@@ -2026,8 +2060,8 @@ const COUNTRY_ITEMS={
 };
 const itemsFor=j=>CITY_ITEMS[j.city]||COUNTRY_ITEMS[j.country]||[["tree","Прогулка"]];
 const FOLIAGE={autumn:["#E58A3A","#F2B33D","#C9783B","#D9A441"],winter:["#FFFFFF","#EEF3FF","#DCE6FA","#FFFFFF"],spring:["#FFB3C7","#FFD1DC","#9FD06B","#FFC2D4"],summer:["#7CC23A","#5FA82E","#A6D85A","#6DB33F"]};
-const STONE={castle:"#7E7468",binnenhof:"#A0523C",domtower:"#9C8C78",giralda:"#D9A06A",lake:"#A84E3A",colosseum:"#C98F58",dome:"#C7895A",venice:"#B97A55",spires:"#EFE6DA",volcano:"#8C6A5A",towers:"#C9744A",tower:"#B9AFFF",pagoda:"#E85A4A",eiffel:"#8A7666",windmill:"#C9783B",temple:"#F6F1E8",pyramid:"#D9A96A",mountains:"#8E9CC4",forest:"#3E8E5A",sea:"#E9DCC8"};
-const FACADES={"Нидерланды":["#9C4A36","#7E3B2C","#B5654A","#6E4A3A","#C27B5A"],"Великобритания":["#A85A44","#8E4A3A","#C9B79C","#B86A50"],"Мексика":["#F2A541","#E5677D","#2EC4B6","#F7D154","#9B5DE5"],"Испания":["#F6EFE2","#EBD9B4","#F2E3C6","#E3C9A0"],"Южная Корея":["#F4ECE0","#E9DCC8","#EFE4D2"],"Финляндия":["#B5422F","#D9A441","#F4F1EA","#8C3B2E"],"Италия":["#F2C48D","#E8A87C","#F5D7A1","#D98E5F","#F0B98A"],"Япония":["#F4ECE0","#E9D7C3","#D8C3A5","#F2E6D8"],"Франция":["#F3EBDD","#E9DCC8","#F6F0E6","#DCCFBB"],"Казахстан":["#F4ECE0","#E9D7C3","#C9D6E3","#F2E3C6"],default:["#F3E6D3","#E9D2B6","#F6EBDD","#DCC3A5"]};
+const STONE={registan:"#D9B48A",kalyan:"#C9A27A",khiva:"#C9A27A",istanbul:"#B8B0A8",balloon:"#E2C49A",castle:"#7E7468",binnenhof:"#A0523C",domtower:"#9C8C78",giralda:"#D9A06A",lake:"#A84E3A",colosseum:"#C98F58",dome:"#C7895A",venice:"#B97A55",spires:"#EFE6DA",volcano:"#8C6A5A",towers:"#C9744A",tower:"#B9AFFF",pagoda:"#E85A4A",eiffel:"#8A7666",windmill:"#C9783B",temple:"#F6F1E8",pyramid:"#D9A96A",mountains:"#8E9CC4",forest:"#3E8E5A",sea:"#E9DCC8"};
+const FACADES={"Узбекистан":["#D9B48A","#C9A27A","#E3C69E","#BF9466"],"Турция":["#E8D9C4","#C96F53","#F2E6D0","#B85C45","#E9C46A"],"Нидерланды":["#9C4A36","#7E3B2C","#B5654A","#6E4A3A","#C27B5A"],"Великобритания":["#A85A44","#8E4A3A","#C9B79C","#B86A50"],"Мексика":["#F2A541","#E5677D","#2EC4B6","#F7D154","#9B5DE5"],"Испания":["#F6EFE2","#EBD9B4","#F2E3C6","#E3C9A0"],"Южная Корея":["#F4ECE0","#E9DCC8","#EFE4D2"],"Финляндия":["#B5422F","#D9A441","#F4F1EA","#8C3B2E"],"Италия":["#F2C48D","#E8A87C","#F5D7A1","#D98E5F","#F0B98A"],"Япония":["#F4ECE0","#E9D7C3","#D8C3A5","#F2E6D8"],"Франция":["#F3EBDD","#E9DCC8","#F6F0E6","#DCCFBB"],"Казахстан":["#F4ECE0","#E9D7C3","#C9D6E3","#F2E3C6"],default:["#F3E6D3","#E9D2B6","#F6EBDD","#DCC3A5"]};
 function cityBgSvg(k,W=400){
   /* the city fills the top half of the screen (behind the greeting); a quiet piazza continues below the cards */
   const j=journeyFor(k), now=new Date(), se=seasonOf(now), td=todOf(now), S=SKY[se], sky=S[td], night=td==="night", eve=td==="evening";
@@ -2080,7 +2114,7 @@ function mountCityBg(k){
 }
 
 /* ---------- «Город дня» и «Забота дня» on the main screen ---------- */
-const CITY_TZ={"Италия":"Europe/Rome","Финляндия":"Europe/Helsinki","Япония":"Asia/Tokyo","Франция":"Europe/Paris","Казахстан":"Asia/Almaty","Нидерланды":"Europe/Amsterdam","Испания":"Europe/Madrid","Греция":"Europe/Athens","Мексика":"America/Mexico_City","Южная Корея":"Asia/Seoul","Великобритания":"Europe/London"};
+const CITY_TZ={"Узбекистан":"Asia/Tashkent","Турция":"Europe/Istanbul","Италия":"Europe/Rome","Финляндия":"Europe/Helsinki","Япония":"Asia/Tokyo","Франция":"Europe/Paris","Казахстан":"Asia/Almaty","Нидерланды":"Europe/Amsterdam","Испания":"Europe/Madrid","Греция":"Europe/Athens","Мексика":"America/Mexico_City","Южная Корея":"Asia/Seoul","Великобритания":"Europe/London"};
 const TR={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"c",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"," ":"-"};
 const slug=s=>String(s).toLowerCase().split("").map(c=>TR[c]??(/[a-z0-9-]/.test(c)?c:"")).join("");
 let cityday={}, cityinfo={}, cityBusy=false, careShift=0;
@@ -2131,7 +2165,9 @@ function cityDayCard(k){
   const sameCity=lesson&&(!lesson.city||lesson.city===j.city);
   const fact=d?.fact||(sameCity?lesson?.facts?.[0]:"")||"";
   const w=d?.word?.it?d.word:(sameCity?lesson?.words?.[0]:null)||null;
+  const hol=holidayToday(k);
   return `<section class="card cityday">
+    ${hol.map(h=>`<div class="holi">${bari({mood:"joy",size:44,wave:true})}<div><b>${esc(h.t)}</b><p>${esc(h.x)}</p></div></div>`).join("")}
     <div class="cd-head"><span class="label">Город дня · ${esc(j.city)}</span><span class="cd-time">${cityTimeLine(j)}${(()=>{const v=weatherNow(j.city);return v?` · ${wxLine(v)}`:"";})()}</span></div>
     ${(()=>{const v=weatherNow(j.city);return v?`<p class="tip" style="margin:0 0 6px">${esc(wxSay(j.city,v))}</p>`:"";})()}
     ${fact?`<p class="cd-fact">${ic("spark")}<span>${esc(fact)}</span></p>`:`<p class="tip">${cityBusy?"BARI собирает факты о городе…":"Факт дня появится, как только BARI его найдёт."}</p>`}
@@ -3200,6 +3236,14 @@ const RPROP={
   flag_ok:"", none:""
 };
 const RITUALS={
+  "Узбекистан":[
+    {a:"bow",p:"none",l:"Приветствую по-узбекски: правую руку — к сердцу и лёгкий поклон."},
+    {a:"sip",p:"tea",l:"Қайтарма: хозяин трижды наливает чай в пиалу и выливает обратно в чайник — так чай лучше заваривается."},
+    {a:"nod",p:"none",l:"Лепёшку нон не режут ножом и не кладут лицом вниз — её ломают руками и делят на всех."}],
+  "Турция":[
+    {a:"sip",p:"tea",l:"В Турции чай пьют весь день — из стаканчиков в форме тюльпана."},
+    {a:"nod",p:"none",l:"Синий глаз-оберег — назар бонджук — вешают в домах и машинах от сглаза."},
+    {a:"bow",p:"none",l:"Перед едой в Турции говорят «Afiyet olsun!» — «Приятного аппетита!»."}],
   "Япония":[
     {a:"bow",p:"none",l:"Кланяюсь. Поклон в Японии — «одзиги»: лёгкий — около 15°, вежливый — 30°, глубокий — 45°. Чем глубже, тем больше уважения."},
     {a:"sip",p:"matcha",l:"Чайная церемония: перед глотком гость поворачивает чашу, чтобы не пить с её «лицевой» стороны — так проявляют скромность."},
@@ -3286,6 +3330,14 @@ function sfx(kind){
 }
 /* city melodies: public-domain folk tunes or BARI's own tunes in the local style */
 const MUSIC={
+  "Узбекистан":{n:"Наигрыш на дутаре",i:"дутар",inst:"dombyra",bpm:84,kind:"BARI сочинил в духе макома",
+    mel:"D4:1 E4:.5 F4:.5 G4:1 A4:1 Bb4:.5 A4:.5 G4:1 F4:.5 E4:.5 D4:2 A4:1 Bb4:.5 C5:.5 D5:1 C5:.5 Bb4:.5 A4:1 G4:.5 F4:.5 E4:1 D4:3",
+    drone:"D3:2 A3:2",
+    s:"Дутар — «две струны» — длинношейный инструмент Узбекистана и всей Центральной Азии, родственник казахской домбры. Классическая музыка Бухары и Самарканда — шашмаком, «шесть макомов» — это большие циклы мелодий, которые веками передавали от мастера к ученику. В 2008 году шашмаком вошёл в список нематериального наследия ЮНЕСКО."},
+  "Турция":{n:"Наигрыш на сазе",i:"саз",inst:"bouzouki",bpm:96,kind:"BARI сочинил в ладу хиджаз",
+    mel:"D4:.5 Eb4:.5 F#4:1 G4:.5 A4:.5 Bb4:1 A4:.5 G4:.5 F#4:1 Eb4:.5 D4:.5 D4:2 G4:.5 A4:.5 Bb4:1 C5:.5 D5:.5 C5:1 Bb4:.5 A4:.5 G4:1 F#4:.5 Eb4:.5 D4:3",
+    drone:"D3:2",
+    s:"Саз, или баглама, — турецкий длинношейный инструмент. Под него поют ашики — странствующие народные поэты. Турецкая музыка строится на макамах — ладах с особыми интервалами. Хиджаз узнаётся сразу: в нём есть «восточный» широкий шаг между второй и третьей ступенью."},
   "Япония":{n:"Сакура, сакура",i:"кото",inst:"koto",bpm:72,kind:"японская народная песня",
     mel:"A4:1 A4:1 B4:2 A4:1 A4:1 B4:2 A4:1 B4:1 C5:1 B4:1 A4:1 B4:.5 A4:.5 F4:2 E4:1 C4:1 E4:1 F4:1 E4:1 E4:.5 C4:.5 B3:2 A4:1 B4:1 C5:1 B4:1 A4:1 B4:.5 A4:.5 F4:2 E4:1 C4:1 E4:1 F4:1 E4:1 E4:.5 C4:.5 B3:2 A4:1 A4:1 B4:2 A4:1 A4:1 B4:2 E4:1 F4:1 B4:.5 A4:.5 F4:1 E4:4",
     s:"«Сакура, сакура» — японская народная песня о весеннем цветении. Её мелодию напечатали в 1888 году в учебнике игры на кото, но сама песня старше — из эпохи Эдо. Кото — длинная цитра с 13 струнами: на неё играют, надев на пальцы маленькие «когти» — цумэ. Весной, на ханами, эту песню знает каждый."},
@@ -3350,6 +3402,13 @@ function playMusic(country,loop=0){
 const NOTES_PROP=`<g class="mnotes" fill="#FFD166" stroke="#2B2550" stroke-width="1.5"><g transform="translate(150 70) scale(1.4)"><path d="M0 0v22a7 6 0 1 1-3-5V6l16-4v18a7 6 0 1 1-3-5V-2z"/></g><g transform="translate(36 96) scale(1.1)"><path d="M0 0v20a6 5 0 1 1-3-4V0z"/></g></g>`;
 /* coffee: how each country drinks it, a home recipe (halal), real facts, legends */
 const COFFEE={
+  "Турция":{
+    how:"Турецкий кофе варят в маленькой джезве из очень мелкого, почти пудрового помола — прямо с сахаром, если пьют сладкий. Подают в крошечной чашке со стаканом воды и кусочком лукума. Сладость заказывают сразу: sade — без сахара, orta — средний, şekerli — сладкий. Главное — густая пенка köpük.",
+    word:["Bir orta kahve, lütfen","Один кофе средней сладости, пожалуйста"],
+    recipe:{n:"Турецкий кофе в джезве",ing:["70 мл холодной воды (одна кофейная чашка)","1 полная ч. л. кофе очень мелкого помола","Сахар по вкусу — по желанию"],steps:["Налей холодную воду в джезву, всыпь кофе и сахар, размешай один раз.","Поставь на самый слабый огонь и не мешай. Когда поднимется пенка — сними.","Разложи пенку по чашке, снова доведи до подъёма и аккуратно долей. Подавай со стаканом воды."],tip:"Сначала глоток воды — чтобы почувствовать вкус кофе. Гущу на дне не пьют."},
+    facts:["Первые кофейни Стамбула открылись около 1554 года: их открыли двое купцов из Сирии. Кофейня быстро стала местом встреч, игр в нарды и чтения стихов.","В 2013 году культура и традиция турецкого кофе вошли в список нематериального наследия ЮНЕСКО.","Турецкая поговорка: «Bir fincan kahvenin kırk yıl hatırı vardır» — «Чашка кофе помнится сорок лет». Это о благодарности за гостеприимство."],
+    legend:{n:"Кофе на смотринах",t:"По обычаю, когда семья жениха приходит свататься, невеста сама варит кофе гостям. Говорят, иногда она кладёт жениху вместо сахара соль: если он выпьет и не поморщится — значит, терпеливый и сильно любит. Сегодня это скорее весёлая традиция."},
+    cities:{"Стамбул":"Стамбул — одна из первых кофейных столиц мира: кофейни здесь появились раньше, чем в Европе. Турецкий кофе с лукумом пьют у Босфора, а на пароме — чай.","Каппадокия":"В Каппадокии кофе иногда варят в джезве на горячем песке: песок нагревается ровно, и кофе поднимается медленно, с густой пенкой."}},
   "Италия":{
     how:"«Un caffè» в Италии — это всегда эспрессо. Его пьют стоя у стойки бара (al banco) за пару минут, часто со стаканом воды. Сесть за столик обычно стоит дороже — платишь за обслуживание. Капучино — утренний напиток к корнетто; после обеда молочный кофе заказывают редко: итальянцы считают, что молоко после еды тяжело для желудка.",
     word:["Un caffè, per favore","Один эспрессо, пожалуйста"],
@@ -3515,6 +3574,8 @@ const BARI_ACTS=[
   {k:"walk",w:6},{k:"weather",w:2},{k:"tea",w:2},{k:"read",w:2},{k:"wave",w:2},{k:"hop",w:1},{k:"peek",w:1},{k:"wiggle",w:1}
 ];
 const DRINKS={
+  "Узбекистан":{cup:"tea",l:["В Узбекистане пьют зелёный чай — кўк чой — из пиалы, наливая её до половины.","Чайхана — сердце узбекского махалля: здесь пьют чай, едят плов и обсуждают новости."]},
+  "Турция":{cup:"tea",l:["Турецкий чай заваривают в двухъярусном чайнике — чайданлыке: внизу кипяток, сверху крепкая заварка.","«Чашка кофе помнится сорок лет» — турецкая поговорка о гостеприимстве."]},
   "Италия":{cup:"espresso",l:["В Италии кофе у стойки дешевле, чем за столиком. Пьют стоя, за минуту.","Капучино итальянцы пьют только утром. После обеда — эспрессо.","В Неаполе есть обычай caffè sospeso: платишь за два кофе, второй — для незнакомца.","Гейзерную кофеварку «мока» придумал Альфонсо Биалетти в 1933 году."]},
   "Финляндия":{cup:"espresso",l:["Финны — одни из главных кофеманов мира: больше 10 кг кофе на человека в год.","В Финляндии любят светлую обжарку — кофе там мягкий и кисловатый.","Кофе-брейки у финнов часто прописаны прямо в трудовых соглашениях."]},
   "Япония":{cup:"tea",l:["Японская чайная церемония называется «тя-но ю» — «горячая вода для чая».","Генмайча — японский зелёный чай с обжаренным рисом, пахнет попкорном.","Кофе в банках из автоматов в Японии продают с конца 1960-х — горячим и холодным."]},
@@ -3580,6 +3641,8 @@ const V3=(a,b,c)=>`<rect width="10" height="20" fill="${a}"/><rect x="10" width=
 const H3=(a,b,c)=>`<rect width="30" height="6.67" fill="${a}"/><rect y="6.67" width="30" height="6.67" fill="${b}"/><rect y="13.33" width="30" height="6.67" fill="${c}"/>`;
 const STAR5=(cx,cy,r,f)=>{let p="";for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.4:r;p+=`${(cx+rr*Math.cos(a)).toFixed(2)},${(cy+rr*Math.sin(a)).toFixed(2)} `;}return `<polygon points="${p}" fill="${f}"/>`;};
 const FLAGS={
+  "Узбекистан":`<rect width="30" height="20" fill="#fff"/><rect width="30" height="6.4" fill="#0099B5"/><rect y="13.6" width="30" height="6.4" fill="#1EB53A"/><rect y="6.3" width="30" height=".6" fill="#CE1126"/><rect y="13.1" width="30" height=".6" fill="#CE1126"/><circle cx="4.6" cy="3.2" r="2.2" fill="#fff"/><circle cx="5.5" cy="3.2" r="2" fill="#0099B5"/><g fill="#fff">${[[9,1.4],[10.6,1.4],[12.2,1.4],[9,3],[10.6,3],[12.2,3],[9,4.6],[10.6,4.6],[12.2,4.6]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".45"/>`).join("")}</g>`,
+  "Турция":`<rect width="30" height="20" fill="#E30A17"/><circle cx="11" cy="10" r="5" fill="#fff"/><circle cx="12.25" cy="10" r="4" fill="#E30A17"/><path d="M14.6 10 L17.4 9.1 L15.7 11.5 L15.7 8.5 L17.4 10.9Z" fill="#fff"/>`,
   "Италия":V3("#009246","#fff","#CE2B37"),
   "Франция":V3("#0055A4","#fff","#EF4135"),
   "Мексика":V3("#006847","#fff","#CE1126")+`<circle cx="15" cy="10" r="2.6" fill="#8C5A2B"/><path d="M12.6 11.6 q2.4 2 4.8 0" stroke="#006847" stroke-width=".8" fill="none"/>`,
@@ -3596,7 +3659,7 @@ const FLAGS={
   "Малайзия":`<rect width="30" height="20" fill="#fff"/>${[0,2,4,6,8,10,12].map(i=>`<rect y="${i*20/14}" width="30" height="${20/14}" fill="#CC0001"/>`).join("")}<rect width="15" height="11.43" fill="#010066"/><circle cx="5.6" cy="5.7" r="3.8" fill="#FC0"/><circle cx="6.6" cy="5.7" r="3.2" fill="#010066"/>${STAR5(11,5.7,2.4,"#FC0")}`
 };
 const flag=(country,w=22)=>FLAGS[country]?`<svg class="flag" viewBox="0 0 30 20" width="${w}" height="${Math.round(w*2/3)}" aria-label="${esc(country)}" role="img">${FLAGS[country]}</svg>`:"";
-const LANG_COUNTRY={"английский":"Великобритания","итальянский":"Италия","финский":"Финляндия","японский":"Япония","французский":"Франция","казахский":"Казахстан","нидерландский":"Нидерланды","испанский":"Испания","греческий":"Греция","корейский":"Южная Корея"};
+const LANG_COUNTRY={"узбекский":"Узбекистан","турецкий":"Турция","английский":"Великобритания","итальянский":"Италия","финский":"Финляндия","японский":"Япония","французский":"Франция","казахский":"Казахстан","нидерландский":"Нидерланды","испанский":"Испания","греческий":"Греция","корейский":"Южная Корея"};
 function routeFlags(){
   const cur=journeyFor(todayKey()).country;
   const R=hasRoute()?settings.route.map(c=>({country:c})):JOURNEY, ci=R.findIndex(x=>x.country===cur);
@@ -3641,6 +3704,8 @@ function applyTheme(id){
 
 /* greeting in the language of the city on the background */
 const GREET={
+  "узбекский":{m:["Xayrli tong","хайр-ЛИ тонг"],d:["Xayrli kun","хайр-ЛИ кун"],e:["Xayrli kech","хайр-ЛИ кеч"],n:["Xayrli tun","хайр-ЛИ тун"]},
+  "турецкий":{m:["Günaydın","гю-най-ДЫН"],d:["İyi günler","И-йи гюн-ЛЕР"],e:["İyi akşamlar","И-йи ак-шам-ЛАР"],n:["İyi geceler","И-йи ге-дже-ЛЕР"]},
   "итальянский":{m:["Buongiorno","бон-ДЖОР-но"],d:["Buon pomeriggio","бу-он по-ме-РИД-жо"],e:["Buonasera","бу-она-СЕ-ра"],n:["Buonanotte","бу-она-НОТ-те"]},
   "финский":{m:["Hyvää huomenta","ХЮ-вя ХУО-мента"],d:["Hyvää päivää","ХЮ-вя ПЯЙ-вя"],e:["Hyvää iltaa","ХЮ-вя ИЛЬ-та"],n:["Hyvää yötä","ХЮ-вя ЮО-тя"]},
   "японский":{m:["おはよう","о-ха-ЁО"],d:["こんにちは","кон-ни-ТИ-ва"],e:["こんばんは","кон-бан-ВА"],n:["おやすみ","о-я-СУ-ми"]},
@@ -3774,7 +3839,7 @@ function streetExtras(country,W,B,night,se){
   if(country==="Нидерланды") ex.push(`<rect y="${B+6}" width="${W}" height="10" fill="#5B8FB0" opacity=".7"/>`);
   return ex.join("");
 }
-const WATER_CITIES={"Актау":"sea","Уральск":"river","Бурабай":"lake","Ницца":"sea","Пусан":"sea","Роттердам":"river","Валенсия":"sea","Атырау":"river","Тампере":"lake","Хельсинки":"sea","Барселона":"sea","Чеджу":"sea","Неаполь":"sea","Турку":"sea","Амстердам":"river"};
+const WATER_CITIES={"Стамбул":"sea","Актау":"sea","Уральск":"river","Бурабай":"lake","Ницца":"sea","Пусан":"sea","Роттердам":"river","Валенсия":"sea","Атырау":"river","Тампере":"lake","Хельсинки":"sea","Барселона":"sea","Чеджу":"sea","Неаполь":"sea","Турку":"sea","Амстердам":"river"};
 function waterBand(W,B,kind,dim){const top=kind==="river"?B-46:B-64;return `<g style="${dim}"><rect y="${top}" width="${W}" height="${B-top}" fill="${kind==="lake"?"#5E8FB8":"#3E86C4"}" opacity=".75"/>${Array.from({length:Math.ceil(W/60)},(_,n)=>`<path d="M${n*60+8} ${top+14+(n%3)*12} q8 -5 16 0 t16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".45"/>`).join("")}</g>`;}
 function backdropSvg(country,W,B,S,dim,se,city){
   const wk=WATER_CITIES[city];
@@ -4108,7 +4173,7 @@ function planExtras(P){
 /* ---------- live weather in the city of the week + travel passport ---------- */
 const CITY_GEO={"Рим":[41.9,12.5],"Флоренция":[43.77,11.25],"Венеция":[45.44,12.33],"Милан":[45.46,9.19],"Неаполь":[40.85,14.27],"Болонья":[44.49,11.34],
 "Хельсинки":[60.17,24.94],"Рованиеми":[66.5,25.73],"Турку":[60.45,22.27],"Тампере":[61.5,23.76],"Токио":[35.68,139.69],"Киото":[35.01,135.77],"Осака":[34.69,135.5],"Нара":[34.69,135.8],
-"Париж":[48.86,2.35],"Лион":[45.76,4.84],"Прованс":[43.53,5.45],"Ницца":[43.7,7.27],"Алматы":[43.24,76.89],"Туркестан":[43.3,68.27],"Астана":[51.17,71.45],"Атырау":[47.11,51.92],"Актау":[43.65,51.17],"Уральск":[51.23,51.37],"Бурабай":[53.08,70.3],"Караганда":[49.8,73.1],"Шымкент":[42.32,69.59],
+"Париж":[48.86,2.35],"Лион":[45.76,4.84],"Прованс":[43.53,5.45],"Ницца":[43.7,7.27],"Алматы":[43.24,76.89],"Туркестан":[43.3,68.27],"Астана":[51.17,71.45],"Атырау":[47.11,51.92],"Самарканд":[39.65,66.96],"Бухара":[39.77,64.42],"Хива":[41.38,60.36],"Стамбул":[41.01,28.98],"Каппадокия":[38.64,34.83],"Актау":[43.65,51.17],"Уральск":[51.23,51.37],"Бурабай":[53.08,70.3],"Караганда":[49.8,73.1],"Шымкент":[42.32,69.59],
 "Амстердам":[52.37,4.9],"Гаага":[52.08,4.3],"Утрехт":[52.09,5.12],"Роттердам":[51.92,4.48],"Мадрид":[40.42,-3.7],"Барселона":[41.39,2.17],"Севилья":[37.39,-5.98],"Валенсия":[39.47,-0.38],
 "Афины":[37.98,23.73],"Санторини":[36.39,25.46],"Крит":[35.34,25.13],"Дельфы":[38.48,22.5],"Мехико":[19.43,-99.13],"Оахака":[17.07,-96.72],"Юкатан":[20.97,-89.62],"Гвадалахара":[20.67,-103.35],
 "Сеул":[37.57,126.98],"Кёнджу":[35.86,129.22],"Пусан":[35.18,129.08],"Чеджу":[33.5,126.53],"Лондон":[51.51,-0.13],"Оксфорд":[51.75,-1.26],"Эдинбург":[55.95,-3.19],"Бат":[51.38,-2.36]};
@@ -4324,8 +4389,8 @@ const NEWS=[
   steps:[{v:"today",sel:".tl, .hero",t:"Блоки дня теперь живые: если что-то затянулось, дела сдвигаются от текущей минуты. А сторис и репосты идут параллельно и не съедают время."},{v:"today",sel:"#fab",t:"При добавлении дела есть галочка «Можно параллельно». А в уведомлении — кнопка «Сделала»: на iPhone нажми на само уведомление."}]},
  {id:"n-levels",g:"flower",t:"Путь уровней и награды",d:"Теперь видно, что ждёт на следующем уровне: шарф, котик Ақ мамық, звезда, цветы, секретная глава и сад.",
   steps:[{v:"today",sel:"#lvlBtn",t:"Нажми на свой уровень — увидишь награду следующего уровня, сколько осталось и весь путь. За полностью закрытый день — +5 баллов."}]},
- {id:"n-route",g:"bus",t:"Новый маршрут и Казахстан",d:"Страны идут по сезонам: Финляндия — к Новому году, Япония — на сакуру. Казахстан — 7 недель: от Атырау до Туркестана.",
-  steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут. Каждую неделю — новый город. Страны, которые я ещё готовлю, откроются сами — следи в «Что нового»."}]}
+ {id:"n-route2",g:"bus",t:"Маршрут по праздникам и Шёлковый путь",d:"Каждая страна — в свой праздник: Рождество в Лапландии, Соллаль в Сеуле, Наурыз в Туркестане, День детей в Токио. А после Казахстана — караваном по Шёлковому пути: Самарканд, Бухара, Хива, Стамбул и Каппадокия.",
+  steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут на год. Каждую неделю — новый город, и каждая страна попадает на свой праздник. В праздничные дни я поздравлю тебя в «Городе дня»."}]}
 ];
 function newsSeen(){let ls=[];try{ls=JSON.parse(localStorage.getItem("bari-news")||"[]");}catch(e){}return new Set([...(settings.newsSeen||[]),...ls]);}
 function markNews(ids){const all=[...new Set([...newsSeen(),...ids])];try{localStorage.setItem("bari-news",JSON.stringify(all));}catch(e){}store.saveSettings({...settings,newsSeen:all});}
@@ -4416,6 +4481,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"Маршрут по праздникам и Шёлковый путь: Узбекистан (Самарканд, Бухара, Хива) и Турция (Стамбул, Каппадокия). BARI поздравляет с праздниками"},
  {d:"2026-10-26",t:"«Новое в BARI»: BARI сам рассказывает о новинках и показывает их на экране"},
 {d:"2026-10-26",t:"Новый маршрут по сезонам и Казахстан — 7 недель: Атырау, Актау, Уральск, Астана, Бурабай, Алматы, Туркестан"},
  {d:"2026-10-26",t:"Страны, которые BARI ещё готовит, помечены «скоро» и откроются сами"},

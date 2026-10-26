@@ -592,6 +592,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .when-note{margin:4px 0 0;color:var(--accent)}
 .seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .news-top{display:flex;gap:12px;align-items:center;text-align:left}.news-list{display:grid;gap:10px;margin:12px 0}.news-it{display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface-2);border-radius:14px;padding:10px}.news-it>div{flex:1;min-width:0}.news-it p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}.news-g{flex:none;width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center}
+.route-flags[data-route]{cursor:pointer}.rt-list{display:grid;gap:8px;text-align:left}.rt-row{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:14px;padding:10px}.rt-row.now{outline:2px solid var(--accent)}.rt-b{flex:1;min-width:0}.rt-h{display:flex;gap:6px;align-items:center}.rt-b small{color:var(--muted);font-size:12px}.rt-b p{margin:3px 0 0;font-size:13px;line-height:1.4}.rt-hol{color:#B4235A;font-weight:600}.rt-tag{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:#FFD166;color:#5A3A00}.rt-tag.now{background:var(--accent);color:#fff}.help-more{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
 .holi{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#FFF1C9,#FFE0EC);border-radius:16px;padding:10px 12px;margin-bottom:10px}.holi b{display:block;font-size:14.5px}.holi p{margin:2px 0 0;font-size:13px;line-height:1.4}
 .partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.p-women{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e6}.p-women>b{font-size:14px;color:#7F2D33}.p-women p{margin:4px 0;font-size:13px}.p-hits{margin-top:8px}.p-hits summary{font-weight:700;font-size:13px;color:#7F2D33;cursor:pointer}.p-hits p{margin:6px 0;font-size:13px}.p-hits p b{display:inline;font-size:13.5px}.partner-cup{flex:none;width:64px;height:64px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
@@ -2413,6 +2414,12 @@ function motionCard(){
 document.addEventListener("click",e=>{const b=e.target.closest?.("[data-motion]");if(!b)return;const v=b.dataset.motion;store.saveSettings({...settings,motion:v});if(v==="on"){applyMotionPref();toast("BARI ожил! 🎉");}});
 
 /* ---------- splash: BARI sprouts when the app opens ---------- */
+function helloSound(){if(window._helloArm)return;window._helloArm=1;
+  const play=()=>{if(window._hello)return;window._hello=1;try{const c=ac();if(c&&c.state!=="running")c.resume();}catch(e){}setTimeout(()=>sfx("hello"),80);};
+  try{const c=ac(); if(c&&c.state==="running"){play();return;}}catch(e){}
+  // browsers allow sound only after the first touch, so BARI says hello on it
+  const h=()=>{document.removeEventListener("pointerdown",h,true);document.removeEventListener("keydown",h,true);play();};
+  document.addEventListener("pointerdown",h,true);document.addEventListener("keydown",h,true);}
 function showSplash(){
   try{if(sessionStorage.getItem("bari-splash"))return;sessionStorage.setItem("bari-splash","1");}catch(e){}
   if(reducedMotion()) return;
@@ -3327,6 +3334,9 @@ function sfx(kind){
   else if(kind==="done"){sfx("pop");["E6","B6"].forEach((n,i)=>voice(NOTE(n),t+.08+i*.07,.2,"marimba",.12));}
   else if(kind==="chime"){["C6","E6","G6","C7"].forEach((n,i)=>voice(NOTE(n),t+i*.09,.4,"koto",.12));}
   else if(kind==="soft"){voice(NOTE("A5"),t,.1,"marimba",.08);}
+  else if(kind==="hello"){const M=MUSIC[journeyFor(todayKey()).country], ins=M&&INST[M.inst]?M.inst:"koto";
+    [["G5",0],["C6",.11],["E6",.22],["G6",.33],["C7",.5]].forEach(([n,d],i)=>voice(NOTE(n),t+d,i===4?.9:.3,i===4?"koto":ins,i===4?.1:.13));
+    voice(NOTE("C4"),t+.5,.9,"marimba",.08);}
 }
 /* city melodies: public-domain folk tunes or BARI's own tunes in the local style */
 const MUSIC={
@@ -3660,10 +3670,38 @@ const FLAGS={
 };
 const flag=(country,w=22)=>FLAGS[country]?`<svg class="flag" viewBox="0 0 30 20" width="${w}" height="${Math.round(w*2/3)}" aria-label="${esc(country)}" role="img">${FLAGS[country]}</svg>`:"";
 const LANG_COUNTRY={"узбекский":"Узбекистан","турецкий":"Турция","английский":"Великобритания","итальянский":"Италия","финский":"Финляндия","японский":"Япония","французский":"Франция","казахский":"Казахстан","нидерландский":"Нидерланды","испанский":"Испания","греческий":"Греция","корейский":"Южная Корея"};
+function routePlan(){
+  const R=hasRoute()?settings.route.map(c=>JOURNEY.find(x=>x.country===c)).filter(Boolean):JOURNEY;
+  const st=hasRoute()?(settings.routeStart||mondayOf(todayKey())):JOURNEY_START, S=fromKey(st), tot=R.reduce((a,j)=>a+j.cities.length,0)||1;
+  const wk=Math.max(0,Math.floor((fromKey(todayKey())-S)/(7*864e5))), cyc=Math.floor(wk/tot);
+  let off=0; const rows=R.map(j=>{const r={j,off,len:j.cities.length};off+=j.cities.length;return r;});
+  const pos=wk%tot, ci=rows.findIndex(r=>pos>=r.off&&pos<r.off+r.len);
+  const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+  return rows.map((r,i)=>{const c=cyc+(i<ci?1:0), start=add(S,(c*tot+r.off)*7);
+    const cities=r.j.cities.map(([n],w)=>({n,from:add(start,w*7),to:add(start,w*7+6)}));
+    return {...r,now:i===ci,start,end:add(start,r.len*7-1),cities,order:(i-ci+rows.length)%rows.length};}).sort((a,b)=>a.order-b.order);}
+function holidaysIn(row){const out=[];
+  for(const h of HOLIDAYS){if(h.country&&h.country!==row.j.country)continue;if(!h.country&&row.j.country!=="Казахстан")continue;
+    const to=h.to||h.d, hit=[];
+    for(const c of row.cities){for(let d=new Date(c.from);d<=c.to;d.setDate(d.getDate()+1)){const k=toKey(d),md=k.slice(5),cur=h.d.length>5?k:md;
+      const inR=h.d<=to?(cur>=h.d&&cur<=to):(cur>=h.d||cur<=to); if(inR){hit.push(c.n);break;}}}
+    if(hit.length) out.push({city:hit.join(" и "),t:h.t});}
+  return out;}
+function openRoute(){
+  const P=routePlan(), fmt=d=>d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"}).replace(".","");
+  openSheet(`<div class="ci-sheet route-sheet"><div class="cof-head">${bari({mood:"joy",size:64,wave:true})}<div><span class="label">Анонс путешествия</span><h3 style="margin:0">Маршрут BARI на год</h3></div></div>
+    <p class="tip" style="margin:6px 0 10px">Каждую неделю — новый город, каждая страна попадает на свой праздник.</p>
+    <div class="rt-list">${P.map(r=>{const hol=holidaysIn(r), lock=typeof countryLocked==="function"&&countryLocked(r.j.country);
+      return `<div class="rt-row ${r.now?"now":""}">${flag(r.j.country,30)}<div class="rt-b"><div class="rt-h"><b>${esc(r.j.country)}</b>${r.now?`<span class="rt-tag now">сейчас</span>`:lock?`<span class="rt-tag">готовлю</span>`:""}</div>
+      <small>${fmt(r.start)} – ${fmt(r.end)} · ${r.len} ${plural(r.len,"неделя","недели","недель")}</small>
+      <p>${r.cities.map(c=>esc(c.n)).join(" → ")}</p>${hol.map(h=>`<p class="rt-hol">${ic("spark")} ${esc(h.city)} — ${esc(h.t)}</p>`).join("")}</div></div>`;}).join("")}</div>
+    <button class="ghost" id="rtClose">Закрыть</button></div>`);
+  document.getElementById("rtClose").onclick=closeSheet; sfx("chime");}
+document.addEventListener("click",e=>{if(e.target.closest?.("[data-route]")){openRoute();}});
 function routeFlags(){
   const cur=journeyFor(todayKey()).country;
   const R=hasRoute()?settings.route.map(c=>({country:c})):JOURNEY, ci=R.findIndex(x=>x.country===cur);
-  return `<div class="route-flags" aria-label="Маршрут по странам">${R.map((jn,i)=>`<span class="rf ${jn.country===cur?"now":i<ci?"past":""}" title="${esc(jn.country)}">${flag(jn.country,jn.country===cur?34:24)}</span>${i<R.length-1?`<i></i>`:""}`).join("")}</div>`;
+  return `<div class="route-flags" data-route="1" role="button" aria-label="Маршрут по странам — открыть анонс">${R.map((jn,i)=>`<span class="rf ${jn.country===cur?"now":i<ci?"past":""}" title="${esc(jn.country)}">${flag(jn.country,jn.country===cur?34:24)}</span>${i<R.length-1?`<i></i>`:""}`).join("")}</div>`;
 }
 
 /* city legends shelf in the library */
@@ -4390,7 +4428,7 @@ const NEWS=[
  {id:"n-levels",g:"flower",t:"Путь уровней и награды",d:"Теперь видно, что ждёт на следующем уровне: шарф, котик Ақ мамық, звезда, цветы, секретная глава и сад.",
   steps:[{v:"today",sel:"#lvlBtn",t:"Нажми на свой уровень — увидишь награду следующего уровня, сколько осталось и весь путь. За полностью закрытый день — +5 баллов."}]},
  {id:"n-route2",g:"bus",t:"Маршрут по праздникам и Шёлковый путь",d:"Каждая страна — в свой праздник: Рождество в Лапландии, Соллаль в Сеуле, Наурыз в Туркестане, День детей в Токио. А после Казахстана — караваном по Шёлковому пути: Самарканд, Бухара, Хива, Стамбул и Каппадокия.",
-  steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут на год. Каждую неделю — новый город, и каждая страна попадает на свой праздник. В праздничные дни я поздравлю тебя в «Городе дня»."}]}
+  steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут на год. Нажми на флажки — откроется анонс: даты, города и праздники. В праздничные дни я поздравлю тебя в «Городе дня»."}]}
 ];
 function newsSeen(){let ls=[];try{ls=JSON.parse(localStorage.getItem("bari-news")||"[]");}catch(e){}return new Set([...(settings.newsSeen||[]),...ls]);}
 function markNews(ids){const all=[...new Set([...newsSeen(),...ids])];try{localStorage.setItem("bari-news",JSON.stringify(all));}catch(e){}store.saveSettings({...settings,newsSeen:all});}
@@ -4481,6 +4519,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"Анонс маршрута на год (нажми на флажки), звук BARI при открытии, кнопки «Сказка о BARI» и «Маршрут» в подсказке «?»"},
  {d:"2026-10-26",t:"Маршрут по праздникам и Шёлковый путь: Узбекистан (Самарканд, Бухара, Хива) и Турция (Стамбул, Каппадокия). BARI поздравляет с праздниками"},
  {d:"2026-10-26",t:"«Новое в BARI»: BARI сам рассказывает о новинках и показывает их на экране"},
 {d:"2026-10-26",t:"Новый маршрут по сезонам и Казахстан — 7 недель: Атырау, Актау, Уральск, Астана, Бурабай, Алматы, Туркестан"},
@@ -4669,8 +4708,9 @@ function helpSlide(key,i,n){
   </div>`;
 }
 function openHelp(key){
-  openSheet(helpSlide(key,0,1)+`<div class="actions"><button class="ghost" id="hTour">Вся экскурсия</button><button class="primary" id="hOk">${ic("check")}Понятно</button></div>`);
+  openSheet(helpSlide(key,0,1)+`<div class="help-more"><button class="mini-btn" id="hStory">${ic("book")}Сказка о BARI</button><button class="mini-btn" id="hRoute">${ic("pin")}Маршрут на год</button><button class="mini-btn" id="hNews">${ic("spark")}Что нового</button></div><div class="actions"><button class="ghost" id="hTour">Вся экскурсия</button><button class="primary" id="hOk">${ic("check")}Понятно</button></div>`);
   document.getElementById("hOk").onclick=closeSheet; document.getElementById("hTour").onclick=()=>startTour();
+  document.getElementById("hStory").onclick=()=>openStory(false); document.getElementById("hRoute").onclick=openRoute; document.getElementById("hNews").onclick=openUpdates;
 }
 function openTour(i=0){
   const n=TOUR.length;

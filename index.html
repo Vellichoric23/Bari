@@ -774,7 +774,26 @@ input:not([type]),textarea{font:600 15px var(--body);color:var(--ink);background
 .greet-sub{margin:-2px 0 6px;font-size:13px;font-weight:600;color:var(--muted)}
 .city-hero .scene-bari{transform:translateX(var(--bx,0px)) scaleX(var(--flip,1));transition:transform 2.4s ease-in-out}
 .scene-bari.walking svg.bari{animation:walkB .42s ease-in-out infinite!important}
-@keyframes walkB{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-7px) rotate(4deg)}}
+@keyframes walkB{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+/* 2.5D: the face and the light slide across the round body, so BARI turns like a ball, not a flat sticker */
+.bari .bari-face,.bari .bari-shine{transform-box:view-box;transform-origin:100px 112px}
+.bari .bari-face-in{transform-box:view-box;transform-origin:100px 112px;animation:bariTurn 11s ease-in-out infinite}
+.bari .bari-shine{animation:bariShine 11s ease-in-out infinite}
+@keyframes bariTurn{0%,18%,100%{transform:none}28%,40%{transform:translateX(13px) scaleX(.9)}52%,60%{transform:none}70%,82%{transform:translateX(-13px) scaleX(.9)}}
+@keyframes bariShine{0%,18%,100%{transform:none}28%,40%{transform:translateX(-9px)}52%,60%{transform:none}70%,82%{transform:translateX(8px)}}
+.bari .bari-shadow{transform-box:view-box;transform-origin:100px 207px}
+.scene-bari.walking .bari .bari-face-in{animation:none;transform:translateX(12px) scaleX(.9)}
+.scene-bari.walking .bari .bari-shine{animation:none;transform:translateX(-8px)}
+.scene-bari.walking .bari .bari-body{animation:walkSquash .42s ease-in-out infinite}
+.scene-bari.walking .bari .bari-shadow{animation:walkShadow .42s ease-in-out infinite}
+@keyframes walkSquash{0%,100%{transform:scale(1.05,.95)}50%{transform:scale(.97,1.04)}}
+@keyframes walkShadow{0%,100%{transform:scaleX(1);opacity:.24}50%{transform:scaleX(.82);opacity:.15}}
+svg.bari.hop .bari-body{animation:hopSquash 1.2s ease-in-out}
+@keyframes hopSquash{0%,100%{transform:none}12%{transform:scale(1.1,.88)}20%{transform:scale(.92,1.1)}33%{transform:scale(1.08,.92)}55%{transform:scale(.95,1.06)}68%{transform:scale(1.05,.95)}}
+svg.bari.hop .bari-shadow{animation:hopShadow 1.2s ease-in-out}
+@keyframes hopShadow{0%,35%,70%,100%{transform:scaleX(1)}20%{transform:scaleX(.7)}55%{transform:scaleX(.82)}}
+@media (prefers-reduced-motion: reduce){.bari .bari-face-in,.bari .bari-shine{animation:none}}
+
 .mini-btn.ya{font-weight:900;color:#FC3F1D;text-decoration:none;justify-content:center;min-width:34px}
 .ya-link{font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;margin-top:2px}
 .lang-tog{display:inline-flex;background:var(--surface-2);border-radius:99px;padding:3px;gap:2px;justify-self:start}
@@ -1787,21 +1806,21 @@ function bari(o={}){
     <radialGradient id="G${id}"><stop offset="0" stop-color="#FFF4C2" stop-opacity=".95"/><stop offset=".4" stop-color="#FFD166" stop-opacity=".55"/><stop offset="1" stop-color="#FFD166" stop-opacity="0"/></radialGradient>
     <radialGradient id="F${id}" cx="45%" cy="30%" r="80%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#FFF3E4"/><stop offset="1" stop-color="#F0D6BC"/></radialGradient>
   </defs>
-  <ellipse cx="100" cy="207" rx="60" ry="8" fill="#1F1D3D" opacity=".22" filter="url(#X${id})"/><g class="bari-body">
+  <ellipse class="bari-shadow" cx="100" cy="207" rx="60" ry="8" fill="#1F1D3D" opacity=".22" filter="url(#X${id})"/><g class="bari-body">
   <path class="bari-tail" d="M158 182 C186 188 194 162 178 152 C166 145 156 156 163 164 C168 170 176 165 174 160" stroke="url(#B${id})" stroke-width="13" fill="none" stroke-linecap="round"/>
   ${armR}
   <path d="M100 42 C50 42 24 74 24 118 C24 162 52 198 100 198 C148 198 176 162 176 118 C176 74 150 42 100 42Z" fill="url(#B${id})"/>
   <path d="M100 42 C50 42 24 74 24 118 C24 162 52 198 100 198 C148 198 176 162 176 118 C176 74 150 42 100 42Z" fill="url(#A${id})"/>
   <path d="M100 42 C50 42 24 74 24 118 C24 162 52 198 100 198 C148 198 176 162 176 118 C176 74 150 42 100 42Z" fill="url(#R${id})"/>
-  <ellipse cx="66" cy="70" rx="24" ry="13" transform="rotate(-28 66 70)" fill="#fff" opacity=".5" filter="url(#X${id})"/>
-  <ellipse cx="58" cy="66" rx="6" ry="3.6" transform="rotate(-28 58 66)" fill="#fff" opacity=".85"/>
+  <g class="bari-shine"><ellipse cx="66" cy="70" rx="24" ry="13" transform="rotate(-28 66 70)" fill="#fff" opacity=".5" filter="url(#X${id})"/>
+  <ellipse cx="58" cy="66" rx="6" ry="3.6" transform="rotate(-28 58 66)" fill="#fff" opacity=".85"/></g>
   ${armL}
   <ellipse cx="78" cy="198" rx="15" ry="9" fill="url(#T${id})"/><ellipse cx="122" cy="198" rx="15" ry="9" fill="url(#T${id})"/><ellipse cx="74" cy="195" rx="6" ry="2.5" fill="#fff" opacity=".35"/><ellipse cx="118" cy="195" rx="6" ry="2.5" fill="#fff" opacity=".35"/>
-  <path d="M42 112 C42 82 62 68 90 70 C95 70 98 76 100 76 C102 76 105 70 110 70 C138 68 158 82 158 112 C158 140 136 154 100 154 C64 154 42 140 42 112Z" fill="url(#F${id})"/>
+  <g class="bari-face"><g class="bari-face-in"><path d="M42 112 C42 82 62 68 90 70 C95 70 98 76 100 76 C102 76 105 70 110 70 C138 68 158 82 158 112 C158 140 136 154 100 154 C64 154 42 140 42 112Z" fill="url(#F${id})"/>
   <path d="M50 128 C62 148 84 154 100 154 C116 154 138 148 150 128 C140 146 120 150 100 150 C80 150 60 146 50 128Z" fill="#D9B89A" opacity=".35"/>
   <g class="bari-look"><g class="bari-eyes" style="animation-delay:-${(Math.random()*4).toFixed(1)}s">${eyes3}</g></g>
   <ellipse cx="57" cy="126" rx="12" ry="8" fill="#FF7B86" opacity=".5" filter="url(#X${id})"/><ellipse cx="143" cy="126" rx="12" ry="8" fill="#FF7B86" opacity=".5" filter="url(#X${id})"/>
-  ${mouth}
+  ${mouth}</g></g>
   <g class="bari-star ${(o.lvl??window.bariLvl??1)>=5?"gold":""}"><circle cx="100" cy="174" r="${(o.lvl??window.bariLvl??1)>=5?34:26}" fill="url(#G${id})"/>
   <path d="M100 159 C101.6 170 104.5 172.5 115 174 C104.5 175.5 101.6 178 100 189 C98.4 178 95.5 175.5 85 174 C95.5 172.5 98.4 170 100 159Z" fill="#FFE27A"/>
   <path d="M100 164 C100.8 171 102 172.5 107 174 C102 175 100.8 176.5 100 182 C99.2 176.5 98 175 93 174 C98 172.5 99.2 171 100 164Z" fill="#FFF8D6"/></g>
@@ -3258,6 +3277,9 @@ document.addEventListener("pointermove",ev=>{
   const svg=document.querySelector("#bariBtn svg.bari"); if(!svg) return; const look=svg.querySelector(".bari-look"); if(!look) return;
   const r=svg.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height*.48, dx=ev.clientX-cx, dy=ev.clientY-cy, d=Math.hypot(dx,dy)||1, k=Math.min(1,d/260);
   look.setAttribute("transform",`translate(${(dx/d*5*k).toFixed(1)} ${(dy/d*4*k).toFixed(1)})`);
+  const fc=svg.querySelector(".bari-face"), sh=svg.querySelector(".bari-shine");
+  if(fc) fc.setAttribute("transform",`translate(${(dx/d*4*k).toFixed(1)} ${(dy/d*2.5*k).toFixed(1)})`);
+  if(sh) sh.setAttribute("transform",`translate(${(-dx/d*3*k).toFixed(1)} ${(-dy/d*2*k).toFixed(1)})`);
 },{passive:true});
 /* BARI's life on the street: walks, sips tea, reads, waves, hops */
 window.bariX=window.bariX||0; window.bariFlip=1;

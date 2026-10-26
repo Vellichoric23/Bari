@@ -4891,7 +4891,7 @@ function helpSlide(key,i,n){
   </div>`;
 }
 function openHelp(key){
-  openSheet(helpSlide(key,0,1)+`<div class="help-more"><button class="mini-btn" id="hStory">${ic("book")}Сказка о BARI</button><button class="mini-btn" id="hRoute">${ic("pin")}Маршрут на год</button><button class="mini-btn" id="hNews">${ic("spark")}Что нового</button></div><div class="actions"><button class="ghost" id="hTour">Вся экскурсия</button><button class="primary" id="hOk">${ic("check")}Понятно</button></div>`);
+  openSheet(helpSlide(key,0,1)+`<div class="help-more"><button class="mini-btn" id="hStory">${ic("book")}Сказка о BARI</button><button class="mini-btn" id="hRoute">${ic("pin")}Маршрут на год</button><button class="mini-btn" id="hNews">${ic("spark")}Что нового</button></div><p class="tip" style="text-align:center;font-size:11.5px;margin:4px 0 0">© 2026 BARI. Все права защищены.</p><div class="actions"><button class="ghost" id="hTour">Вся экскурсия</button><button class="primary" id="hOk">${ic("check")}Понятно</button></div>`);
   document.getElementById("hOk").onclick=closeSheet; document.getElementById("hTour").onclick=()=>startTour();
   document.getElementById("hStory").onclick=()=>openStory(false); document.getElementById("hRoute").onclick=openRoute; document.getElementById("hNews").onclick=openUpdates;
 }
@@ -5424,7 +5424,7 @@ function showLogin(sb,msg,mode){
            up:["Регистрация","Впервые здесь? Придумай пароль — минимум 6 символов. Письма подтверждать не нужно.","Создать аккаунт","new-password"],
            reset:["Забыла пароль","Введи почту — пришлём письмо со ссылкой. Нажми её, и BARI попросит новый пароль.","Прислать ссылку",""]}[mode];
   box.innerHTML=`<div class="login-card">${bari({mood:mode==="reset"?"think":"happy",wave:mode!=="reset",size:120})}
-    <h1 class="login-h">BARI</h1><p class="tip" style="text-align:center;margin:0">Твой день, твои цели и целый мир — в одном месте</p>
+    <h1 class="login-h">BARI</h1><p class="tip" style="text-align:center;margin:0">Твой день, твои цели и целый мир — в одном месте</p><p class="tip" style="text-align:center;font-size:11px;margin:6px 0 0;opacity:.7">© 2026 BARI. Все права защищены.</p>
     ${mode!=="reset"?`<div class="auth-tabs" role="tablist"><button type="button" role="tab" aria-selected="${mode==="in"}" data-mode="in">Вход</button><button type="button" role="tab" aria-selected="${mode==="up"}" data-mode="up">Регистрация</button></div>`:`<h2 class="auth-h">${T[0]}</h2>`}
     <p class="auth-hint">${T[1]}</p>
     <form id="loginForm" class="field" style="width:100%" novalidate>

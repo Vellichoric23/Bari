@@ -593,6 +593,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .news-top{display:flex;gap:12px;align-items:center;text-align:left}.news-list{display:grid;gap:10px;margin:12px 0}.news-it{display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface-2);border-radius:14px;padding:10px}.news-it>div{flex:1;min-width:0}.news-it p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}.news-g{flex:none;width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center}
 .route-flags[data-route]{cursor:pointer}.rt-list{display:grid;gap:8px;text-align:left}.rt-row{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:14px;padding:10px}.rt-row.now{outline:2px solid var(--accent)}.rt-b{flex:1;min-width:0}.rt-h{display:flex;gap:6px;align-items:center}.rt-b small{color:var(--muted);font-size:12px}.rt-b p{margin:3px 0 0;font-size:13px;line-height:1.4}.rt-hol{color:#B4235A;font-weight:600}.rt-tag{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:#FFD166;color:#5A3A00}.rt-tag.now{background:var(--accent);color:#fff}.help-more{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.fun-card{background:var(--surface-2);border-radius:16px;padding:12px;margin:10px 0;text-align:left}.fun-card p{margin:6px 0;font-size:13.5px;line-height:1.45}.fun-card details{margin:4px 0 8px;font-size:13px}.fun-card ol{padding-left:18px;margin:6px 0}.fun-h{display:flex;gap:8px;align-items:center}.fun-e{font-size:22px}.fun-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.w-list{display:grid;gap:6px;margin:10px 0}.w-it{display:flex;justify-content:space-between;gap:8px;background:var(--surface-2);border-radius:12px;padding:8px 10px;text-align:left;font-size:13.5px}.w-form{display:grid;gap:6px;margin:8px 0}.fun-body{text-align:left}
 .holi{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#FFF1C9,#FFE0EC);border-radius:16px;padding:10px 12px;margin-bottom:10px}.holi b{display:block;font-size:14.5px}.holi p{margin:2px 0 0;font-size:13px;line-height:1.4}
 .partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.p-women{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e6}.p-women>b{font-size:14px;color:#7F2D33}.p-women p{margin:4px 0;font-size:13px}.p-hits{margin-top:8px}.p-hits summary{font-weight:700;font-size:13px;color:#7F2D33;cursor:pointer}.p-hits p{margin:6px 0;font-size:13px}.p-hits p b{display:inline;font-size:13.5px}.partner-cup{flex:none;width:64px;height:64px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
@@ -1224,7 +1225,7 @@ async function dbStore(db){
   db.collection("cityday").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());cityday=o;if(!snap.metadata.fromCache)cdMark("a");if(view==="today"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("city").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());cityinfo=o;if(!snap.metadata.fromCache)cdMark("b");},()=>{});
   db.collection("erud").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());erud=o;if(view==="me")render();},()=>{});
-  for(const c of ["stories","pieces","inbox","reports"]) db.collection(c).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());S[c]=o;if(document.getElementById("sheet").hidden)render();},()=>{});
+  for(const c of ["stories","pieces","inbox","reports","games","wish"]) db.collection(c).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());S[c]=o;if(document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("money").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());money=o;if(view==="today"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("books").onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());books=o;if(view==="lib"&&document.getElementById("sheet").hidden)render();},()=>{});
   db.collection("code").onSnapshot(snap=>{snap.docs.forEach(d=>{if(d.id==="progress")codeProg={read:{},...d.data()};});if(view==="code"&&document.getElementById("sheet").hidden)render();},()=>{});
@@ -4061,8 +4062,8 @@ function openPlanImport(){
 document.addEventListener("click",e=>{if(e.target.closest?.("#planImport"))openPlanImport();});
 
 /* ---------- Studio: stories of the day, content board, Monday report, inbox ---------- */
-const S={stories:{},pieces:{},inbox:{},reports:{}};
-const STUDIO_COLS=["stories","pieces","inbox","reports"];
+const S={stories:{},pieces:{},inbox:{},reports:{},games:{},wish:{}};
+const STUDIO_COLS=["stories","pieces","inbox","reports","games","wish"];
 let studioTab="stories", studioDay=null, boardFilter="active";
 const studioOn=()=>isOwner()||contentMode();
 const PSTAGES=[["idea","Идея"],["brief","ТЗ готово"],["shot","Снято"],["edit","Монтаж"],["approve","Согласование"],["done","Вышло"]];
@@ -4427,6 +4428,8 @@ const NEWS=[
   steps:[{v:"today",sel:".tl, .hero",t:"Блоки дня теперь живые: если что-то затянулось, дела сдвигаются от текущей минуты. А сторис и репосты идут параллельно и не съедают время."},{v:"today",sel:"#fab",t:"При добавлении дела есть галочка «Можно параллельно». А в уведомлении — кнопка «Сделала»: на iPhone нажми на само уведомление."}]},
  {id:"n-levels",g:"flower",t:"Путь уровней и награды",d:"Теперь видно, что ждёт на следующем уровне: шарф, котик Ақ мамық, звезда, цветы, секретная глава и сад.",
   steps:[{v:"today",sel:"#lvlBtn",t:"Нажми на свой уровень — увидишь награду следующего уровня, сколько осталось и весь путь. За полностью закрытый день — +5 баллов."}]},
+ {id:"n-fun",g:"lantern",t:"Праздники с близкими",d:"Игры с тайной жеребьёвкой — «Аяз Ата инкогнито», «Тайный ангел», «Көрісу-почта», «Тайный повар», — идеи праздников для своих и вишлист, которым можно поделиться.",
+  steps:[{v:"today",go:()=>{forYouOpen="fun";render();},sel:"[data-fun='games']",t:"Новая плитка «Праздники». Собери игру: впиши друзей, я тайно вытяну жребий и дам каждому личную ссылку для WhatsApp. А ещё здесь идеи праздников и твой вишлист."}]},
  {id:"n-route2",g:"bus",t:"Маршрут по праздникам и Шёлковый путь",d:"Каждая страна — в свой праздник: Рождество в Лапландии, Соллаль в Сеуле, Наурыз в Туркестане, День детей в Токио. А после Казахстана — караваном по Шёлковому пути: Самарканд, Бухара, Хива, Стамбул и Каппадокия.",
   steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут на год. Нажми на флажки — откроется анонс: даты, города и праздники. В праздничные дни я поздравлю тебя в «Городе дня»."}]}
 ];
@@ -4448,6 +4451,123 @@ function maybeNews(){if(window._newsChk||!settingsLoaded)return;window._newsChk=
   let taleSeen=true;try{taleSeen=!!localStorage.getItem("bari-tale");}catch(e){}
   if(!taleSeen)return;
   setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash")&&tourI<0&&unseenNews().length)openNews();},2600);}
+
+/* ---------- «Праздники с близкими»: seasonal games, holiday ideas, wishlists, secret draws ---------- */
+const PLAY_URL="https://vellichoric23.github.io/Bari/play.html";
+const b64u=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+// draw games: everyone secretly gets one person
+const FUN_GAMES=[
+ {id:"ayaz",g:"🎁",n:"Аяз Ата инкогнито",m:[11,12,1],draw:true,kind:"подарок",
+  d:"Тайный Санта по-нашему. Каждый тайно дарит подарок одному человеку из компании. Кто кому — знает только жребий.",
+  rules:["Договоритесь о бюджете и дне обмена.","BARI тянет жребий и даёт каждому личную ссылку: открыл — узнал, кому даришь.","Подсмотреть в вишлист адресата можно, если он поделился им в общем чате.","В день обмена все угадывают, кто был их Аяз Ата."]},
+ {id:"angel",g:"🕊️",n:"Тайный ангел",m:[1,2,3,4,5,6,7,8,9,10,11,12],draw:true,kind:"добрые дела",
+  d:"Неделя тайной заботы. Твой человек не знает, что ты его ангел: записка в кармане, любимый кофе на столе, тёплое сообщение без подписи.",
+  rules:["Игра длится неделю: в офисе, в семье, в кругу подруг.","Каждый день — одно маленькое доброе дело для своего человека. Тайно!","Без дорогих подарков: важна забота, а не цена.","В последний день — раскрытие: каждый угадывает своего ангела."]},
+ {id:"korisu",g:"💌",n:"Көрісу-почта",m:[3],draw:true,kind:"письмо",
+  d:"К Наурызу. 14 марта на западе Казахстана — Көрісу күні, день, когда все обнимаются и желают друг другу добра. Каждый пишет тёплое письмо своему тайному адресату.",
+  rules:["Жребий — кому ты пишешь.","Письмо от руки: за что ценишь человека, что желаешь ему в новом году.","Можно вложить мелочь: баурсак, конфету, открытку.","Письма вручают 14 или 22 марта, а авторы признаются по желанию."]},
+ {id:"cook",g:"🍲",n:"Тайный повар",m:[1,2,3,4,5,6,7,8,9,10,11,12],draw:true,kind:"блюдо",
+  d:"Каждый готовит блюдо для своего тайного человека — его любимое или из страны, где сейчас BARI. Встречаетесь за общим столом и угадываете, кто для кого готовил.",
+  rules:["Жребий — для кого ты готовишь.","Узнай вкусы человека, но так, чтобы он не догадался.","Только халяльные продукты — чтобы за стол могли сесть все.","За столом каждый угадывает своего повара."]}
+];
+// party games and holiday ideas — no draw needed
+const FUN_IDEAS=[
+ {g:"🐘",n:"Хитрый обмен",m:[12,1],t:"Игра на вечеринку (в мире её зовут «Белый слон»). Каждый приносит подарок в обёртке. Тянут номера: первый открывает подарок, следующий может открыть новый или «украсть» уже открытый. Один подарок можно украсть не больше двух раз. Смеха — гарантированно."},
+ {g:"👯",n:"День подружек",m:[2],t:"13 февраля — Galentine's Day. Его придумали в сериале «Парки и зоны отдыха»: героиня Лесли Ноуп устраивала завтрак для подруг, и праздник ушёл в жизнь. Завтрак, вафли, открытки-комплименты и маленькие подарки друг другу."},
+ {g:"🥧",n:"Той друзей",m:[11],t:"Friendsgiving — ужин «друзей как семьи», который популяризировали «Друзья». Каждый приносит своё блюдо, а за столом все по кругу говорят, за что благодарны в этом году."},
+ {g:"💅",n:"День «побалуй себя»",m:[10],t:"13 октября — Treat Yo' Self Day, ещё одна идея из «Парков и зон отдыха»: раз в год можно побаловать себя без чувства вины. Подруги, спа, любимый десерт — и никаких «потом»."},
+ {g:"🥢",n:"День палочек",m:[11],t:"11.11 в Корее — Пеперо-дэй: друзьям дарят шоколадные палочки, потому что дата похожа на четыре палочки. Сделайте свои: хлебные палочки, растопленный шоколад, посыпка — и раздайте друзьям."},
+ {g:"🎬",n:"Кино-сочельник",m:[12,1],t:"Новогодний марафон: каждый выбирает фильм и готовит к нему мини-квиз из трёх вопросов. Кто больше ответит — выбирает фильм следующего вечера."},
+ {g:"📣",n:"Сүйінші",m:[1,2,3,4,5,6,7,8,9,10,11,12],t:"Старый казахский обычай: кто первым принёс хорошую новость, получает подарок — сүйінші. Сделайте семейную игру: неделю каждый ищет хорошие новости дня, а за самую радостную — маленький приз."},
+ {g:"🍪",n:"Белый день",m:[3],t:"14 марта в Японии и Корее — White Day: отвечают на подарки, полученные в феврале. Повод испечь печенье и раздать тем, кто был добр к тебе в этом году."},
+ {g:"🕯️",n:"Вечер без экранов",m:[10,11,12,1,2],t:"Тёмные вечера — повод для настольных игр, свечей и какао. Телефоны в корзинку, а кто первый потянется — моет посуду."},
+ {g:"🌸",n:"Наурыз-көже вместе",m:[3],t:"Каждый приносит один из семи ингредиентов наурыз-көже, а варят все вместе. По традиции угощают соседей, а у кого побывало больше гостей — у того год будет щедрым."}
+];
+const FUN_NICHE={
+ smm:"Для работы: «Тайный ангел» или «Хитрый обмен» — готовая рубрика для клиента. Розыгрыш среди подписчиков, сторис с раскрытием «кто чей ангел» и отзывы участников — контент на неделю.",
+ creative:"Для блога: проведи «Тайный повар» или «Көрісу-почту» с подписчиками — серия сторис с жеребьёвкой, процессом и раскрытием.",
+ teach:"Для класса: «Тайный ангел» на неделю или «Көрісу-почта» перед Наурызом — дети учатся замечать друг друга и писать тёплые слова.",
+ office:"Для офиса: «Тайный ангел» на неделю перед праздником — дешевле корпоратива и сплачивает сильнее.",
+ biz:"Для команды и клиентов: «Тайный ангел» среди сотрудников и «Сүйінші» — маленький подарок клиенту, который первым поделился хорошим отзывом.",
+ sales:"Для команды: «Тайный ангел» на неделю, а «Сүйінші» — за первую хорошую новость от клиента.",
+ med:"Для смены: «Тайный ангел» — маленькие знаки заботы в тяжёлую неделю. Записка и чай в ординаторской значат много.",
+ driver:"Для своих: «Тайный повар» с семьёй в выходной или «Сүйінші» с коллегами по автопарку.",
+ student:"Для группы: «Аяз Ата инкогнито» с бюджетом до 2 000 ₸ и «Кино-сочельник» после сессии.",
+ mom:"Для семьи: «Сүйінші» с детьми — каждый вечер ищете хорошую новость дня, а «Тайный повар» превращает ужин в игру.",
+ it:"Для команды: «Тайный ангел» в общем чате — анонимные благодарности за помощь с задачами.",
+ oil:"Для вахты: «Тайный ангел» на смену — маленькая забота вдали от дома.",
+ gov:"Для отдела: «Тайный ангел» на неделю или «Көрісу-почта» к Наурызу.",
+ beauty:"Для салона: «Тайный ангел» среди мастеров и «Сүйінші» — комплимент клиенту за первый отзыв.",
+ sport:"Для команды: «Тайный ангел» — поддержка перед стартом, а «Тайный повар» — полезный ужин после.",
+ build:"Для бригады: «Тайный повар» на объекте — по очереди готовите обед друг другу.",
+ finance:"Для отдела: «Тайный ангел» в сезон отчётов — когда поддержка нужнее всего."};
+let funTab="games", funForm=null;
+const wishDoc=()=>S.wish&&S.wish.main||{items:[],wish:""};
+function funSeason(){const m=+todayKey().slice(5,7);return {g:FUN_GAMES.filter(x=>x.m.includes(m)),i:FUN_IDEAS.filter(x=>x.m.includes(m))};}
+function funTeaser(){const s=funSeason(), top=s.g.find(x=>x.id!=="angel"&&x.id!=="cook")||s.i[0]||FUN_GAMES[1];
+  return `<section class="card"><span class="label">Праздники с близкими</span><p class="cd-fact">${ic("spark")}<span><b>${esc(top.n)}</b> — ${esc(top.d||top.t)}</span></p>
+  ${(()=>{const n=nicheOf(),t=n&&(isOwner()?FUN_NICHE.smm:FUN_NICHE[n.id]);return t?`<p class="tip" style="margin:0 0 8px">${esc(gx(t))}</p>`:"";})()}
+  <div class="seg"><button class="mini-btn" data-fun="games">${ic("play")}Игры</button><button class="mini-btn" data-fun="ideas">${ic("idea")}Идеи праздников</button><button class="mini-btn" data-fun="wish">${ic("heart")}Мой вишлист</button></div></section>`;}
+function drawPairs(names){const n=names.length;if(n<2)return null;let p;for(let t=0;t<500;t++){p=shuffle(names.map((_,i)=>i));if(p.every((x,i)=>x!==i))break;}return names.map((nm,i)=>({n:nm,to:names[p[i]]}));}
+function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:g.date||"",b:g.budget||"",no:g.note||"",me:p.n,to:p.to,org:g.org||""});}
+function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
+async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+  window.open("https://wa.me/?text="+encodeURIComponent(text+"\n"+url),"_blank","noopener");}
+function openFun(tab){if(tab)funTab=tab;
+  const tabs=[["games","Игры"],["ideas","Идеи"],["wish","Вишлист"],["mine","Мои игры"]], m=+todayKey().slice(5,7), seas=x=>x.m.includes(m)&&x.m.length<12;
+  let body="";
+  if(funTab==="games"){
+    const nt=(()=>{const n=nicheOf();return n?(isOwner()?FUN_NICHE.smm:FUN_NICHE[n.id]):"";})();
+    body=funForm?funFormHtml():`${nt?`<div class="talk">${ic("idea")}<div>${esc(gx(nt))}</div></div>`:""}<p class="tip">Игры с жеребьёвкой: BARI тайно распределит, кто кому, и даст каждому личную ссылку. Отправь их друзьям в WhatsApp — даже без приложения откроется.</p>
+      ${FUN_GAMES.map(x=>`<div class="fun-card"><div class="fun-h"><span class="fun-e">${x.g}</span><b>${esc(x.n)}</b>${seas(x)?`<span class="rt-tag now">сейчас сезон</span>`:""}</div><p>${esc(x.d)}</p>
+        <details><summary>Правила</summary><ol>${x.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ol></details>
+        <button class="primary" data-fnew="${x.id}">${ic("plus")}Собрать игру</button></div>`).join("")}`;}
+  else if(funTab==="ideas"){
+    const ord=FUN_IDEAS.slice().sort((a,b)=>(seas(b)?1:0)-(seas(a)?1:0));
+    body=`<p class="tip">Праздники для своих — из сериалов, разных стран и наших традиций.</p>${ord.map(x=>`<div class="fun-card"><div class="fun-h"><span class="fun-e">${x.g}</span><b>${esc(x.n)}</b>${seas(x)?`<span class="rt-tag now">сейчас сезон</span>`:""}</div><p>${esc(x.t)}</p><button class="mini-btn" data-fshare="${esc(x.n)}">${ic("send")}Предложить друзьям</button></div>`).join("")}`;}
+  else if(funTab==="wish"){const w=wishDoc();
+    body=`<p class="tip">Список того, что тебе правда хочется. Поделись ссылкой — друзьям не придётся гадать, а подарок будет в радость.</p>
+      <label class="label">Моё главное желание</label><textarea id="wMain" rows="2" placeholder="Например: научиться печь хлеб или съездить в Самарканд">${esc(w.wish||"")}</textarea>
+      <div class="w-list">${(w.items||[]).map((it,i)=>`<div class="w-it"><div><b>${esc(it.t)}</b>${it.p?` <small>· ${esc(it.p)}</small>`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}${it.no?`<br><small>${esc(it.no)}</small>`:""}</div><button class="icon-btn" data-wdel="${i}" aria-label="Удалить">✕</button></div>`).join("")||`<p class="tip">Пока пусто — добавь первое желание.</p>`}</div>
+      <div class="w-form"><input id="wT" placeholder="Что хочется (например, книга «Абай жолы»)"><input id="wP" placeholder="Цена (необязательно)"><input id="wU" placeholder="Ссылка на товар (необязательно)"><input id="wN" placeholder="Подсказка: размер, цвет…"><button class="ghost" id="wAdd">${ic("plus")}Добавить</button></div>
+      <button class="primary" id="wShare">${ic("send")}Поделиться вишлистом</button>`;}
+  else{const G=Object.entries(S.games||{}).sort((a,b)=>(b[1].at||"").localeCompare(a[1].at||""));
+    body=G.length?G.map(([id,g])=>{const T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];return `<div class="fun-card"><div class="fun-h"><span class="fun-e">${T.g}</span><b>${esc(g.title)}</b></div><p class="tip" style="margin:0">${g.date?esc(nice(g.date))+" · ":""}${g.budget?esc(g.budget)+" · ":""}${g.pairs.length} участников</p>
+      <div class="fun-people">${g.pairs.map((p,i)=>`<button class="mini-btn" data-fsend="${id}|${i}">${ic("send")}${esc(p.n)}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Нажми на имя — отправишь человеку его личную ссылку. Кто кому выпал, видно только по ссылке.</p>
+      <button class="ghost" data-fdel="${id}">Удалить игру</button></div>`;}).join(""):`<p class="tip">Ты ещё не собирала игр. Открой вкладку «Игры» и нажми «Собрать игру».</p>`;}
+  openSheet(`<div class="ci-sheet fun"><div class="cof-head">${bari({mood:"joy",size:64,wave:true})}<div><span class="label">Праздники с близкими</span><h3 style="margin:0">Игры, идеи и вишлисты</h3></div></div>
+    <div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${funTab===k?"on":""}" data-ftab="${k}">${n}</button>`).join("")}</div><div class="fun-body">${body}</div><button class="ghost" id="funClose">Закрыть</button></div>`);
+  bindFun();}
+function funFormHtml(){const f=funForm, T=FUN_GAMES.find(x=>x.id===f.type);
+  return `<div class="fun-card"><div class="fun-h"><span class="fun-e">${T.g}</span><b>${esc(T.n)}</b></div>
+    <label class="label">Название</label><input id="fTi" value="${esc(f.title)}">
+    <div class="row"><div style="flex:1"><label class="label">Когда</label><input id="fD" type="date" value="${esc(f.date||"")}"></div><div style="flex:1"><label class="label">${T.kind==="подарок"?"Бюджет":"Формат"}</label><input id="fB" value="${esc(f.budget||"")}" placeholder="${T.kind==="подарок"?"до 5 000 ₸":"неделя, по вечерам…"}"></div></div>
+    <label class="label">Участники — каждый с новой строки</label><textarea id="fP" rows="5" placeholder="Айгерим\nДана\nМадина\nЕркеш">${esc(f.people||"")}</textarea>
+    <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="fMe" ${f.me?"checked":""}> Я тоже участвую (${esc(userName()||"я")})</label>
+    <label class="label">Пожелание для всех (необязательно)</label><input id="fNo" value="${esc(f.note||"")}" placeholder="Например: подарок своими руками">
+    <div class="actions"><button class="ghost" id="fBack">Назад</button><button class="primary" id="fGo">${ic("spark")}Тянуть жребий</button></div></div>`;}
+function bindFun(){const $=id=>document.getElementById(id);
+  $("funClose").onclick=closeSheet;
+  document.querySelectorAll("[data-ftab]").forEach(b=>b.onclick=()=>{funTab=b.dataset.ftab;funForm=null;sfx("blip");openFun();});
+  document.querySelectorAll("[data-fnew]").forEach(b=>b.onclick=()=>{const T=FUN_GAMES.find(x=>x.id===b.dataset.fnew);funForm={type:T.id,title:T.n+" "+new Date().getFullYear(),date:"",budget:"",people:"",me:true,note:""};openFun();});
+  document.querySelectorAll("[data-fshare]").forEach(b=>b.onclick=()=>{const x=FUN_IDEAS.find(i=>i.n===b.dataset.fshare);shareText(`Давай устроим «${x.n}»? ${x.t}`,"");});
+  if($("fBack")) $("fBack").onclick=()=>{funForm=null;openFun();};
+  if($("fGo")) $("fGo").onclick=async()=>{const f=funForm;f.title=$("fTi").value.trim()||f.title;f.date=$("fD").value;f.budget=$("fB").value.trim();f.note=$("fNo").value.trim();f.people=$("fP").value;f.me=$("fMe").checked;
+    let names=f.people.split(/\n|,/).map(x=>x.trim()).filter(Boolean); if(f.me&&userName()&&!names.includes(userName())) names.unshift(userName());
+    names=[...new Set(names)]; if(names.length<3){toast("Нужно хотя бы 3 участника — так интереснее и тайна сохранится.");return;}
+    const pairs=drawPairs(names), id=uid(), g={type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
+    await store.saveDoc("games",id,g); S.games={...(S.games||{}),[id]:g}; sfx("done"); funForm=null; funTab="mine"; openFun();
+    toast("Жребий брошен! Теперь отправь каждому его ссылку.");};
+  document.querySelectorAll("[data-fsend]").forEach(b=>b.onclick=()=>{const [id,i]=b.dataset.fsend.split("|"), g=S.games[id], p=g.pairs[+i], T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];
+    shareText(`${p.n}, привет! Играем в «${g.title}» ${T.g} Открой ссылку — там тайна только для тебя:`,gameLink(g,p));});
+  document.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=async()=>{if(!confirm("Удалить игру?"))return;await store.deleteDoc("games",b.dataset.fdel);const o={...S.games};delete o[b.dataset.fdel];S.games=o;openFun();});
+  const saveW=async w=>{await store.saveDoc("wish","main",w);S.wish={...(S.wish||{}),main:w};};
+  if($("wAdd")) $("wAdd").onclick=async()=>{const t=$("wT").value.trim();if(!t){$("wT").focus();return;}const w={...wishDoc(),wish:$("wMain").value.trim()};w.items=[...(w.items||[]),{t,p:$("wP").value.trim(),u:/^https?:\/\//.test($("wU").value.trim())?$("wU").value.trim():"",no:$("wN").value.trim()}];await saveW(w);sfx("pop");openFun();};
+  if($("wMain")) $("wMain").onchange=async()=>saveW({...wishDoc(),wish:$("wMain").value.trim()});
+  document.querySelectorAll("[data-wdel]").forEach(b=>b.onclick=async()=>{const w={...wishDoc()};w.items=(w.items||[]).filter((_,i)=>i!==+b.dataset.wdel);await saveW(w);openFun();});
+  if($("wShare")) $("wShare").onclick=async()=>{await saveW({...wishDoc(),wish:$("wMain").value.trim()});const w=wishDoc();if(!w.wish&&!(w.items||[]).length){toast("Добавь хотя бы одно желание.");return;}shareText(`Мой вишлист в BARI ${"🎁"} — вдруг пригодится:`,wishLink());};
+}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-fun]");if(b){funForm=null;openFun(b.dataset.fun);}});
 
 /* ---------- the tale of BARI: an animated storybook ---------- */
 const TALE=[
@@ -4519,6 +4639,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"Праздники с близкими: игры с тайной жеребьёвкой по ссылке, идеи праздников и вишлист"},
  {d:"2026-10-26",t:"Анонс маршрута на год (нажми на флажки), звук BARI при открытии, кнопки «Сказка о BARI» и «Маршрут» в подсказке «?»"},
  {d:"2026-10-26",t:"Маршрут по праздникам и Шёлковый путь: Узбекистан (Самарканд, Бухара, Хива) и Турция (Стамбул, Каппадокия). BARI поздравляет с праздниками"},
  {d:"2026-10-26",t:"«Новое в BARI»: BARI сам рассказывает о новинках и показывает их на экране"},
@@ -4590,6 +4711,7 @@ function forYouHtml(k){
   const T=[
     {id:"mood",g:"heart",t:"Настроение",s:d.mood?(MOODS.find(m=>m[0]===d.mood)||[])[1]||"Отмечено":"Как ты сегодня?",dot:!d.mood,html:()=>moodCard(k)},
     {id:"gen",g:"spark2",t:"Генератор",s:"Идеи под запрос",html:()=>genTeaser()},
+    {id:"fun",g:"lantern",t:"Праздники",s:(funSeason().g.find(x=>x.m.length<12)||funSeason().i[0]||{n:"Игры с близкими"}).n,html:()=>funTeaser()},
     {id:"quote",g:"book2",t:"Совет дня",s:q.a.split(" ").slice(-1)[0],html:()=>quoteCard(k)},
     {id:"city",flag:j.country,t:"Город дня",s:j.city,html:()=>cityDayCard(k)},
     ...(coffeeFor(j)?[{id:"coffee",g:"cup",t:"Кофе",s:coffeeFor(j).recipe.n.split(" — ")[0],html:()=>coffeeCard(k)}]:[]),

@@ -591,6 +591,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .when-line{margin:8px 0 0;font-weight:600;color:var(--text)}
 .when-note{margin:4px 0 0;color:var(--accent)}
 .seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.partner-cup{flex:none;width:56px;height:56px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
 .cd-music{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:14px;padding:8px 10px;margin:10px 0}
 .cd-music>div{flex:1;min-width:0;display:grid}
@@ -1928,6 +1929,7 @@ const GLYPHS={
   pizza:`<path d="M12 3l9 17H3z" fill="#F7C35F"/><path d="M12 3l9 17H3z" fill="none" stroke="#D9894A" stroke-width="1.6"/><circle cx="11" cy="12" r="1.6" fill="#E04A3B"/><circle cx="14" cy="16" r="1.6" fill="#E04A3B"/><circle cx="9" cy="17" r="1.4" fill="#E04A3B"/>`,
   pasta:`<path d="M3 12h18q-1 8-9 8t-9-8z" fill="#FFFFFF" stroke="#C9C1E8" stroke-width="1"/><path d="M6 12q2-6 3 0q1-6 3 0q1-6 3 0q1-6 3 0" stroke="#F2C14E" stroke-width="1.6" fill="none"/><path d="M15 3l3 8" stroke="#8A8A9A" stroke-width="1.2"/>`,
   gelato:`<path d="M8 12l4 10 4-10z" fill="#E7B373"/><circle cx="10" cy="9" r="3.6" fill="#FFB3C7"/><circle cx="14" cy="9" r="3.6" fill="#BFE7A0"/><circle cx="12" cy="6" r="3.4" fill="#FFF1C9"/>`,
+  burka:`<path d="M8.5 3.5q1-1.5 0-3M12.5 3.5q1-1.5 0-3" stroke="#B9AFC9" fill="none" stroke-linecap="round"/><path d="M6 7.4h10l-1.2 11.8H7.2z" fill="#7F2D33"/><rect x="5.2" y="5" width="11.6" height="2.6" rx="1.1" fill="#511B14"/><path d="M6.5 10.6h9l-.45 4.6H6.95z" fill="#FEE7B5"/><text x="11" y="14.3" font-size="3.6" text-anchor="middle" font-weight="800" fill="#7F2D33" font-family="system-ui,sans-serif">B</text>`,
   espresso:`<path d="M5 9h11v5q0 5-5.5 5T5 14z" fill="#FFFFFF" stroke="#C9C1E8"/><path d="M16 11h2a2 2 0 0 1 0 4h-2" stroke="#C9C1E8" fill="none"/><ellipse cx="10.5" cy="9.5" rx="5" ry="1.4" fill="#6B3E26"/><path d="M8 6q1-2 0-3M12 6q1-2 0-3" stroke="#B9AFC9" fill="none" stroke-linecap="round"/><path d="M3 20h15" stroke="#C9C1E8" stroke-width="1.4" stroke-linecap="round"/>`,
   scooter:`<circle cx="6" cy="18" r="3" fill="#2B2550"/><circle cx="18" cy="18" r="3" fill="#2B2550"/><path d="M6 15h8q2-5 4-6l1 9" stroke="#7EC8C0" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M17 8h3" stroke="#2B2550" stroke-width="1.6" stroke-linecap="round"/>`,
   fountain:`<rect x="4" y="16" width="16" height="5" rx="1.5" fill="#E9DCC8"/><path d="M12 16V8M12 8q-4 0-5 5M12 8q4 0 5 5" stroke="#6FB7E6" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="12" cy="6" r="1.6" fill="#6FB7E6"/>`,
@@ -3385,7 +3387,7 @@ const COFFEE={
       "Раф придумали в Москве в конце 1990-х в кофейне Coffee Bean: бариста взбивали эспрессо со сливками и ванильным сахаром для постоянного гостя Рафаэля. Напиток разошёлся по странам бывшего СССР, а в Италии его почти никто не знает.",
       "Кофе по-турецки, который варят в турке, — родственник казахстанских кофеен. Турецкая кофейная культура внесена в список нематериального наследия ЮНЕСКО в 2013 году.",
       "Казахстан не выращивает кофе: всё зерно привозят. Поэтому каждая местная обжарка — это выбор, из какой страны и с какой фермы везти зерно."],
-    cities:{}},
+    cities:{"Атырау":"Атырау — родина Burka Coffee: отсюда сеть разошлась по Казахстану, а рядом с кофейней работает магазин зерна и чая.","Астана":"В Астане тоже есть Burka Coffee — кофейня, которая родом из Атырау.","Алматы":"В Алматы много кофеен со своей обжаркой. Скоро здесь откроется и Burka Coffee."}},
   "Нидерланды":{
     how:"Голландцы пьют кофе часто: утром, в 10 часов (koffietijd) и после обеда. К чашке подают одно печенье — и банку закрывают. Koffie verkeerd, «неправильный кофе», — это когда молока больше, чем кофе.",
     word:["Een koffie, alstublieft","Один кофе, пожалуйста"],
@@ -3449,6 +3451,11 @@ const COFFEE_LEGENDS=[
   {n:"Венская кофейня и мешки после осады",t:"После осады Вены в 1683 году османская армия оставила мешки с зёрнами. По легенде, их забрал Юрий Кульчицкий и открыл первую кофейню Вены. Но первым официальное разрешение на кофейню в 1685 году получил армянин Йоханнес Диодато."},
   {n:"Кофейная кантата Баха",t:"Это не легенда, а шутка в музыке. Около 1732–1735 годов Бах написал «Кофейную кантату»: отец запрещает дочери пить кофе, а она поёт, что кофе слаще тысячи поцелуев. Её исполняли в лейпцигской кофейне Циммермана."}
 ];
+const CAFE_PARTNER={n:"Burka Coffee",home:"Атырау",cities:["Атырау","Актау","Уральск","Жанаозен","Актобе","Кульсары","Астана","Шымкент"],soon:["Алматы"],
+  about:"Сеть кофеен, которая выросла в Атырау и теперь работает по всему Казахстану. Рядом с атырауской кофейней есть свой магазин: зерно на развес со свежим помолом, китайский чай, матча, сиропы и всё для заваривания дома.",
+  lines:["Пью из стаканчика Burka — атырауский кофе едет со мной по маршруту!","Burka Coffee начиналась в Атырау, а теперь её кофе пьют от Актау до Шымкента.","В магазине Burka зерно мелют прямо при тебе — под турку, воронку или мока."]};
+function partnerBlock(j){const P=CAFE_PARTNER,inKz=j.country==="Казахстан";
+  return `<div class="partner"><div class="partner-cup">${glyph("burka",46)}</div><div><span class="label">Кофейня-партнёр BARI</span><b>${esc(P.n)}</b><p>${esc(inKz?P.about:"Захотелось кофе после такого рассказа? Дома, в Казахстане, BARI пьёт кофе в "+P.n+".")}</p><small>${esc(P.cities.join(" · "))}${P.soon.length?` · скоро ${esc(P.soon.join(", "))}`:""}</small></div></div>`;}
 function coffeeFor(j){return COFFEE[j.country]||null;}
 function coffeeLegend(c,k){if(c.legend)return c.legend;const i=Math.abs([...(k||todayKey())].reduce((a,ch)=>a+ch.charCodeAt(0),0))%COFFEE_LEGENDS.length;return COFFEE_LEGENDS[i];}
 function coffeeRow(j){const c=coffeeFor(j);if(!c)return "";
@@ -3462,8 +3469,8 @@ function openCoffee(){const j=journeyFor(todayKey()), c=coffeeFor(j); if(!c) ret
   const body=coffeeTab==="recipe"?`<h4 style="margin:6px 0">${esc(r.n)}</h4><span class="label">Нужно</span><ul class="cof-list">${r.ing.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><span class="label">Как готовить</span><ol class="cof-list">${r.steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>${r.tip?`<div class="talk">${ic("idea")}<div>${esc(r.tip)}</div></div>`:""}`
     :coffeeTab==="facts"?`<ol class="cof-list cof-facts">${c.facts.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`
     :coffeeTab==="legend"?`<h4 style="margin:6px 0">${esc(L.n)}</h4><div class="story"><p>${esc(L.t)}</p></div>${c.legend?`<details><summary class="tip">Ещё легенды о кофе</summary>${COFFEE_LEGENDS.map(x=>`<p><b>${esc(x.n)}.</b> ${esc(x.t)}</p>`).join("")}</details>`:""}`
-    :`<p>${esc(c.how)}</p>${cityNote?`<div class="talk">${ic("pin")}<div><b>${esc(j.city)}</b><br>${esc(cityNote)}</div></div>`:""}${c.word?`<div class="cd-word"><span class="label">Как заказать</span><b>${flag(j.country,18)} ${esc(c.word[0])}</b><span>${esc(c.word[1])}</span></div>`:""}`;
-  openSheet(`<div class="ci-sheet cof-sheet"><div class="cof-head">${bari({mood:"happy",size:64})}<div><span class="label">Кофе с BARI · ${esc(j.city)}</span><h3 style="margin:0">Как пьют кофе: ${esc(j.country)}</h3></div></div>
+    :`<p>${esc(c.how)}</p>${cityNote?`<div class="talk">${ic("pin")}<div><b>${esc(j.city)}</b><br>${esc(cityNote)}</div></div>`:""}${c.word?`<div class="cd-word"><span class="label">Как заказать</span><b>${flag(j.country,18)} ${esc(c.word[0])}</b><span>${esc(c.word[1])}</span></div>`:""}${partnerBlock(j)}`;
+  openSheet(`<div class="ci-sheet cof-sheet"><div class="cof-head">${bari({mood:"happy",size:64,arms:"hold",prop:`<g transform="translate(138 118) scale(2.1)">${GLYPHS.burka}</g>`})}<div><span class="label">Кофе с BARI · ${esc(j.city)}</span><h3 style="margin:0">Как пьют кофе: ${esc(j.country)}</h3></div></div>
     <div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${coffeeTab===k?"on":""}" data-ctab="${k}">${n}</button>`).join("")}</div>
     <div class="cof-body">${body}</div><button class="ghost" id="cofClose">Закрыть</button></div>`);
   document.getElementById("cofClose").onclick=closeSheet;
@@ -3532,10 +3539,12 @@ function bariAct(){
   if(act==="weather"){const v=weatherNow(journeyFor(todayKey()).city);if(!v||!bub)return;bub.textContent=wxSay(journeyFor(todayKey()).city,v);bub.hidden=false;setTimeout(()=>{bub.hidden=true;},6500);return;}
   if(act==="tea"||act==="read"||act==="wave"){
     const jr=journeyFor(todayKey()), dr=DRINKS[jr.country];
-    const prop=act==="tea"?`<g transform="translate(138 118) scale(2.1)">${GLYPHS[dr?.cup==="espresso"?"espresso":"tea"]}</g>`:act==="read"?`<g transform="translate(66 118) scale(2.8)">${GLYPHS.book2}</g>`:"";
+    const brk=act==="tea"&&(jr.country==="Казахстан"?Math.random()<.6:dr?.cup==="espresso"&&Math.random()<.2);
+    const prop=act==="tea"?`<g transform="translate(138 118) scale(2.1)">${GLYPHS[brk?"burka":dr?.cup==="espresso"?"espresso":"tea"]}</g>`:act==="read"?`<g transform="translate(66 118) scale(2.8)">${GLYPHS.book2}</g>`:"";
     btn.innerHTML=bari({...st,mood:act==="wave"?"joy":"happy",arms:act==="wave"?"down":"hold",wave:act==="wave",prop});
     let line="";
-    if(act==="tea"&&dr) line=dr.l[Math.floor(Math.random()*dr.l.length)];
+    if(act==="tea"&&brk) line=CAFE_PARTNER.lines[Math.floor(Math.random()*CAFE_PARTNER.lines.length)];
+    else if(act==="tea"&&dr) line=dr.l[Math.floor(Math.random()*dr.l.length)];
     else if(act==="read"){const inf=itemInfo(jr), lg=inf&&Array.isArray(inf.legends)&&inf.legends.length?inf.legends[Math.floor(Math.random()*inf.legends.length)]:null, f=dayInfo(todayKey())?.fact;line=lg?`Читаю легенду «${lg.title}» — она на полке города в «Книгах».`:f?f:"";}
     if(!line&&Math.random()<.5){const L=ACT_LINES[act];line=L[Math.floor(Math.random()*L.length)];}
     if(bub&&line){bub.textContent=line;bub.hidden=false;setTimeout(()=>{bub.hidden=true;},line.length>60?6500:3200);}
@@ -4352,6 +4361,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"Кофейня-партнёр Burka Coffee: BARI пьёт кофе из их стаканчика"},
  {d:"2026-10-25",t:"Кофе с BARI: как пьют кофе в каждой стране маршрута, рецепт, настоящие факты и легенды (Для тебя → Кофе)"},
  {d:"2026-10-25",t:"Уведомления с кнопками «Сделала» и «+15 минут», расписание по реальному времени, параллельные дела, путь уровней с наградами"},
  {d:"2026-10-24",t:"Сказка о BARI, экскурсия по приложению, объёмный BARI, генератор идей, студия контента, деньги, погода в городе, паспорт"},

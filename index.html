@@ -591,6 +591,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .when-line{margin:8px 0 0;font-weight:600;color:var(--text)}
 .when-note{margin:4px 0 0;color:var(--accent)}
 .seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.news-top{display:flex;gap:12px;align-items:center;text-align:left}.news-list{display:grid;gap:10px;margin:12px 0}.news-it{display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface-2);border-radius:14px;padding:10px}.news-it>div{flex:1;min-width:0}.news-it p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}.news-g{flex:none;width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center}
 .partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.p-women{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e6}.p-women>b{font-size:14px;color:#7F2D33}.p-women p{margin:4px 0;font-size:13px}.p-hits{margin-top:8px}.p-hits summary{font-weight:700;font-size:13px;color:#7F2D33;cursor:pointer}.p-hits p{margin:6px 0;font-size:13px}.p-hits p b{display:inline;font-size:13.5px}.partner-cup{flex:none;width:64px;height:64px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
 .cd-music{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:14px;padding:8px 10px;margin:10px 0}
@@ -1380,6 +1381,7 @@ function renderToday(){
   bindDayCards();
   bindWork();
   bindExtras();
+  if(typeof maybeNews==="function"&&window._taleChk)maybeNews();
   if(!window._taleChk&&settingsLoaded){window._taleChk=1;let seen=false;try{seen=!!localStorage.getItem("bari-tale");}catch(e){seen=true;}if(!seen&&settings.onboarded!==false&&(settings.onboarded||isOwner()))setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash"))openStory(true);},3200);}
   const bb=document.getElementById("bariBtn");
   const bariSay=(q)=>{const b=document.getElementById("bariBubble");if(!b||!bb)return;b.innerHTML=`«${esc(q.q)}»${q.ru?`<span class="bb-ru">${esc(q.ru)}</span>`:""}<span class="bb-a">— ${esc(q.a)}</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:bariState.mood==="sleep"?"happy":"wink",prop:"",outfit:outfitFor(q)});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);};
@@ -4271,21 +4273,23 @@ const TOUR2=[
  {v:"today",sel:"#helpFab",t:"Если что-то непонятно — нажми «?» на любом экране. А теперь — вперёд! Бәрі бір жерде. Бір қадамнан."}
 ];
 let tourI=-1, tourTyping=null;
-function startTour(){closeSheet();tourI=0;ensureTourDom();tourStep();}
+let TSTEPS=TOUR2, tourDone=null;
+function startTour(steps,done){closeSheet();TSTEPS=Array.isArray(steps)?steps:TOUR2;tourDone=typeof done==="function"?done:null;tourI=0;ensureTourDom();tourStep();}
 function ensureTourDom(){
   if(document.getElementById("tour2")) return;
   document.body.insertAdjacentHTML("beforeend",`<div id="tour2" class="tour2"><div class="t2-spot" id="t2Spot"></div><div class="t2-bari" id="t2Bari"></div><div class="t2-bub" id="t2Bub"><p id="t2Txt"></p><div class="t2-row"><span class="t2-dots" id="t2Dots"></span><button class="ghost" id="t2Skip">Пропустить</button><button class="ghost" id="t2Back">Назад</button><button class="primary" id="t2Next">Дальше</button></div></div></div>`);
   document.getElementById("t2Skip").onclick=endTour;
   document.getElementById("t2Back").onclick=()=>{if(tourI>0){tourI--;tourStep(-1);}};
-  document.getElementById("t2Next").onclick=()=>{if(tourI<TOUR2.length-1){tourI++;tourStep(1);}else endTour();};
+  document.getElementById("t2Next").onclick=()=>{if(tourI<TSTEPS.length-1){tourI++;tourStep(1);}else endTour();};
 }
-function endTour(){const t=document.getElementById("tour2");if(t)t.remove();tourI=-1;clearInterval(tourTyping);if(view!=="today"){view="today";render();}try{localStorage.setItem("bari-tour2","1");}catch(e){}sfx("chime");}
+function endTour(){const t=document.getElementById("tour2");if(t)t.remove();tourI=-1;clearInterval(tourTyping);if(view!=="today"){view="today";render();}if(TSTEPS===TOUR2){try{localStorage.setItem("bari-tour2","1");}catch(e){}}sfx("chime");const dn=tourDone;tourDone=null;if(dn)setTimeout(dn,300);}
 function tourStep(dir=1){
-  let st=TOUR2[tourI];
+  let st=TSTEPS[tourI];
   if(st.v&&view!==st.v){view=st.v;render();}
+  if(typeof st.go==="function"){try{st.go();}catch(e){}}
   setTimeout(()=>{
     let el=document.querySelector(st.sel);
-    if(!el||!el.getClientRects().length){if(dir>=0&&tourI<TOUR2.length-1){tourI++;return tourStep(dir);}if(dir<0&&tourI>0){tourI--;return tourStep(dir);}}
+    if(!el||!el.getClientRects().length){if(dir>=0&&tourI<TSTEPS.length-1){tourI++;return tourStep(dir);}if(dir<0&&tourI>0){tourI--;return tourStep(dir);}}
     if(el&&!el.closest(".tabbar")&&el.id!=="fab"&&el.id!=="helpFab") el.scrollIntoView({block:"center",behavior:reducedMotion()?"auto":"smooth"});
     setTimeout(()=>placeTour(el,st),reducedMotion()?40:420);
   },st.v?160:0);
@@ -4298,18 +4302,49 @@ function placeTour(el,st){
   const below=y+h+230<H, bubTop=below?Math.min(H-200,y+h+64):Math.max(10,y-200);
   bub.style.top=bubTop+"px";
   const bx=Math.min(W-96,Math.max(6,r.left+r.width/2-45)), by=below?y+h-14:y-82;
-  b.innerHTML=bari({mood:tourI===TOUR2.length-1?"joy":tourI%3===0?"happy":"wink",wave:tourI===0||tourI===TOUR2.length-1,size:80,cls:"t2-hop"});
+  b.innerHTML=bari({mood:tourI===TSTEPS.length-1?"joy":tourI%3===0?"happy":"wink",wave:tourI===0||tourI===TSTEPS.length-1,size:80,cls:"t2-hop"});
   Object.assign(b.style,{left:bx+"px",top:Math.max(4,Math.min(H-90,by))+"px"});
   b.classList.toggle("t2-up",!below);
-  document.getElementById("t2Dots").textContent=`${tourI+1} / ${TOUR2.length}`;
+  document.getElementById("t2Dots").textContent=`${tourI+1} / ${TSTEPS.length}`;
   document.getElementById("t2Back").disabled=tourI===0;
-  document.getElementById("t2Next").textContent=tourI===TOUR2.length-1?"Готово":"Дальше";
+  document.getElementById("t2Next").textContent=tourI===TSTEPS.length-1?"Готово":"Дальше";
   const txt=gx(st.t), p=document.getElementById("t2Txt"); clearInterval(tourTyping);
   if(reducedMotion()){p.textContent=txt;}else{let n=0;p.textContent="";tourTyping=setInterval(()=>{n+=2;p.textContent=txt.slice(0,n);if(n>=txt.length)clearInterval(tourTyping);},18);}
   sfx("soft");
 }
-window.addEventListener("resize",()=>{if(tourI>=0){const st=TOUR2[tourI];placeTour(document.querySelector(st.sel),st);}});
-document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))startTour();if(e.target.closest?.("[data-story]"))openStory(false);});
+window.addEventListener("resize",()=>{if(tourI>=0){const st=TSTEPS[tourI];placeTour(document.querySelector(st.sel),st);}});
+document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))startTour(TOUR2);if(e.target.closest?.("[data-story]"))openStory(false);});
+
+
+/* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
+const NEWS=[
+ {id:"n-coffee",g:"burka",t:"Кофе с BARI",d:"В каждой стране маршрута — как там пьют кофе, рецепт, настоящие факты и легенды. И кофейня-партнёр Burka Coffee.",
+  steps:[{v:"today",go:()=>{forYouOpen="coffee";render();},sel:".cd-coffee",t:"Новая плитка «Кофе» в «Для тебя». Каждый день — факт о кофе страны, а внутри рецепт, легенды и как заказать кофе на местном языке."}]},
+ {id:"n-done",g:"spark2",t:"«Сделала?» прямо из уведомления",d:"Напоминание спросит, сделала ли ты дело: одно нажатие — и готово. Расписание теперь считается по реальному времени, а сторис и репосты идут параллельно.",
+  steps:[{v:"today",sel:".tl, .hero",t:"Блоки дня теперь живые: если что-то затянулось, дела сдвигаются от текущей минуты. А сторис и репосты идут параллельно и не съедают время."},{v:"today",sel:"#fab",t:"При добавлении дела есть галочка «Можно параллельно». А в уведомлении — кнопка «Сделала»: на iPhone нажми на само уведомление."}]},
+ {id:"n-levels",g:"flower",t:"Путь уровней и награды",d:"Теперь видно, что ждёт на следующем уровне: шарф, котик Ақ мамық, звезда, цветы, секретная глава и сад.",
+  steps:[{v:"today",sel:"#lvlBtn",t:"Нажми на свой уровень — увидишь награду следующего уровня, сколько осталось и весь путь. За полностью закрытый день — +5 баллов."}]},
+ {id:"n-route",g:"bus",t:"Новый маршрут и Казахстан",d:"Страны идут по сезонам: Финляндия — к Новому году, Япония — на сакуру. Казахстан — 7 недель: от Атырау до Туркестана.",
+  steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут. Каждую неделю — новый город. Страны, которые я ещё готовлю, откроются сами — следи в «Что нового»."}]}
+];
+function newsSeen(){let ls=[];try{ls=JSON.parse(localStorage.getItem("bari-news")||"[]");}catch(e){}return new Set([...(settings.newsSeen||[]),...ls]);}
+function markNews(ids){const all=[...new Set([...newsSeen(),...ids])];try{localStorage.setItem("bari-news",JSON.stringify(all));}catch(e){}store.saveSettings({...settings,newsSeen:all});}
+function unseenNews(){const s=newsSeen();return NEWS.filter(n=>!s.has(n.id));}
+function openNews(list){list=list||unseenNews();if(!list.length)return;
+  openSheet(`<div class="ci-sheet news"><div class="news-top">${bari({mood:"joy",wave:true,size:84})}<div><span class="label">Новое в BARI</span><h3 style="margin:2px 0 0">${list.length>1?"Пока тебя не было, я кое-что добавил!":"Смотри, что появилось!"}</h3></div></div>
+    <div class="news-list">${list.map(n=>`<div class="news-it"><span class="news-g">${glyph(n.g,30)}</span><div><b>${esc(n.t)}</b><p>${esc(gx(n.d))}</p></div><button class="mini-btn" data-nshow="${n.id}">${ic("play")}Показать</button></div>`).join("")}</div>
+    <div class="actions">${list.length>1?`<button class="ghost" id="newsAll">${ic("play")}Показать всё</button>`:""}<button class="primary" id="newsOk">${ic("check")}Понятно</button></div></div>`);
+  sfx("chime");
+  const ids=list.map(n=>n.id);
+  document.getElementById("newsOk").onclick=()=>{markNews(ids);closeSheet();};
+  const all=document.getElementById("newsAll"); if(all) all.onclick=()=>{markNews(ids);startTour(list.flatMap(n=>n.steps));};
+  document.querySelectorAll("[data-nshow]").forEach(b=>b.onclick=()=>{const n=NEWS.find(x=>x.id===b.dataset.nshow);const rest=list.filter(x=>x.id!==n.id);markNews([n.id]);startTour(n.steps,rest.length?()=>openNews(rest):null);});
+}
+function maybeNews(){if(window._newsChk||!settingsLoaded)return;window._newsChk=1;
+  if(settings.onboarded===false||!(settings.onboarded||isOwner()))return;
+  let taleSeen=true;try{taleSeen=!!localStorage.getItem("bari-tale");}catch(e){}
+  if(!taleSeen)return;
+  setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash")&&tourI<0&&unseenNews().length)openNews();},2600);}
 
 /* ---------- the tale of BARI: an animated storybook ---------- */
 const TALE=[
@@ -4381,6 +4416,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"«Новое в BARI»: BARI сам рассказывает о новинках и показывает их на экране"},
 {d:"2026-10-26",t:"Новый маршрут по сезонам и Казахстан — 7 недель: Атырау, Актау, Уральск, Астана, Бурабай, Алматы, Туркестан"},
  {d:"2026-10-26",t:"Страны, которые BARI ещё готовит, помечены «скоро» и откроются сами"},
  {d:"2026-10-26",t:"Burka: осеннее меню и женская Burka в Атырау с дофаминовым меню"},
@@ -4404,15 +4440,17 @@ function soonCityNote(){
 function openUpdates(){
   const bl=Array.isArray(BACKLOG)?BACKLOG:[]; const by={}; bl.forEach(x=>{(by[x.country]=by[x.country]||[]).push(x.city);});
   openSheet(`<div class="ci-sheet upd">${bari({mood:"joy",size:84,wave:true})}<h3 style="margin:0">Что нового в BARI</h3>
+    <button class="ghost" id="newsAgain">${ic("play")}Показать новинки с BARI</button>
     <div class="upd-list">${CHANGELOG.map(c=>`<div class="upd-i"><span class="label">${esc(nice(c.d))}</span><p>${esc(c.t)}</p></div>`).join("")}</div>
     <span class="label">Что BARI сейчас готовит</span>
-    ${Object.keys(by).length?`<p class="tip" style="margin:0">Уроки для этих городов ещё пишутся — по одному городу в день:</p><ul class="m-tips">${Object.entries(by).map(([c,l])=>`<li>${flag(c,16)} <b>${esc(c)}</b>: ${l.map(esc).join(", ")}</li>`).join("")}</ul>`:`<p class="tip">Все уроки на месте 🎉</p>`}
+    ${Object.keys(by).length?`<p class="tip" style="margin:0">Уроки для этих городов ещё пишутся — по несколько городов в день:</p><ul class="m-tips">${Object.entries(by).map(([c,l])=>`<li>${flag(c,16)} <b>${esc(c)}</b>: ${l.map(esc).join(", ")}</li>`).join("")}</ul>`:`<p class="tip">Все уроки на месте 🎉</p>`}
     <span class="label">Нашла ошибку или есть идея?</span>
     <textarea id="bugT" rows="3" placeholder="Например: в Токио показало итальянское слово"></textarea>
     <button class="primary" id="bugSend">${ic("send")}Отправить</button>
     <p class="tip" style="margin:0">Сообщение уйдёт тому, кто поделился с тобой BARI${isOwner()?" — или вставь его в чат с Claude":""}.</p>
     <button class="ghost" id="updX">Закрыть</button></div>`);
   document.getElementById("updX").onclick=closeSheet;
+  document.getElementById("newsAgain").onclick=()=>openNews(NEWS);
   document.getElementById("bugSend").onclick=async()=>{const t=document.getElementById("bugT").value.trim();if(!t){document.getElementById("bugT").focus();return;}
     const txt=`BARI · сообщение об ошибке\n${t}\n\nЭкран: ${view} · ${new Date().toLocaleString("ru-RU")} · ${navigator.userAgent.slice(0,60)}`;
     try{if(navigator.share){await navigator.share({text:txt});return;}}catch(e){if(e&&e.name==="AbortError")return;}
@@ -4654,6 +4692,7 @@ async function obFinish(edit){
   const same=hasRoute()&&JSON.stringify(route)===JSON.stringify(settings.route);
   const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],hobbies:d.hobbies||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
   if(habits&&(!edit||!settings.habits)) next.habits=habits;
+  if(!edit&&!next.newsSeen) next.newsSeen=NEWS.map(n=>n.id);
   await store.saveSettings(next); obDraft=null;
   if(edit){closeSheet();toast("Сохранила! Маршрут обновлён.");} else openStory(true);
 }

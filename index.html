@@ -1386,6 +1386,7 @@ function renderToday(){
   bindWork();
   bindExtras();
   if(typeof maybeNews==="function"&&window._taleChk)maybeNews();
+  if(typeof pushRefresh==="function"&&settingsLoaded)pushRefresh();
   if(!window._taleChk&&settingsLoaded){window._taleChk=1;let seen=false;try{seen=!!localStorage.getItem("bari-tale");}catch(e){seen=true;}if(!seen&&settings.onboarded!==false&&(settings.onboarded||isOwner()))setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash"))openStory(true);},3200);}
   const bb=document.getElementById("bariBtn");
   const bariSay=(q)=>{const b=document.getElementById("bariBubble");if(!b||!bb)return;b.innerHTML=`«${esc(q.q)}»${q.ru?`<span class="bb-ru">${esc(q.ru)}</span>`:""}<span class="bb-a">— ${esc(q.a)}</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:bariState.mood==="sleep"?"happy":"wink",prop:"",outfit:outfitFor(q)});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);};
@@ -1465,7 +1466,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>`:""}
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="devList" style="margin-top:10px">📱 Устройства с моими уведомлениями</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -4979,6 +4980,22 @@ async function subscribePush(){
   await store.saveDoc("push",hashId(j.endpoint),{...j,ua:navigator.userAgent.slice(0,120),created:new Date().toISOString()});
   try{localStorage.setItem("bari-push","1");}catch(e){}
 }
+const uaName=u=>{u=String(u||"");return /iPhone/.test(u)?"iPhone":/iPad/.test(u)?"iPad":/Android/.test(u)?"Android-телефон":/Mac/.test(u)?"Mac":/Windows/.test(u)?"Компьютер Windows":"Устройство";};
+async function openDevices(){const sb=window.sbClient;if(!sb)return;
+  let mine="";try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)mine=hashId(sub.toJSON().endpoint);}catch(e){}
+  const {data,error}=await sb.from("docs").select("id,data,updated_at").eq("col","push").eq("user_id",window.sbUserId);
+  const L=(data||[]).sort((a,b)=>(b.updated_at||"").localeCompare(a.updated_at||""));
+  openSheet(`<div class="ci-sheet"><span class="label">Безопасность</span><h3 style="margin:0">Куда приходят твои напоминания</h3>
+    <p class="tip">Если здесь есть чужой телефон (например, кто-то когда-то входил в BARI под твоим аккаунтом) — удали его, и напоминания о твоих делах перестанут туда приходить.</p>
+    ${error?`<p class="tip">Не получилось загрузить список.</p>`:L.length?L.map(r=>`<div class="w-it"><div><b>${esc(uaName(r.data&&r.data.ua))}</b>${r.id===mine?` <span class="rt-tag now">это устройство</span>`:""}<br><small>подключено ${esc(nice((r.data&&r.data.created||r.updated_at||"").slice(0,10)))}</small></div><button class="ghost" data-devdel="${esc(r.id)}" style="width:auto;margin:0">Удалить</button></div>`).join(""):`<p class="tip">Уведомления пока не подключены ни на одном устройстве.</p>`}
+    <button class="ghost" id="devClose" style="margin-top:10px">Закрыть</button></div>`);
+  document.getElementById("devClose").onclick=closeSheet;
+  document.querySelectorAll("[data-devdel]").forEach(b=>b.onclick=async()=>{const id=b.dataset.devdel;await sb.from("docs").delete().eq("col","push").eq("id",id).eq("user_id",window.sbUserId);
+    if(id===mine){try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}try{localStorage.removeItem("bari-push");}catch(e){}}
+    toast("Устройство удалено — туда больше не придут твои напоминания.");openDevices();});}
+document.addEventListener("click",e=>{if(e.target.closest?.("#devList"))openDevices();});
+// each login re-registers this phone under the account that is signed in now
+function pushRefresh(){if(window._pushRef||!window.sbClient||!window.sbUserId)return;window._pushRef=1;try{if(notifState()==="granted")subscribePush().catch(()=>{});}catch(e){}}
 async function enableNotifications(){
   try{
     const p=await Notification.requestPermission();
@@ -5017,7 +5034,7 @@ async function notifCheck(){
   syncReminders(true);
   let srv="";
   try{const cfg=window.BARI_CONFIG||{};const r=await fetch(`${cfg.supabaseUrl}/functions/v1/push?check=${encodeURIComponent(window.sbUserId||"")}`,{headers:{apikey:cfg.supabaseAnonKey}});const j=await r.json();
-    add(j.version>=3,`Сервер обновлён${j.version>=3?"":" — нужно заново вставить код функции push (версия 3)"}`);
+    add(j.version>=4,`Сервер обновлён${j.version>=3?"":" — нужно заново вставить код функции push (версия 3)"}`);
     if(j.version>=2){add(j.subscriptions>0,`Сервер видит подписок: ${j.subscriptions}`);add(j.reminders>0,`Напоминаний впереди: ${j.reminders}`);(j.test||[]).forEach(x=>add(x==="ok",x==="ok"?"Сервер отправил тестовое уведомление":"Ошибка отправки: "+esc(x)));}
     srv=`<details><summary>Технические детали</summary><pre class="diag-pre">${esc(JSON.stringify(j,null,1))}</pre></details>`;
   }catch(e){add(false,"Сервер не ответил: "+esc(e.message||String(e)));}
@@ -5265,7 +5282,7 @@ function makeDb(sb,uid){
     for(const [key,cbs] of Object.entries(docListeners)){const [c,id]=key.split("/");if(c===col)cbs.forEach(cb=>{try{cb(mk(id,m.get(id),fromCache));}catch(e){console.error(e);}});}
   }
   async function refresh(col){
-    const {data,error}=await sb.from("docs").select("id,data").eq("col",col);
+    const {data,error}=await sb.from("docs").select("id,data").eq("col",col).eq("user_id",uid);
     if(error) throw {code:"unavailable",message:error.message};
     state[col]=new Map(data.map(r=>[r.id,r.data])); emit(col,false);
   }
@@ -5280,7 +5297,7 @@ function makeDb(sb,uid){
         const {error}=await sb.from("docs").upsert({user_id:uid,col,id,data,updated_at:new Date().toISOString()});
         if(error) throw {code:"unavailable",message:error.message};},
       async delete(){state[col]?.delete(id);emit(col,false);
-        const {error}=await sb.from("docs").delete().eq("col",col).eq("id",id);
+        const {error}=await sb.from("docs").delete().eq("col",col).eq("id",id).eq("user_id",uid);
         if(error) throw {code:"unavailable",message:error.message};},
       onSnapshot(cb,err){const key=col+"/"+id;(docListeners[key]=docListeners[key]||[]).push(cb);
         if(!watched.has(col)){watched.add(col);refresh(col).catch(e=>err&&err(e));} else if(state[col]) cb(mk(id,state[col].get(id),false));
@@ -5326,7 +5343,7 @@ async function loadContent(kind,k){
   return contentCache[kind][k];
 }
 async function seedIfEmpty(sb,uid){
-  const {count}=await sb.from("docs").select("id",{count:"exact",head:true});
+  const {count}=await sb.from("docs").select("id",{count:"exact",head:true}).eq("user_id",uid);
   if(count>0) return;
   try{
     const r=await fetch("seed.json",{cache:"no-cache"}); if(!r.ok) return;
@@ -5402,7 +5419,11 @@ function showNewPassword(sb){
     location.replace(APP_URL());};
 }
 
-document.addEventListener("click",async e=>{if(e.target.closest?.("#logoutBtn")&&window.sbClient){if(confirm("Выйти из аккаунта на этом устройстве?")){await window.sbClient.auth.signOut();}}});
+document.addEventListener("click",async e=>{if(e.target.closest?.("#logoutBtn")&&window.sbClient){if(confirm("Выйти из аккаунта на этом устройстве?")){
+  // stop this phone from getting this account's reminders
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub){await window.sbClient.from("docs").delete().eq("col","push").eq("id",hashId(sub.toJSON().endpoint)).eq("user_id",window.sbUserId);await sub.unsubscribe();}}catch(_){}
+  try{localStorage.removeItem("bari-push");}catch(_){}
+  await window.sbClient.auth.signOut();}}});
 async function startApp(sb,session){
   document.getElementById("login").hidden=true; document.querySelector(".wrap").hidden=false; document.querySelector(".tabbar").hidden=false;
   const uid=session.user.id; window.sbUserId=uid;

@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
   // diagnostics for one user: ?check=<user id> → what the server sees and a test push
   const check = qs.get("check");
   if (check) {
-    const out: Record<string, unknown> = { now: new Date().toISOString(), version: 3 };
+    const out: Record<string, unknown> = { now: new Date().toISOString(), version: 4 };
     const { data: subs, error: e1 } = await sb.from("docs").select("id, data").eq("col", "push").eq("user_id", check);
     out.subscriptions = subs?.length ?? 0; if (e1) out.subsError = e1.message;
     const { data: rems, error: e2 } = await sb.from("docs").select("id, data").eq("col", "remind").eq("user_id", check);
@@ -62,8 +62,19 @@ Deno.serve(async (req) => {
   const todo = due.filter((d) => !already.has(d.key));
   if (!todo.length) return json({ sent: 0 });
 
-  const users = [...new Set(todo.map((d) => d.user))];
-  const { data: subs } = await sb.from("docs").select("user_id, id, data").eq("col", "push").in("user_id", users);
+  // one phone = one account: if the same device was registered by several accounts, only the latest one gets reminders
+  const { data: allSubs } = await sb.from("docs").select("user_id, id, data, updated_at").eq("col", "push");
+  const owner = new Map<string, { user_id: string; at: string }>();
+  for (const s of allSubs ?? []) {
+    const ep = s.data?.endpoint; if (!ep) continue;
+    const at = String(s.data?.created || s.updated_at || "");
+    const cur = owner.get(ep); if (!cur || at > cur.at) owner.set(ep, { user_id: s.user_id, at });
+  }
+  for (const s of allSubs ?? []) {
+    const o = owner.get(s.data?.endpoint);
+    if (o && o.user_id !== s.user_id) await sb.from("docs").delete().eq("user_id", s.user_id).eq("col", "push").eq("id", s.id);
+  }
+  const subs = (allSubs ?? []).filter((s) => owner.get(s.data?.endpoint)?.user_id === s.user_id);
   let sent = 0;
   for (const d of todo) {
     for (const s of (subs ?? []).filter((x) => x.user_id === d.user)) {

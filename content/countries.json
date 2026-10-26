@@ -117,11 +117,6 @@
     "mark": "okzhetpes"
    },
    {
-    "name": "Караганда",
-    "slug": "karaganda",
-    "mark": "kopyor"
-   },
-   {
     "name": "Алматы",
     "slug": "almaty",
     "mark": "mountains"
@@ -130,11 +125,6 @@
     "name": "Туркестан",
     "slug": "turkestan",
     "mark": "yasawi"
-   },
-   {
-    "name": "Шымкент",
-    "slug": "shymkent",
-    "mark": "dome"
    }
   ]
  },
@@ -269,32 +259,6 @@
   ]
  },
  {
-  "country": "Южная Корея",
-  "lang": "корейский",
-  "cities": [
-   {
-    "name": "Сеул",
-    "slug": "seul",
-    "mark": "seoultower"
-   },
-   {
-    "name": "Кёнджу",
-    "slug": "kendzhu",
-    "mark": "pagoda"
-   },
-   {
-    "name": "Пусан",
-    "slug": "pusan",
-    "mark": "sea"
-   },
-   {
-    "name": "Чеджу",
-    "slug": "chedzhu",
-    "mark": "volcano"
-   }
-  ]
- },
- {
   "country": "Мексика",
   "lang": "испанский",
   "cities": [
@@ -317,6 +281,32 @@
     "name": "Гвадалахара",
     "slug": "gvadalahara",
     "mark": "dome"
+   }
+  ]
+ },
+ {
+  "country": "Южная Корея",
+  "lang": "корейский",
+  "cities": [
+   {
+    "name": "Сеул",
+    "slug": "seul",
+    "mark": "seoultower"
+   },
+   {
+    "name": "Кёнджу",
+    "slug": "kendzhu",
+    "mark": "pagoda"
+   },
+   {
+    "name": "Пусан",
+    "slug": "pusan",
+    "mark": "sea"
+   },
+   {
+    "name": "Чеджу",
+    "slug": "chedzhu",
+    "mark": "volcano"
    }
   ]
  }

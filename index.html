@@ -1834,25 +1834,25 @@ const JOURNEY=[
   {from:"2026-10",country:"Италия",lang:"итальянский",cities:[["Рим","colosseum"],["Флоренция","dome"],["Венеция","venice"],["Милан","spires"],["Неаполь","volcano"],["Болонья","towers"]]},
   {from:"2026-12",country:"Финляндия",lang:"финский",cities:[["Хельсинки","dome"],["Рованиеми","forest"],["Турку","castle"],["Тампере","lake"]]},
   {from:"2027-01",country:"Великобритания",lang:"английский",cities:[["Лондон","bigben"],["Оксфорд","spires"],["Эдинбург","castle"],["Бат","temple"]]},
-  {from:"2027-02",country:"Казахстан",lang:"казахский",cities:[["Атырау","zhaiyk"],["Актау","aktau"],["Уральск","dome"],["Астана","tower"],["Бурабай","okzhetpes"],["Караганда","kopyor"],["Алматы","mountains"],["Туркестан","yasawi"],["Шымкент","dome"]]},
+  {from:"2027-02",country:"Казахстан",lang:"казахский",cities:[["Атырау","zhaiyk"],["Актау","aktau"],["Уральск","dome"],["Астана","tower"],["Бурабай","okzhetpes"],["Алматы","mountains"],["Туркестан","yasawi"]]},
   {from:"2027-04",country:"Япония",lang:"японский",cities:[["Токио","tokyotower"],["Киото","pagoda"],["Осака","jcastle"],["Нара","forest"]]},
   {from:"2027-05",country:"Нидерланды",lang:"нидерландский",cities:[["Амстердам","windmill"],["Гаага","binnenhof"],["Утрехт","domtower"],["Роттердам","erasmus"]]},
   {from:"2027-06",country:"Греция",lang:"греческий",cities:[["Афины","temple"],["Санторини","sea"],["Крит","mountains"],["Дельфы","temple"]]},
   {from:"2027-07",country:"Франция",lang:"французский",cities:[["Париж","eiffel"],["Лион","dome"],["Прованс","windmill"],["Ницца","sea"]]},
-  {from:"2027-08",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
-  {from:"2027-09",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]},
-  {from:"2027-10",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]}
+  {from:"2027-07",country:"Испания",lang:"испанский",cities:[["Мадрид","dome"],["Барселона","spires"],["Севилья","giralda"],["Валенсия","artsci"]]},
+  {from:"2027-08",country:"Мексика",lang:"испанский",cities:[["Мехико","pyramid"],["Оахака","mountains"],["Юкатан","pyramid"],["Гвадалахара","dome"]]},
+  {from:"2027-09",country:"Южная Корея",lang:"корейский",cities:[["Сеул","seoultower"],["Кёнджу","pagoda"],["Пусан","sea"],["Чеджу","volcano"]]}
 ];
-const JOURNEY_WHY={"Италия":"осень и урожай","Финляндия":"Лапландия и Новый год","Великобритания":"зимний Лондон и уютные чайные","Казахстан":"дом — от Каспия до Тянь-Шаня, а в конце Наурыз","Япония":"цветение сакуры","Нидерланды":"тюльпаны","Греция":"начало лета и море","Франция":"лаванда в Провансе","Испания":"летние фиесты","Южная Корея":"праздник урожая Чхусок","Мексика":"подготовка ко Дню мёртвых"};
+const JOURNEY_WHY={"Италия":"осень и урожай","Финляндия":"Лапландия и Новый год","Великобритания":"зимний Лондон и уютные чайные","Казахстан":"дом — от Каспия до Тянь-Шаня","Япония":"цветение сакуры","Нидерланды":"тюльпаны","Греция":"начало лета и море","Франция":"лаванда в Провансе","Испания":"летние фиесты","Южная Корея":"праздник урожая Чхусок","Мексика":"какао, кукуруза и древние пирамиды"};
 const JOURNEY_START="2026-10-19";
 function journeyFor(k){
   if(typeof hasRoute==="function"&&settings&&hasRoute()) return routeJourney(k);
-  const ym=k.slice(0,7); let j=JOURNEY[0];
-  for(const x of JOURNEY) if(x.from<=ym) j=x;
-  const startK=j===JOURNEY[0]?JOURNEY_START:(()=>{const d=new Date(+j.from.slice(0,4),+j.from.slice(5,7)-1,1);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");})();
-  const s=new Date(+startK.slice(0,4),+startK.slice(5,7)-1,+startK.slice(8,10)), d=new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10));
+  // one city per week, countries follow each other without gaps, then the year repeats
+  const s=new Date(+JOURNEY_START.slice(0,4),+JOURNEY_START.slice(5,7)-1,+JOURNEY_START.slice(8,10)), d=new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10));
   const wk=Math.max(0,Math.floor((d-s)/(7*864e5)));
-  const [city,mark]=j.cities[wk%j.cities.length];
+  const tot=JOURNEY.reduce((a,j)=>a+j.cities.length,0); let w=wk%tot, i=0;
+  while(i<JOURNEY.length-1&&w>=JOURNEY[i].cities.length){w-=JOURNEY[i].cities.length;i++;}
+  const j=JOURNEY[i], [city,mark]=j.cities[w];
   return {country:j.country,lang:j.lang,city,mark,week:wk};
 }
 function seasonOf(d=new Date()){const m=d.getMonth()+1;return m>=3&&m<=5?"spring":m>=6&&m<=8?"summer":m>=9&&m<=11?"autumn":"winter";}
@@ -3598,7 +3598,7 @@ const LANG_COUNTRY={"английский":"Великобритания","ит�
 function routeFlags(){
   const cur=journeyFor(todayKey()).country;
   const R=hasRoute()?settings.route.map(c=>({country:c})):JOURNEY, ci=R.findIndex(x=>x.country===cur);
-  return `<div class="route-flags" aria-label="Маршрут по странам">${R.map((jn,i)=>`<span class="rf ${jn.country===cur?"now":(hasRoute()?i<ci:jn.from<todayKey().slice(0,7))?"past":""}" title="${esc(jn.country)}">${flag(jn.country,jn.country===cur?34:24)}</span>${i<R.length-1?`<i></i>`:""}`).join("")}</div>`;
+  return `<div class="route-flags" aria-label="Маршрут по странам">${R.map((jn,i)=>`<span class="rf ${jn.country===cur?"now":i<ci?"past":""}" title="${esc(jn.country)}">${flag(jn.country,jn.country===cur?34:24)}</span>${i<R.length-1?`<i></i>`:""}`).join("")}</div>`;
 }
 
 /* city legends shelf in the library */
@@ -4381,7 +4381,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
-{d:"2026-10-26",t:"Новый маршрут по сезонам и Казахстан на два месяца: Атырау, Актау, Уральск, Астана, Бурабай, Караганда, Алматы, Туркестан, Шымкент"},
+{d:"2026-10-26",t:"Новый маршрут по сезонам и Казахстан — 7 недель: Атырау, Актау, Уральск, Астана, Бурабай, Алматы, Туркестан"},
  {d:"2026-10-26",t:"Страны, которые BARI ещё готовит, помечены «скоро» и откроются сами"},
  {d:"2026-10-26",t:"Burka: осеннее меню и женская Burka в Атырау с дофаминовым меню"},
  {d:"2026-10-26",t:"Кофейня-партнёр Burka Coffee: BARI пьёт кофе из их стаканчика"},

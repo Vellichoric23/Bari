@@ -594,6 +594,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .news-top{display:flex;gap:12px;align-items:center;text-align:left}.news-list{display:grid;gap:10px;margin:12px 0}.news-it{display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface-2);border-radius:14px;padding:10px}.news-it>div{flex:1;min-width:0}.news-it p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}.news-g{flex:none;width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center}
 .route-flags[data-route]{cursor:pointer}.rt-list{display:grid;gap:8px;text-align:left}.rt-row{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:14px;padding:10px}.rt-row.now{outline:2px solid var(--accent)}.rt-b{flex:1;min-width:0}.rt-h{display:flex;gap:6px;align-items:center}.rt-b small{color:var(--muted);font-size:12px}.rt-b p{margin:3px 0 0;font-size:13px;line-height:1.4}.rt-hol{color:#B4235A;font-weight:600}.rt-tag{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:#FFD166;color:#5A3A00}.rt-tag.now{background:var(--accent);color:#fff}.help-more{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
 .fun-card{background:var(--surface-2);border-radius:16px;padding:12px;margin:10px 0;text-align:left}.fun-card p{margin:6px 0;font-size:13.5px;line-height:1.45}.fun-card details{margin:4px 0 8px;font-size:13px}.fun-card ol{padding-left:18px;margin:6px 0}.fun-h{display:flex;gap:8px;align-items:center}.fun-e{font-size:22px}.fun-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.w-list{display:grid;gap:6px;margin:10px 0}.w-it{display:flex;justify-content:space-between;gap:8px;background:var(--surface-2);border-radius:12px;padding:8px 10px;text-align:left;font-size:13.5px}.w-form{display:grid;gap:6px;margin:8px 0}.fun-body{text-align:left}
+.talk.apply{background:#EAF7EE}
 .holi{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#FFF1C9,#FFE0EC);border-radius:16px;padding:10px 12px;margin-bottom:10px}.holi b{display:block;font-size:14.5px}.holi p{margin:2px 0 0;font-size:13px;line-height:1.4}
 .partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.p-women{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e6}.p-women>b{font-size:14px;color:#7F2D33}.p-women p{margin:4px 0;font-size:13px}.p-hits{margin-top:8px}.p-hits summary{font-weight:700;font-size:13px;color:#7F2D33;cursor:pointer}.p-hits p{margin:6px 0;font-size:13px}.p-hits p b{display:inline;font-size:13.5px}.partner-cup{flex:none;width:64px;height:64px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
@@ -4422,22 +4423,24 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
- {id:"n-coffee",g:"burka",t:"Кофе с BARI",d:"В каждой стране маршрута — как там пьют кофе, рецепт, настоящие факты и легенды. И кофейня-партнёр Burka Coffee.",
-  steps:[{v:"today",go:()=>{forYouOpen="coffee";render();},sel:".cd-coffee",t:"Новая плитка «Кофе» в «Для тебя». Каждый день — факт о кофе страны, а внутри рецепт, легенды и как заказать кофе на местном языке."}]},
- {id:"n-done",g:"spark2",t:"«Сделала?» прямо из уведомления",d:"Напоминание спросит, сделала ли ты дело: одно нажатие — и готово. Расписание теперь считается по реальному времени, а сторис и репосты идут параллельно.",
-  steps:[{v:"today",sel:".tl, .hero",t:"Блоки дня теперь живые: если что-то затянулось, дела сдвигаются от текущей минуты. А сторис и репосты идут параллельно и не съедают время."},{v:"today",sel:"#fab",t:"При добавлении дела есть галочка «Можно параллельно». А в уведомлении — кнопка «Сделала»: на iPhone нажми на само уведомление."}]},
- {id:"n-levels",g:"flower",t:"Путь уровней и награды",d:"Теперь видно, что ждёт на следующем уровне: шарф, котик Ақ мамық, звезда, цветы, секретная глава и сад.",
-  steps:[{v:"today",sel:"#lvlBtn",t:"Нажми на свой уровень — увидишь награду следующего уровня, сколько осталось и весь путь. За полностью закрытый день — +5 баллов."}]},
- {id:"n-fun",g:"lantern",t:"Праздники с близкими",d:"Игры с тайной жеребьёвкой — «Аяз Ата инкогнито», «Тайный ангел», «Көрісу-почта», «Тайный повар», — идеи праздников для своих и вишлист, которым можно поделиться.",
-  steps:[{v:"today",go:()=>{forYouOpen="fun";render();},sel:"[data-fun='games']",t:"Новая плитка «Праздники». Собери игру: впиши друзей, я тайно вытяну жребий и дам каждому личную ссылку для WhatsApp. А ещё здесь идеи праздников и твой вишлист."}]},
- {id:"n-route2",g:"bus",t:"Маршрут по праздникам и Шёлковый путь",d:"Каждая страна — в свой праздник: Рождество в Лапландии, Соллаль в Сеуле, Наурыз в Туркестане, День детей в Токио. А после Казахстана — караваном по Шёлковому пути: Самарканд, Бухара, Хива, Стамбул и Каппадокия.",
-  steps:[{v:"me",sel:".route-flags",t:"Вот весь маршрут на год. Нажми на флажки — откроется анонс: даты, города и праздники. В праздничные дни я поздравлю тебя в «Городе дня»."}]}
+ {id:"n-fun",g:"lantern",t:"Тайный Аяз Ата 🎁",d:"Собери друзей — я тайно вытяну жребий. Плюс вишлисты.",
+  steps:[{v:"today",go:()=>{forYouOpen="fun";render();},sel:"[data-fun='games']",t:"Впиши друзей — я тайно вытяну жребий и дам каждому ссылку для WhatsApp. Тут же идеи праздников и вишлист."}]},
+ {id:"n-route2",g:"bus",t:"Новый маршрут на год",d:"Рождество в Лапландии, Наурыз в Туркестане и Шёлковый путь.",
+  steps:[{v:"me",sel:".route-flags",t:"Нажми на флажки — там весь маршрут: даты, города и праздники."}]},
+ {id:"n-coffee",g:"burka",t:"Кофе с BARI ☕",d:"Как пьют кофе в каждой стране — рецепты и легенды.",
+  steps:[{v:"today",go:()=>{forYouOpen="coffee";render();},sel:".cd-coffee",t:"Плитка «Кофе»: факт дня, рецепт, легенды и как заказать на местном языке."}]},
+ {id:"n-done",g:"spark2",t:"«Сделала?» в один тап",d:"Отмечай дела прямо из уведомления.",
+  steps:[{v:"today",sel:".tl, .hero",t:"Расписание живое: если что-то затянулось, дела сдвигаются. Сторис и репосты идут параллельно."},{v:"today",sel:"#fab",t:"В уведомлении — кнопка «Сделала». На iPhone нажми на само уведомление."}]},
+ {id:"n-levels",g:"flower",t:"Награды за уровни",d:"Котик, звезда, сад — смотри, что ждёт дальше.",
+  steps:[{v:"today",sel:"#lvlBtn",t:"Нажми на уровень — увидишь следующую награду и весь путь."}]},
+ {id:"n-apply",g:"idea2",t:"Польза под твою работу",d:"В уроках — как применить тему в твоей профессии.",
+  steps:[{v:"me",sel:".lesson",t:"В уроке появился блок «Польза для тебя» — идея под твою профессию."}]}
 ];
 function newsSeen(){let ls=[];try{ls=JSON.parse(localStorage.getItem("bari-news")||"[]");}catch(e){}return new Set([...(settings.newsSeen||[]),...ls]);}
 function markNews(ids){const all=[...new Set([...newsSeen(),...ids])];try{localStorage.setItem("bari-news",JSON.stringify(all));}catch(e){}store.saveSettings({...settings,newsSeen:all});}
 function unseenNews(){const s=newsSeen();return NEWS.filter(n=>!s.has(n.id));}
 function openNews(list){list=list||unseenNews();if(!list.length)return;
-  openSheet(`<div class="ci-sheet news"><div class="news-top">${bari({mood:"joy",wave:true,size:84})}<div><span class="label">Новое в BARI</span><h3 style="margin:2px 0 0">${list.length>1?"Пока тебя не было, я кое-что добавил!":"Смотри, что появилось!"}</h3></div></div>
+  openSheet(`<div class="ci-sheet news"><div class="news-top">${bari({mood:"joy",wave:true,size:84})}<div><span class="label">Новое в BARI</span><h3 style="margin:2px 0 0">${list.length>1?"У меня новинки!":"Смотри, что появилось!"}</h3></div></div>
     <div class="news-list">${list.map(n=>`<div class="news-it"><span class="news-g">${glyph(n.g,30)}</span><div><b>${esc(n.t)}</b><p>${esc(gx(n.d))}</p></div><button class="mini-btn" data-nshow="${n.id}">${ic("play")}Показать</button></div>`).join("")}</div>
     <div class="actions">${list.length>1?`<button class="ghost" id="newsAll">${ic("play")}Показать всё</button>`:""}<button class="primary" id="newsOk">${ic("check")}Понятно</button></div></div>`);
   sfx("chime");
@@ -4501,6 +4504,8 @@ const FUN_NICHE={
  sport:"Для команды: «Тайный ангел» — поддержка перед стартом, а «Тайный повар» — полезный ужин после.",
  build:"Для бригады: «Тайный повар» на объекте — по очереди готовите обед друг другу.",
  finance:"Для отдела: «Тайный ангел» в сезон отчётов — когда поддержка нужнее всего."};
+const APPLY_GROUP={smm:"content",creative:"content",teach:"teach",student:"teach",biz:"biz",sales:"biz",beauty:"biz",office:"team",it:"team",med:"team",oil:"team",gov:"team",finance:"team",build:"team",sport:"team",driver:"driver",mom:"family"};
+function applyFor(e){if(!e||!e.apply)return "";const n=nicheOf(), g=isOwner()?"content":n&&APPLY_GROUP[n.id];return (g&&e.apply[g])||"";}
 let funTab="games", funForm=null;
 const wishDoc=()=>S.wish&&S.wish.main||{items:[],wish:""};
 function funSeason(){const m=+todayKey().slice(5,7);return {g:FUN_GAMES.filter(x=>x.m.includes(m)),i:FUN_IDEAS.filter(x=>x.m.includes(m))};}
@@ -4639,6 +4644,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"«Польза для тебя» в уроках: как применить тему в своей профессии"},
  {d:"2026-10-26",t:"Праздники с близкими: игры с тайной жеребьёвкой по ссылке, идеи праздников и вишлист"},
  {d:"2026-10-26",t:"Анонс маршрута на год (нажми на флажки), звук BARI при открытии, кнопки «Сказка о BARI» и «Маршрут» в подсказке «?»"},
  {d:"2026-10-26",t:"Маршрут по праздникам и Шёлковый путь: Узбекистан (Самарканд, Бухара, Хива) и Турция (Стамбул, Каппадокия). BARI поздравляет с праздниками"},
@@ -5198,6 +5204,7 @@ function renderMe(){
       ${e.facts.length?`<div class="facts"><span class="label">Удивительно</span><ul>${e.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
       ${e.words.length?`<div class="words"><span class="label">Слова дня</span>${e.words.map(w=>`<div class="word"><b>${flag(e.country||j.country,18)} ${esc(w.it)}</b><span>${flag("Великобритания",14)} ${esc(w.en)} · ${esc(w.ru)}</span>${w.hint?`<small>${esc(w.hint)}</small>`:""}</div>`).join("")}</div>`:""}
       ${e.together&&hasKids()?`<div class="talk kid">${ic("heart")}<div><b>${isOwner()?"Вместе с дочкой":"Вместе с ребёнком"}</b><br>${esc(e.together)}</div></div>`:""}
+      ${(()=>{const t=applyFor(e);return t?`<div class="talk apply">${ic("spark")}<div><b>Польза для тебя</b><br>${esc(gx(t))}</div></div>`:"";})()}
       ${e.talk?`<div class="talk">${ic("chat")}<div><b>Ввернуть в разговор</b><br>«${esc(e.talk)}»</div></div>`:""}
       <h4>Проверь себя</h4>${qhtml}
       ${e.done?`<div class="done-card">${bari({mood:"joy",wave:true,size:76,prop:PROPS.spark})}<div><b>Урок пройден: ${e.correct} из ${e.quiz.length}</b><br>+${XP.lesson+XP.right*e.correct} баллов. До завтра в ${esc(journeyFor(addDays(k,1)).city)}!</div></div>`:""}

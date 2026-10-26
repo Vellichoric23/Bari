@@ -509,7 +509,7 @@ svg.bari .bari-star.gold path:first-of-type{fill:#FFC93C}svg.bari .bari-star.gol
 .hero-cat{position:absolute;right:calc(var(--bx,0px)*-1 + 170px);bottom:118px;width:64px;z-index:2;pointer-events:none}
 .hero-cat .cat-tail{animation:catTail 2.6s ease-in-out infinite;transform-origin:62px 50px}@keyframes catTail{50%{transform:rotate(-14deg)}}
 .hero-flowers{position:absolute;left:0;right:0;bottom:96px;width:100%;height:36px;z-index:1;pointer-events:none}
-.rp-soon{position:absolute;top:4px;right:4px;font-size:9.5px;font-weight:800;background:#FFD166;color:#5A3A00;border-radius:6px;padding:1px 5px}
+.rp.locked{opacity:.55;filter:grayscale(.6)}.rp.locked.on{opacity:1;filter:none}.rp-soon{position:absolute;top:4px;right:4px;font-size:9.5px;font-weight:800;background:#FFD166;color:#5A3A00;border-radius:6px;padding:1px 5px}
 
 svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animation:bariBreath 3.6s ease-in-out infinite}
 @keyframes bariBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.985)}}
@@ -4370,6 +4370,7 @@ setTimeout(()=>handleDeepLink(),1500);
 
 /* ---------- updates, bug reports, coming-soon cities ---------- */
 const CHANGELOG=[
+ {d:"2026-10-26",t:"Страны, которые BARI ещё готовит, помечены «скоро» и откроются сами"},
  {d:"2026-10-26",t:"Burka: осеннее меню и женская Burka в Атырау с дофаминовым меню"},
  {d:"2026-10-26",t:"Кофейня-партнёр Burka Coffee: BARI пьёт кофе из их стаканчика"},
  {d:"2026-10-25",t:"Кофе с BARI: как пьют кофе в каждой стране маршрута, рецепт, настоящие факты и легенды (Для тебя → Кофе)"},
@@ -4381,6 +4382,8 @@ let BACKLOG=null;
 async function loadBacklog(){if(BACKLOG!==null)return BACKLOG;BACKLOG=[];try{const r=await fetch("content/backlog.json",{cache:"no-cache"});if(r.ok){BACKLOG=await r.json();render();}}catch(e){}return BACKLOG;}
 setTimeout(loadBacklog,2500);
 const citySoon=city=>Array.isArray(BACKLOG)&&BACKLOG.some(x=>x.city===city);
+const countryLocked=country=>{const jn=JOURNEY.find(x=>x.country===country);return !!(jn&&Array.isArray(BACKLOG)&&BACKLOG.some(x=>x.city===jn.cities[0][0]));};
+const readyCountries=()=>JOURNEY.map(j=>j.country).filter(c=>!countryLocked(c));
 const countrySoon=country=>{const jn=JOURNEY.find(x=>x.country===country);return !!(jn&&Array.isArray(BACKLOG)&&BACKLOG.length&&jn.cities.every(([c])=>citySoon(c)));};
 function soonCityNote(){
   const j=journeyFor(meToday()); if(!citySoon(j.city)) return "";
@@ -4615,15 +4618,16 @@ function obStep2(edit){
 }
 function obStep3(edit){
   const d=obDraft; d.route=d.route||(hasRoute()?settings.route.slice():[]);
+  if(BACKLOG===null) loadBacklog().then(()=>{if(document.querySelector(".route-pick"))draw();});
   const draw=()=>{
     openSheet(`<div class="ci-sheet ob">
       <div class="ob-top">${bari({mood:"joy",wave:true,size:80,prop:PROPS.spark})}<div><span class="label">Шаг 3 из 3</span><h3 style="margin:2px 0 0">Куда отправимся?</h3><p class="tip" style="margin:4px 0 0">Каждый месяц — новая страна, каждую неделю — новый город. Уроки, факты и фон приложения будут про него. Нажимай страны в том порядке, в каком хочешь путешествовать.</p></div></div>
-      <div class="route-pick">${JOURNEY.map(jn=>{const i=d.route.indexOf(jn.country);return `<button class="rp ${i>=0?"on":""}" data-rc="${esc(jn.country)}" style="position:relative">${countrySoon(jn.country)?`<span class="rp-soon">уроки скоро</span>`:""}${i>=0?`<b class="rp-n">${i+1}</b>`:""}${flag(jn.country,30)}<span>${esc(jn.country)}</span><small>${esc(jn.cities.slice(0,2).map(c=>c[0]).join(", "))}…</small></button>`;}).join("")}</div>
+      <div class="route-pick">${JOURNEY.map(jn=>{const i=d.route.indexOf(jn.country);return `<button class="rp ${i>=0?"on":""} ${countryLocked(jn.country)?"locked":""}" data-rc="${esc(jn.country)}" style="position:relative">${countryLocked(jn.country)?`<span class="rp-soon">скоро</span>`:""}${i>=0?`<b class="rp-n">${i+1}</b>`:""}${flag(jn.country,30)}<span>${esc(jn.country)}</span><small>${esc(jn.cities.slice(0,2).map(c=>c[0]).join(", "))}…</small></button>`;}).join("")}</div>
       <div class="row"><button class="ghost" id="rpSurprise">${ic("spark")}Удиви меня</button><button class="ghost" id="rpClear">Сбросить</button></div>
-      <p class="tip" style="margin:0">${d.route.length?`Маршрут: ${d.route.map(esc).join(" → ")}`:"Можно выбрать несколько стран или довериться BARI."}</p>
+      <p class="tip" id="rpNote" style="margin:0">${d.route.length?`Маршрут: ${d.route.map(esc).join(" → ")}`:"Можно выбрать несколько стран или довериться BARI."}</p>
       <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obSave">${ic("check")}${edit?"Сохранить":"Поехали!"}</button></div></div>`);
-    document.querySelectorAll("[data-rc]").forEach(b=>b.onclick=()=>{const c=b.dataset.rc;d.route=d.route.includes(c)?d.route.filter(x=>x!==c):d.route.concat(c);draw();});
-    document.getElementById("rpSurprise").onclick=()=>{d.route=shuffle(JOURNEY.map(j=>j.country));draw();};
+    document.querySelectorAll("[data-rc]").forEach(b=>b.onclick=()=>{const c=b.dataset.rc;if(!d.route.includes(c)&&countryLocked(c)){sfx("soft");const n=document.getElementById("rpNote");if(n)n.innerHTML=`${flag(c,16)} <b>${esc(c)}</b> — BARI ещё собирает уроки и истории этой страны. Она откроется сама, как только будет готова. Следи в «Что нового».`;return;}d.route=d.route.includes(c)?d.route.filter(x=>x!==c):d.route.concat(c);draw();});
+    document.getElementById("rpSurprise").onclick=()=>{d.route=shuffle(readyCountries());draw();};
     document.getElementById("rpClear").onclick=()=>{d.route=[];draw();};
     document.getElementById("obBack").onclick=()=>obStep2(edit);
     document.getElementById("obSave").onclick=()=>obFinish(edit);
@@ -4631,7 +4635,7 @@ function obStep3(edit){
   draw();
 }
 async function obFinish(edit){
-  const d=obDraft; let route=d.route&&d.route.length?d.route:shuffle(JOURNEY.map(j=>j.country));
+  const d=obDraft; let route=d.route&&d.route.length?d.route:shuffle(readyCountries());
   const habits=d.prio&&d.prio.length?PRIORITIES.filter(p=>d.prio.includes(p.id)).map(p=>p.h):null;
   const same=hasRoute()&&JSON.stringify(route)===JSON.stringify(settings.route);
   const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],hobbies:d.hobbies||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};

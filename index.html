@@ -4567,7 +4567,10 @@ function funTeaser(){const s=funSeason(), top=s.g.find(x=>x.id!=="angel"&&x.id!=
   return `<section class="card"><span class="label">Праздники с близкими</span><p class="cd-fact">${ic("spark")}<span><b>${esc(top.n)}</b> — ${esc(top.d||top.t)}</span></p>
   ${(()=>{const n=nicheOf(),t=n&&(isOwner()?FUN_NICHE.smm:FUN_NICHE[n.id]);return t?`<p class="tip" style="margin:0 0 8px">${esc(gx(t))}</p>`:"";})()}
   <div class="seg"><button class="mini-btn" data-fun="games">${ic("play")}Игры</button><button class="mini-btn" data-fun="ideas">${ic("idea")}Идеи праздников</button><button class="mini-btn" data-fun="wish">${ic("heart")}Мой вишлист</button></div></section>`;}
-function drawPairs(names){const n=names.length;if(n<2)return null;let p;for(let t=0;t<500;t++){p=shuffle(names.map((_,i)=>i));if(p.every((x,i)=>x!==i))break;}return names.map((nm,i)=>({n:nm,to:names[p[i]]}));}
+// fair secret draw: a random permutation from the phone's cryptographic generator, redrawn until nobody gets themselves
+const rnd=n=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n;};
+const fairShuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+function drawPairs(names){const n=names.length;if(n<2)return null;let p;for(let t=0;t<1000;t++){p=fairShuffle(names.map((_,i)=>i));if(p.every((x,i)=>x!==i))break;}return names.map((nm,i)=>({n:nm,to:names[p[i]]}));}
 function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:g.date||"",b:g.budget||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{})});}
 function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
 async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}

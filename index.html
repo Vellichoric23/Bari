@@ -4568,7 +4568,7 @@ function funTeaser(){const s=funSeason(), top=s.g.find(x=>x.id!=="angel"&&x.id!=
   ${(()=>{const n=nicheOf(),t=n&&(isOwner()?FUN_NICHE.smm:FUN_NICHE[n.id]);return t?`<p class="tip" style="margin:0 0 8px">${esc(gx(t))}</p>`:"";})()}
   <div class="seg"><button class="mini-btn" data-fun="games">${ic("play")}Игры</button><button class="mini-btn" data-fun="ideas">${ic("idea")}Идеи праздников</button><button class="mini-btn" data-fun="wish">${ic("heart")}Мой вишлист</button></div></section>`;}
 function drawPairs(names){const n=names.length;if(n<2)return null;let p;for(let t=0;t<500;t++){p=shuffle(names.map((_,i)=>i));if(p.every((x,i)=>x!==i))break;}return names.map((nm,i)=>({n:nm,to:names[p[i]]}));}
-function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:g.date||"",b:g.budget||"",no:g.note||"",me:p.n,to:p.to,org:g.org||""});}
+function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:g.date||"",b:g.budget||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{})});}
 function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
 async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}
   window.open("https://wa.me/?text="+encodeURIComponent(text+"\n"+url),"_blank","noopener");}
@@ -4592,7 +4592,7 @@ function openFun(tab){if(tab)funTab=tab;
       <button class="primary" id="wShare">${ic("send")}Поделиться вишлистом</button>`;}
   else{const G=Object.entries(S.games||{}).sort((a,b)=>(b[1].at||"").localeCompare(a[1].at||""));
     body=G.length?G.map(([id,g])=>{const T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];return `<div class="fun-card"><div class="fun-h"><span class="fun-e">${T.g}</span><b>${esc(g.title)}</b></div><p class="tip" style="margin:0">${g.date?esc(nice(g.date))+" · ":""}${g.budget?esc(g.budget)+" · ":""}${g.pairs.length} участников</p>
-      <div class="fun-people">${g.pairs.map((p,i)=>`<button class="mini-btn" data-fsend="${id}|${i}">${ic("send")}${esc(p.n)}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Нажми на имя — отправишь человеку его личную ссылку. Кто кому выпал, видно только по ссылке.</p>
+      <div class="fun-people">${g.pairs.map((p,i)=>p.n===userName()?`<a class="mini-btn" href="${gameLink(g,p)}" target="_blank" rel="noopener">${ic("play")}Моя ссылка</a>`:`<button class="mini-btn" data-fsend="${id}|${i}">${ic("send")}${esc(p.n)}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Нажми на имя — отправишь человеку его личную ссылку. Сама чужие ссылки не открывай: там тайна этого человека. Пары не видны ни тебе, ни мне — только каждому по своей ссылке.</p>
       <button class="ghost" data-fdel="${id}">Удалить игру</button></div>`;}).join(""):`<p class="tip">Ты ещё не собирала игр. Открой вкладку «Игры» и нажми «Собрать игру».</p>`;}
   openSheet(`<div class="ci-sheet fun"><div class="cof-head">${bari({mood:"joy",size:64,wave:true})}<div><span class="label">Праздники с близкими</span><h3 style="margin:0">Игры, идеи и вишлисты</h3></div></div>
     <div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${funTab===k?"on":""}" data-ftab="${k}">${n}</button>`).join("")}</div><div class="fun-body">${body}</div><button class="ghost" id="funClose">Закрыть</button></div>`);
@@ -4614,7 +4614,7 @@ function bindFun(){const $=id=>document.getElementById(id);
   if($("fGo")) $("fGo").onclick=async()=>{const f=funForm;f.title=$("fTi").value.trim()||f.title;f.date=$("fD").value;f.budget=$("fB").value.trim();f.note=$("fNo").value.trim();f.people=$("fP").value;f.me=$("fMe").checked;
     let names=f.people.split(/\n|,/).map(x=>x.trim()).filter(Boolean); if(f.me&&userName()&&!names.includes(userName())) names.unshift(userName());
     names=[...new Set(names)]; if(names.length<3){toast("Нужно хотя бы 3 участника — так интереснее и тайна сохранится.");return;}
-    const pairs=drawPairs(names), id=uid(), g={type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
+    const pairs=drawPairs(names), id=uid(), g={gid:"g"+uid()+uid(),type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
     await store.saveDoc("games",id,g); S.games={...(S.games||{}),[id]:g}; sfx("done"); funForm=null; funTab="mine"; openFun();
     toast("Жребий брошен! Теперь отправь каждому его ссылку.");};
   document.querySelectorAll("[data-fsend]").forEach(b=>b.onclick=()=>{const [id,i]=b.dataset.fsend.split("|"), g=S.games[id], p=g.pairs[+i], T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];

@@ -597,6 +597,7 @@ svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animatio
 .route-flags[data-route]{cursor:pointer}.rt-list{display:grid;gap:8px;text-align:left}.rt-row{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:14px;padding:10px}.rt-row.now{outline:2px solid var(--accent)}.rt-b{flex:1;min-width:0}.rt-h{display:flex;gap:6px;align-items:center}.rt-b small{color:var(--muted);font-size:12px}.rt-b p{margin:3px 0 0;font-size:13px;line-height:1.4}.rt-hol{color:#B4235A;font-weight:600}.rt-tag{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 6px;background:#FFD166;color:#5A3A00}.rt-tag.now{background:var(--accent);color:#fff}.help-more{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
 .fun-card{background:var(--surface-2);border-radius:16px;padding:12px;margin:10px 0;text-align:left}.fun-card p{margin:6px 0;font-size:13.5px;line-height:1.45}.fun-card details{margin:4px 0 8px;font-size:13px}.fun-card ol{padding-left:18px;margin:6px 0}.fun-h{display:flex;gap:8px;align-items:center}.fun-e{font-size:22px}.fun-people{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.w-list{display:grid;gap:6px;margin:10px 0}.w-it{display:flex;justify-content:space-between;gap:8px;background:var(--surface-2);border-radius:12px;padding:8px 10px;text-align:left;font-size:13.5px}.w-form{display:grid;gap:6px;margin:8px 0}.fun-body{text-align:left}
 .talk.apply{background:#EAF7EE}
+.st-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.st-t{background:var(--surface-2);border-radius:14px;padding:10px;text-align:center}.st-t b{display:block;font-size:24px;color:var(--accent)}.st-t small{font-size:11.5px;color:var(--muted)}.st-bars{display:flex;align-items:flex-end;gap:2px;height:80px;width:100%;margin:8px 0 2px}.st-bars i{display:block;flex:1 1 0;min-width:4px;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}.st-list{display:grid;gap:4px;margin:6px 0 12px;text-align:left;width:100%}.st-list div{display:flex;justify-content:space-between;background:var(--surface-2);border-radius:10px;padding:6px 10px;font-size:13.5px}
 .holi{display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,#FFF1C9,#FFE0EC);border-radius:16px;padding:10px 12px;margin-bottom:10px}.holi b{display:block;font-size:14.5px}.holi p{margin:2px 0 0;font-size:13px;line-height:1.4}
 .partner{display:flex;gap:12px;align-items:flex-start;background:#FEE7B5;color:#511B14;border-radius:16px;padding:12px;margin:12px 0;text-align:left}.partner .label{color:#7F2D33}.partner b{display:block;font-size:16px}.partner p{margin:4px 0;font-size:13.5px;line-height:1.4}.partner small{font-size:11.5px;opacity:.8}.p-women{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e6}.p-women>b{font-size:14px;color:#7F2D33}.p-women p{margin:4px 0;font-size:13px}.p-hits{margin-top:8px}.p-hits summary{font-weight:700;font-size:13px;color:#7F2D33;cursor:pointer}.p-hits p{margin:6px 0;font-size:13px}.p-hits p b{display:inline;font-size:13.5px}.partner-cup{flex:none;width:64px;height:64px;border-radius:14px;background:#fff8e6;display:grid;place-items:center}
 .cd-coffee .cof-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#6F4E37;color:#fff;flex:none}.cd-coffee .cof-ic svg{width:20px;height:20px}.cd-coffee>div{flex:1;min-width:0}.cd-coffee small{display:block;color:var(--muted);font-size:12px}.cof-head{display:flex;gap:12px;align-items:center;text-align:left}.cof-body{text-align:left}.cof-list{padding-left:20px;margin:6px 0 12px}.cof-list li{margin:6px 0;line-height:1.45}.cof-facts li{margin:10px 0}
@@ -1200,7 +1201,10 @@ async function startTrack(t){
   await store.saveTask({...t,startedAt:new Date().toISOString()});
   window.bariOnTrack?.(t,true);
 }
-async function stopTrack(t,extra={}){if(extra.done&&!t.done)extra={doneAt:new Date().toISOString(),...extra};await store.saveTask({...t,spentMin:Math.round(spentTotal(t)*10)/10,startedAt:"",...extra});window.bariOnTrack?.(t,false);}
+/* analytics: anonymous daily counters (no task text, no names) — the owner sees only totals */
+const _trackSeen=new Set();
+function track(name,once){try{const sb=window.sbClient;if(!sb||!window.sbUserId)return;const k=name+"|"+todayKey();if(once&&_trackSeen.has(k))return;_trackSeen.add(k);sb.rpc("track_event",{p_name:name}).then(()=>{},()=>{});}catch(e){}}
+async function stopTrack(t,extra={}){if(extra.done&&!t.done)track("task_done");if(extra.done&&!t.done)extra={doneAt:new Date().toISOString(),...extra};await store.saveTask({...t,spentMin:Math.round(spentTotal(t)*10)/10,startedAt:"",...extra});window.bariOnTrack?.(t,false);}
 function stageStats(){
   const since=addDays(todayKey(),-30), g={};
   for(const t of workTasks(tasks)) if(t.done&&t.date>=since&&(Number(t.spentMin)||0)>0.5){const s=g[t.stage]||(g[t.stage]={n:0,fact:0,plan:0});s.n++;s.fact+=Number(t.spentMin);s.plan+=planMin(t);}
@@ -1408,6 +1412,7 @@ function renderToday(){
   bindExtras();
   if(typeof maybeNews==="function"&&window._taleChk)maybeNews();
   if(typeof pushRefresh==="function"&&settingsLoaded)pushRefresh();
+  if(settingsLoaded&&!window._openTracked&&window.sbUserId){window._openTracked=1;track("open",1);}
   if(!window._taleChk&&settingsLoaded){window._taleChk=1;let seen=false;try{seen=!!localStorage.getItem("bari-tale");}catch(e){seen=true;}if(!seen&&settings.onboarded!==false&&(settings.onboarded||isOwner()))setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash"))openStory(true);},3200);}
   const bb=document.getElementById("bariBtn");
   const bariSay=(q)=>{const b=document.getElementById("bariBubble");if(!b||!bb)return;b.innerHTML=`«${esc(q.q)}»${q.ru?`<span class="bb-ru">${esc(q.ru)}</span>`:""}<span class="bb-a">— ${esc(q.a)}</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:bariState.mood==="sleep"?"happy":"wink",prop:"",outfit:outfitFor(q)});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);};
@@ -1487,7 +1492,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>`:""}
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="devList" style="margin-top:10px">📱 Устройства с моими уведомлениями</button><button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="devList" style="margin-top:10px">📱 Устройства с моими уведомлениями</button>${isOwner()?`<button class="ghost" id="statsBtn" style="margin-top:10px">📊 Статистика BARI</button>`:""}<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -2305,7 +2310,7 @@ function levelChip(){
   return `<button class="lvl" id="lvlBtn" aria-label="Уровень BARI"><span class="lvl-n">Ур. ${L.n}</span><span class="lvl-t">${L.name}</span><span class="lvl-bar"><i style="width:${L.pct}%"></i></span></button>`;
 }
 function storyHtml(n){const st=STORY[n-1];return `<div class="story"><span class="label">${esc(st.h)}</span><p>${esc(gx(st.t))}</p></div>`;}
-function openLevel(n){
+function openLevel(n){track("level",1);
   if(n)sfx("chime");
   const xp=xpTotal(), L=levelOf(xp), show=n||L.n, ppd=xpPerDay(), left=Math.max(0,L.to-xp), eta=L.to>L.from?Math.ceil(left/ppd):0, nx=LEVEL_REWARDS[L.n];
   openSheet(`<div class="ci-sheet" style="justify-items:center;text-align:center">${bari({mood:"joy",wave:true,prop:PROPS.spark,size:120,lvl:show})}
@@ -3608,7 +3613,7 @@ function coffeeRow(j){const c=coffeeFor(j);if(!c)return "";
 function coffeeCard(k){const j=journeyFor(k),c=coffeeFor(j);if(!c)return "";const i=(+k.slice(8,10))%c.facts.length;
   return `<section class="card"><span class="label">Кофе с BARI · ${esc(j.country)}</span><p class="cd-fact">${ic("spark")}<span>${esc(c.facts[i])}</span></p>${coffeeRow(j)}</section>`;}
 let coffeeTab="how";
-function openCoffee(){const j=journeyFor(todayKey()), c=coffeeFor(j); if(!c) return;
+function openCoffee(){track("coffee",1);const j=journeyFor(todayKey()), c=coffeeFor(j); if(!c) return;
   const cityNote=c.cities&&c.cities[j.city], L=coffeeLegend(c,todayKey()), r=c.recipe;
   const tabs=[["how","Как пьют"],["recipe","Рецепт"],["facts","Факты"],["legend","Легенда"]];
   const body=coffeeTab==="recipe"?`<h4 style="margin:6px 0">${esc(r.n)}</h4><span class="label">Нужно</span><ul class="cof-list">${r.ing.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><span class="label">Как готовить</span><ol class="cof-list">${r.steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>${r.tip?`<div class="talk">${ic("idea")}<div>${esc(r.tip)}</div></div>`:""}`
@@ -3743,7 +3748,7 @@ function holidaysIn(row){const out=[];
       const inR=h.d<=to?(cur>=h.d&&cur<=to):(cur>=h.d||cur<=to); if(inR){hit.push(c.n);break;}}}
     if(hit.length) out.push({city:hit.join(" и "),t:h.t});}
   return out;}
-function openRoute(){
+function openRoute(){track("route",1);
   const P=routePlan(), fmt=d=>d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"}).replace(".","");
   openSheet(`<div class="ci-sheet route-sheet"><div class="cof-head">${bari({mood:"joy",size:64,wave:true})}<div><span class="label">Анонс путешествия</span><h3 style="margin:0">Маршрут BARI на год</h3></div></div>
     <p class="tip" style="margin:6px 0 10px">Каждую неделю — новый город, каждая страна попадает на свой праздник.</p>
@@ -4027,7 +4032,7 @@ function moneyCard(k){
     <p class="tip" style="margin:6px 0">Сегодня потрачено: <b>${fmtMoney(today)}</b>${pd?` · можно тратить ~${fmtMoney(pd.v)} в день`:""}</p>
     <div class="row"><button class="primary" data-madd="out">− Расход</button><button class="ghost" data-madd="in">+ Доход</button><button class="ghost" data-mopen="1">Всё о деньгах</button></div></section>`;
 }
-function openMoney(){
+function openMoney(){track("money",1);
   const m=moneyMonth||mKey(), st=monthStats(m), prev=monthStats(shiftMonth(m,-1)), pd=perDayLeft(m,st), g=settings.moneyGoal||null, lim=Number(settings.moneyLimit)||0;
   const cats=Object.entries(st.by).sort((a,b)=>b[1]-a[1]), max=cats.length?cats[0][1]:1;
   const day=Math.floor((Date.now()-new Date(2026,0,1))/864e5), tip=MONEY_TIPS[day%MONEY_TIPS.length], earn=EARN[nicheOf()?.id]||EARN[isOwner()?"smm":"other"];
@@ -4137,7 +4142,7 @@ function studioStrip(k){
 function quickInbox(){const n=Object.keys(S.inbox).length;return `<form class="quick-in" id="quickIn"><input id="quickInT" type="text" placeholder="Быстро записать мысль или задачу…" autocomplete="off"><button class="mini-btn" aria-label="Записать">${ic("plus")}</button>${!studioOn()&&n?`<button type="button" class="mini-btn" data-studio="inbox">Входящие · ${n}</button>`:""}</form>`;}
 document.addEventListener("submit",e=>{if(e.target.id!=="quickIn")return;e.preventDefault();const i=document.getElementById("quickInT"),v=i.value.trim();if(!v)return;const id=uid();sSave("inbox",id,{text:v,created:new Date().toISOString()});i.value="";toast("Записала во «Входящие»");sfx("pop");});
 document.addEventListener("click",e=>{const b=e.target.closest?.("[data-studio]");if(b){studioTab=b.dataset.studio;studioDay=null;openStudio();}});
-function openStudio(){
+function openStudio(){track("studio",1);
   const tabs=(studioOn()?[["stories","Сторис"],["board","Контент"],["report","Отчёт"]]:[]).concat([["inbox","Входящие"]]);
   if(!tabs.some(t=>t[0]===studioTab)) studioTab="inbox";
   let body="";
@@ -4378,7 +4383,7 @@ function contentIdea(){
   const F=CFORMATS[genSeed%CFORMATS.length], pn=p?p.name:"твой проект";
   return {head:F.f,src:src||`Город недели — ${j.city}`,f:F.f,how:F.how.replace(/\{aud\}/g,a[0]).replace(/\{aud_one\}/g,a[1]).replace(/\{proj\}/g,pn),proj:p};
 }
-function openGen(){
+function openGen(){track("generator",1);
   const tabs=genTabs(); if(!genTab||!tabs.some(t=>t[0]===genTab)) genTab=tabs[0][0];
   let body="";
   if(genTab==="content"){
@@ -4433,7 +4438,7 @@ const TOUR2=[
 ];
 let tourI=-1, tourTyping=null;
 let TSTEPS=TOUR2, tourDone=null;
-function startTour(steps,done){closeSheet();TSTEPS=Array.isArray(steps)?steps:TOUR2;tourDone=typeof done==="function"?done:null;tourI=0;ensureTourDom();tourStep();}
+function startTour(steps,done){track("tour",1);closeSheet();TSTEPS=Array.isArray(steps)?steps:TOUR2;tourDone=typeof done==="function"?done:null;tourI=0;ensureTourDom();tourStep();}
 function ensureTourDom(){
   if(document.getElementById("tour2")) return;
   document.body.insertAdjacentHTML("beforeend",`<div id="tour2" class="tour2"><div class="t2-spot" id="t2Spot"></div><div class="t2-bari" id="t2Bari"></div><div class="t2-bub" id="t2Bub"><p id="t2Txt"></p><div class="t2-row"><span class="t2-dots" id="t2Dots"></span><button class="ghost" id="t2Skip">Пропустить</button><button class="ghost" id="t2Back">Назад</button><button class="primary" id="t2Next">Дальше</button></div></div></div>`);
@@ -4493,7 +4498,7 @@ const NEWS=[
 function newsSeen(){let ls=[];try{ls=JSON.parse(localStorage.getItem("bari-news")||"[]");}catch(e){}return new Set([...(settings.newsSeen||[]),...ls]);}
 function markNews(ids){const all=[...new Set([...newsSeen(),...ids])];try{localStorage.setItem("bari-news",JSON.stringify(all));}catch(e){}store.saveSettings({...settings,newsSeen:all});}
 function unseenNews(){const s=newsSeen();return NEWS.filter(n=>!s.has(n.id));}
-function openNews(list){list=list||unseenNews();if(!list.length)return;
+function openNews(list){track("news",1);list=list||unseenNews();if(!list.length)return;
   openSheet(`<div class="ci-sheet news"><div class="news-top">${bari({mood:"joy",wave:true,size:84})}<div><span class="label">Новое в BARI</span><h3 style="margin:2px 0 0">${list.length>1?"У меня новинки!":"Смотри, что появилось!"}</h3></div></div>
     <div class="news-list">${list.map(n=>`<div class="news-it"><span class="news-g">${glyph(n.g,30)}</span><div><b>${esc(n.t)}</b><p>${esc(gx(n.d))}</p></div><button class="mini-btn" data-nshow="${n.id}">${ic("play")}Показать</button></div>`).join("")}</div>
     <div class="actions">${list.length>1?`<button class="ghost" id="newsAll">${ic("play")}Показать всё</button>`:""}<button class="primary" id="newsOk">${ic("check")}Понятно</button></div></div>`);
@@ -4594,7 +4599,7 @@ function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:(g.date
 function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
 async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}
   window.open("https://wa.me/?text="+encodeURIComponent(text+"\n"+url),"_blank","noopener");}
-function openFun(tab){if(tab)funTab=tab;
+function openFun(tab){track("fun",1);if(tab)funTab=tab;
   const tabs=[["games","Игры"],["ideas","Идеи"],["wish","Вишлист"],["mine","Мои игры"]], m=+todayKey().slice(5,7), seas=x=>x.m.includes(m)&&x.m.length<12;
   let body="";
   if(funTab==="games"){
@@ -4640,7 +4645,7 @@ function bindFun(){const $=id=>document.getElementById(id);
   if($("fGo")) $("fGo").onclick=async()=>{const f=funForm;f.title=$("fTi").value.trim()||f.title;f.date=$("fD").value;f.budget=$("fB").value.trim();f.note=$("fNo").value.trim();f.people=$("fP").value;f.me=$("fMe").checked;
     let names=f.people.split(/\n|,/).map(x=>x.trim()).filter(Boolean); if(f.me&&userName()&&!names.includes(userName())) names.unshift(userName());
     names=[...new Set(names)]; if(names.length<3){toast("Нужно хотя бы 3 участника — так интереснее и тайна сохранится.");return;}
-    const pairs=drawPairs(names).map(p=>({...p,k:newTok()})), id=uid(), g={gid:"g"+uid()+uid(),type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
+    track("game_create");const pairs=drawPairs(names).map(p=>({...p,k:newTok()})), id=uid(), g={gid:"g"+uid()+uid(),type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
     await store.saveDoc("games",id,g); S.games={...(S.games||{}),[id]:g}; publishGame(id,g); sfx("done"); funForm=null; funTab="mine"; openFun();
     toast("Жребий брошен! Теперь отправь каждому его ссылку.");};
   document.querySelectorAll("[data-fsend]").forEach(b=>b.onclick=()=>{const [id,i]=b.dataset.fsend.split("|"), g=S.games[id], p=g.pairs[+i], T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];
@@ -4712,7 +4717,7 @@ function taleScene(s){
   }
 }
 let taleI=0, taleFirst=false;
-function openStory(first){if((window.bariLvl||1)>=7&&!TALE.some(x=>x.secret))TALE.push({s:"now",secret:true,t:"Секретная глава. Однажды ночью BARI спросил әже во сне: «А что будет, когда мой сад вырастет?» Әже ответила: «Тогда ты станешь семечком для кого-то ещё». С тех пор BARI бережёт каждое твоё семечко — дела, слова, книги — чтобы однажды ими поделиться."});taleI=0;taleFirst=!!first;try{localStorage.setItem("bari-tale","1");}catch(e){}drawTale();}
+function openStory(first){track("story",1);if((window.bariLvl||1)>=7&&!TALE.some(x=>x.secret))TALE.push({s:"now",secret:true,t:"Секретная глава. Однажды ночью BARI спросил әже во сне: «А что будет, когда мой сад вырастет?» Әже ответила: «Тогда ты станешь семечком для кого-то ещё». С тех пор BARI бережёт каждое твоё семечко — дела, слова, книги — чтобы однажды ими поделиться."});taleI=0;taleFirst=!!first;try{localStorage.setItem("bari-tale","1");}catch(e){}drawTale();}
 function drawTale(){
   const p=TALE[taleI], last=taleI===TALE.length-1;
   openSheet(`<div class="tale"><div class="tale-pic" key="${taleI}"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">${taleScene(p.s)}</svg></div>
@@ -4779,7 +4784,7 @@ function soonCityNote(){
   const j=journeyFor(meToday()); if(!citySoon(j.city)) return "";
   return `<div class="soon-card">${bari({mood:"think",size:64,arms:"hold",prop:`<g transform="translate(140 110) scale(2)">${GLYPHS.book2}</g>`})}<div><b>BARI пишет уроки про ${esc(j.city)} ✍️</b><p class="tip" style="margin:4px 0 0">Наклейки, легенды, факты и слова города уже есть. Уроки появятся в ближайших обновлениях — а пока BARI берёт урок из соседнего города.</p></div></div>`;
 }
-function openUpdates(){
+function openUpdates(){track("updates",1);
   const bl=Array.isArray(BACKLOG)?BACKLOG:[]; const by={}; bl.forEach(x=>{(by[x.country]=by[x.country]||[]).push(x.city);});
   openSheet(`<div class="ci-sheet upd">${bari({mood:"joy",size:84,wave:true})}<h3 style="margin:0">Что нового в BARI</h3>
     <button class="ghost" id="newsAgain">${ic("play")}Показать новинки с BARI</button>
@@ -5102,7 +5107,30 @@ async function openDevices(){const sb=window.sbClient;if(!sb)return;
   document.querySelectorAll("[data-devdel]").forEach(b=>b.onclick=async()=>{const id=b.dataset.devdel;await sb.from("docs").delete().eq("col","push").eq("id",id).eq("user_id",window.sbUserId);
     if(id===mine){try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}try{localStorage.removeItem("bari-push");}catch(e){}}
     toast("Устройство удалено — туда больше не придут твои напоминания.");openDevices();});}
-document.addEventListener("click",e=>{if(e.target.closest?.("#devList"))openDevices();});
+document.addEventListener("click",e=>{if(e.target.closest?.("#devList"))openDevices();if(e.target.closest?.("#statsBtn"))openStats();});
+const FEAT_NAMES={open:"Открыли приложение",task_done:"Закрывали дела",lesson_done:"Прошли урок",coffee:"Кофе",route:"Маршрут",level:"Уровни",fun:"Праздники",game_create:"Создали игру",news:"Новинки",generator:"Генератор идей",money:"Деньги",studio:"Студия",story:"Сказка",tour:"Экскурсия",updates:"Что нового"};
+async function openStats(){const sb=window.sbClient;if(!sb)return;
+  openSheet(`<div class="ci-sheet"><span class="label">Только для тебя</span><h3 style="margin:0">Статистика BARI</h3><p class="tip">Загружаю…</p></div>`);
+  const {data:d,error}=await sb.rpc("admin_stats");
+  if(error||!d){openSheet(`<div class="ci-sheet"><h3 style="margin:0">Статистика BARI</h3><p class="tip">Статистика ещё не подключена: выполни SQL из файла supabase/analytics.sql и строку «сделать меня админом» в Supabase.</p><button class="ghost" id="stX">Закрыть</button></div>`);document.getElementById("stX").onclick=closeSheet;return;}
+  const pct=(a,b)=>b?Math.round(a/b*100)+"%":"—", R=d.ret||{};
+  const tile=(n,l)=>`<div class="st-t"><b>${n}</b><small>${esc(l)}</small></div>`;
+  const days=(d.daily||[]), mx=Math.max(1,...days.map(x=>x.u));
+  const bars=days.length?`<div class="st-bars">${days.map(x=>`<i style="height:${Math.round(x.u/mx*100)}%" title="${esc(x.d)}: ${x.u}"></i>`).join("")}</div><small class="tip">Активные люди по дням, последние 30 дней</small>`:"";
+  const fe=Object.entries(d.featureUsers||{}).sort((a,b)=>b[1]-a[1]);
+  const ni=Object.entries(d.niches||{}).sort((a,b)=>b[1]-a[1]);
+  openSheet(`<div class="ci-sheet st"><span class="label">Только для тебя</span><h3 style="margin:0">Статистика BARI</h3>
+    <div class="st-grid">${tile(d.users,"всего пользователей")}${tile(d.new7,"новых за 7 дней")}${tile(d.dau,"активны сегодня")}${tile(d.wau,"активны за 7 дней")}${tile(d.mau,"активны за 30 дней")}${tile(pct(R.r7,R.c7),"вернулись через неделю")}</div>
+    ${bars}
+    <span class="label">Удержание</span>
+    <p class="tip" style="margin:4px 0">На следующий день: <b>${pct(R.r1,R.c1)}</b> (${R.r1||0} из ${R.c1||0}) · через неделю: <b>${pct(R.r7,R.c7)}</b> · через месяц: <b>${pct(R.r30,R.c30)}</b></p>
+    <span class="label">Что любят — людей за 7 дней</span>
+    <div class="st-list">${fe.map(([k,v])=>`<div><span>${esc(FEAT_NAMES[k]||k)}</span><b>${v}</b></div>`).join("")||`<p class="tip">Пока нет данных — они начнут копиться с сегодняшнего дня.</p>`}</div>
+    <span class="label">Профессии</span>
+    <div class="st-list">${ni.map(([k,v])=>`<div><span>${esc((NICHES.find(n=>n.id===k)||{}).n||k)}</span><b>${v}</b></div>`).join("")}</div>
+    <p class="tip" style="font-size:12px">Считаются только количества: кто именно и что писал в задачах — не видно никому.</p>
+    <button class="ghost" id="stX">Закрыть</button></div>`);
+  document.getElementById("stX").onclick=closeSheet;}
 // each login re-registers this phone under the account that is signed in now
 function pushRefresh(){if(window._pushRef||!window.sbClient||!window.sbUserId)return;window._pushRef=1;try{if(notifState()==="granted")subscribePush().catch(()=>{});}catch(e){}}
 async function enableNotifications(){
@@ -5296,6 +5324,7 @@ async function answerQuiz(qi,oi){
   const answers={...e.answers,[qi]:oi}; const correct=e.quiz.reduce((s,q,i)=>s+(answers[i]===q.answer?1:0),0);
   const done=Object.keys(answers).length>=e.quiz.length;
   await store.saveDoc("erud",k,{...e,answers,correct,done,doneAt:done?new Date().toISOString():(e.doneAt||"")});
+  if(done) track("lesson_done");
   if(done){
     toast(`Урок пройден: ${correct} из ${e.quiz.length}. ${BARI_LINES[correct%BARI_LINES.length]}`);
     const t=tasks.find(x=>x.date===k&&x.tpl==="h-erud"&&!x.done); if(t) await stopTrack(t,{done:true});

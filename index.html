@@ -4599,8 +4599,10 @@ function openFun(tab){if(tab)funTab=tab;
       <button class="primary" id="wShare">${ic("send")}Поделиться вишлистом</button>`;}
   else{const G=Object.entries(S.games||{}).sort((a,b)=>(b[1].at||"").localeCompare(a[1].at||""));
     body=G.length?G.map(([id,g])=>{const T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];return `<div class="fun-card"><div class="fun-h"><span class="fun-e">${T.g}</span><b>${esc(g.title)}</b></div><p class="tip" style="margin:0">${g.date?esc(nice(g.date))+" · ":""}${g.budget?esc(g.budget)+" · ":""}${g.pairs.length} участников</p>
-      <div class="fun-people">${g.pairs.map((p,i)=>p.n===userName()?`<a class="mini-btn" href="${gameLink(g,p)}" target="_blank" rel="noopener">${ic("play")}Моя ссылка</a>`:`<button class="mini-btn" data-fsend="${id}|${i}">${ic("send")}${esc(p.n)}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Нажми на имя — отправишь человеку его личную ссылку. Сама чужие ссылки не открывай: там тайна этого человека. Пары не видны ни тебе, ни мне — только каждому по своей ссылке.</p>
+      <div class="fun-people">${g.pairs.map((p,i)=>p.n===userName()?`<a class="mini-btn" href="${gameLink(g,p)}" target="_blank" rel="noopener">${ic("play")}Моя ссылка</a>`:`<button class="mini-btn ${p.fresh?"on":""}" data-fsend="${id}|${i}">${ic("send")}${esc(p.n)}${p.fresh?" · новая ссылка":""}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Нажми на имя — отправишь человеку его личную ссылку. Сама чужие ссылки не открывай: там тайна этого человека. Пары не видны ни тебе, ни мне — только каждому по своей ссылке.</p>
       ${funEdit===id?`<div class="w-form"><label class="label">Новая дата</label><input id="feD" type="date" value="${esc(g.date||"")}"><label class="label">${g.type==="ayaz"?"Бюджет":"Формат"}</label><input id="feB" value="${esc(g.budget||"")}"><label class="label">Пожелание для всех</label><input id="feN" value="${esc(g.note||"")}"><button class="primary" data-fsave="${id}">${ic("check")}Сохранить для всех</button></div>`:`<button class="ghost" data-fedit="${id}">${ic("cal")}Изменить дату или бюджет</button>`}
+      <div class="row" style="gap:6px;margin-top:8px"><input id="fAdd${id}" placeholder="Имя нового участника" style="flex:1"><button class="ghost" data-fadd="${id}" style="width:auto">${ic("plus")}Добавить</button></div>
+      <details style="margin-top:6px"><summary class="tip">Убрать участника</summary><div class="fun-people">${g.pairs.map((p,i)=>`<button class="mini-btn" data-frem="${id}|${i}">✕ ${esc(p.n)}</button>`).join("")}</div></details>
       <button class="ghost" data-fredraw="${id}">${ic("repeat")}Перетянуть жребий</button>
       <button class="ghost" data-fdel="${id}">Удалить игру</button></div>`;}).join(""):`<p class="tip">Ты ещё не собирала игр. Открой вкладку «Игры» и нажми «Собрать игру».</p>`;}
   openSheet(`<div class="ci-sheet fun"><div class="cof-head">${bari({mood:"joy",size:64,wave:true})}<div><span class="label">Праздники с близкими</span><h3 style="margin:0">Игры, идеи и вишлисты</h3></div></div>
@@ -4627,7 +4629,21 @@ function bindFun(){const $=id=>document.getElementById(id);
     await store.saveDoc("games",id,g); S.games={...(S.games||{}),[id]:g}; sfx("done"); funForm=null; funTab="mine"; openFun();
     toast("Жребий брошен! Теперь отправь каждому его ссылку.");};
   document.querySelectorAll("[data-fsend]").forEach(b=>b.onclick=()=>{const [id,i]=b.dataset.fsend.split("|"), g=S.games[id], p=g.pairs[+i], T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];
-    shareText(`${p.n}, привет! Играем в «${g.title}» ${T.g} Открой ссылку — там тайна только для тебя:`,gameLink(g,p));});
+    const fresh=p.fresh; shareText(`${p.n}, привет! ${fresh?"В игре «"+g.title+"» изменения — вот твоя новая ссылка, старую больше не открывай":"Играем в «"+g.title+"» "+T.g+" Открой ссылку — там тайна только для тебя"}:`,gameLink(g,p));
+    if(fresh){const g2={...g,pairs:g.pairs.map((q,j)=>j===+i?{...q,fresh:false}:q)};store.saveDoc("games",id,g2);S.games={...S.games,[id]:g2};setTimeout(()=>openFun(),400);}});
+  // add someone without redrawing: they slip into a random place in the gift chain, only one person gets a new link
+  document.querySelectorAll("[data-fadd]").forEach(b=>b.onclick=async()=>{const id=b.dataset.fadd,g={...S.games[id]},nm=$("fAdd"+id).value.trim();
+    if(!nm){$("fAdd"+id).focus();return;} if(g.pairs.some(p=>p.n.toLowerCase()===nm.toLowerCase())){toast("Такой участник уже есть.");return;}
+    const pairs=g.pairs.map(p=>({...p})), k=rnd(pairs.length), giver=pairs[k];
+    pairs.push({n:nm,to:giver.to,fresh:true}); giver.to=nm; giver.fresh=true;
+    g.pairs=pairs; await store.saveDoc("games",id,g); S.games={...S.games,[id]:g}; sfx("done"); openFun();
+    toast(`${nm} в игре! Отправь ссылку ей и тому, у кого написано «новая ссылка» — остальным ничего менять не нужно.`);});
+  document.querySelectorAll("[data-frem]").forEach(b=>b.onclick=async()=>{const [id,i]=b.dataset.frem.split("|"),g={...S.games[id]},x=g.pairs[+i];
+    if(g.pairs.length<=3){toast("В игре должно остаться хотя бы 3 человека.");return;}
+    if(!confirm(`Убрать ${x.n} из игры?`))return;
+    const pairs=g.pairs.map(p=>({...p})).filter(p=>p.n!==x.n), w=pairs.find(p=>p.to===x.n); if(w){w.to=x.to;w.fresh=true;}
+    g.pairs=pairs; await store.saveDoc("games",id,g); S.games={...S.games,[id]:g}; openFun();
+    toast("Готово. Одному человеку нужна новая ссылка — он отмечен «новая ссылка».");});
   document.querySelectorAll("[data-fredraw]").forEach(b=>b.onclick=async()=>{if(!confirm("Перетянуть жребий? Старые ссылки перестанут быть верными — новые нужно будет отправить всем заново."))return;
     const id=b.dataset.fredraw,g={...S.games[id]};g.pairs=drawPairs(g.pairs.map(p=>p.n));g.gid="g"+uid()+uid();delete g.date0;delete g.budget0;delete g.otok;
     await store.saveDoc("games",id,g);S.games={...S.games,[id]:g};sfx("done");openFun();toast("Новый жребий готов. Отправь каждому новую ссылку.");});

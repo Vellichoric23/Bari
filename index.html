@@ -4574,8 +4574,23 @@ function drawPairs(names){const n=names.length;if(n<2)return null;let p;for(let 
 const hshP=s=>{let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;let h2=0;for(const c of s)h2=(h2*31+c.charCodeAt(0))>>>0;return h.toString(36)+h2.toString(36);};
 const playKey=g=>g.gid||("h"+hshP([g.org||"",g.title,(g.date0??g.date)||"",(g.budget0??g.budget)||"",g.type].join("|")));
 async function playRpc(fn,args){const C=window.BARI_CONFIG||{};if(!C.supabaseUrl)throw new Error("nocfg");const r=await fetch(C.supabaseUrl+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.supabaseAnonKey,"Content-Type":"application/json"},body:JSON.stringify(args)});if(!r.ok)throw new Error("rpc "+r.status);return r.json();}
+
+/* live secret draw: each person's target is stored encrypted with a key only their link knows, so a redraw reaches everyone by the same link */
+const _te=new TextEncoder(), _hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");
+const _b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))), _ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function seatSecret(gk,name,k){return k?("k:"+k):("n:"+gk+"|"+String(name||"").trim().toLowerCase().replace(/\s+/g," "));}
+async function seatId(sec){return _hex(await crypto.subtle.digest("SHA-256",_te.encode("id|"+sec))).slice(0,16);}
+async function seatKey(sec){const raw=await crypto.subtle.digest("SHA-256",_te.encode("key|"+sec));return crypto.subtle.importKey("raw",raw,"AES-GCM",false,["encrypt","decrypt"]);}
+async function sealTo(sec,to){const iv=crypto.getRandomValues(new Uint8Array(12)),c=await crypto.subtle.encrypt({name:"AES-GCM",iv},await seatKey(sec),_te.encode(to));return _b64(iv)+"."+_b64(c);}
+async function openTo(sec,box){try{const [a,b]=box.split(".");const p=await crypto.subtle.decrypt({name:"AES-GCM",iv:_ub64(a)},await seatKey(sec),_ub64(b));return new TextDecoder().decode(p);}catch(e){return null;}}
 let funEdit=null;
-function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:(g.date0??g.date)||"",b:(g.budget0??g.budget)||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{})});}
+const newTok=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");
+// publish the whole game (date, budget, note and the encrypted draw) — everyone's page picks it up by the same link
+async function publishGame(id,g){if(!g.otok)g.otok=newTok();if(g.date0===undefined)g.date0=g.date||"";if(g.budget0===undefined)g.budget0=g.budget||"";
+  const gk=playKey(g), a={};for(const p of g.pairs){const sec=await seatSecret(gk,p.n,p.k);a[await seatId(sec)]=await sealTo(sec,p.to);}
+  g.rev=(g.rev||0)+1; await store.saveDoc("games",id,g); S.games={...S.games,[id]:g};
+  try{return await playRpc("set_game",{p_game:gk,p_token:g.otok,p_data:{d:g.date,b:g.budget,no:g.note,a,rev:g.rev}});}catch(e){return false;}}
+function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:(g.date0??g.date)||"",b:(g.budget0??g.budget)||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{}),...(p.k?{k:p.k}:{})});}
 function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
 async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}
   window.open("https://wa.me/?text="+encodeURIComponent(text+"\n"+url),"_blank","noopener");}
@@ -4625,8 +4640,8 @@ function bindFun(){const $=id=>document.getElementById(id);
   if($("fGo")) $("fGo").onclick=async()=>{const f=funForm;f.title=$("fTi").value.trim()||f.title;f.date=$("fD").value;f.budget=$("fB").value.trim();f.note=$("fNo").value.trim();f.people=$("fP").value;f.me=$("fMe").checked;
     let names=f.people.split(/\n|,/).map(x=>x.trim()).filter(Boolean); if(f.me&&userName()&&!names.includes(userName())) names.unshift(userName());
     names=[...new Set(names)]; if(names.length<3){toast("Нужно хотя бы 3 участника — так интереснее и тайна сохранится.");return;}
-    const pairs=drawPairs(names), id=uid(), g={gid:"g"+uid()+uid(),type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
-    await store.saveDoc("games",id,g); S.games={...(S.games||{}),[id]:g}; sfx("done"); funForm=null; funTab="mine"; openFun();
+    const pairs=drawPairs(names).map(p=>({...p,k:newTok()})), id=uid(), g={gid:"g"+uid()+uid(),type:f.type,title:f.title,date:f.date,budget:f.budget,note:f.note,org:userName()||"",pairs,at:new Date().toISOString()};
+    await store.saveDoc("games",id,g); S.games={...(S.games||{}),[id]:g}; publishGame(id,g); sfx("done"); funForm=null; funTab="mine"; openFun();
     toast("Жребий брошен! Теперь отправь каждому его ссылку.");};
   document.querySelectorAll("[data-fsend]").forEach(b=>b.onclick=()=>{const [id,i]=b.dataset.fsend.split("|"), g=S.games[id], p=g.pairs[+i], T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];
     const fresh=p.fresh; shareText(`${p.n}, привет! ${fresh?"В игре «"+g.title+"» изменения — вот твоя новая ссылка, старую больше не открывай":"Играем в «"+g.title+"» "+T.g+" Открой ссылку — там тайна только для тебя"}:`,gameLink(g,p));
@@ -4635,24 +4650,27 @@ function bindFun(){const $=id=>document.getElementById(id);
   document.querySelectorAll("[data-fadd]").forEach(b=>b.onclick=async()=>{const id=b.dataset.fadd,g={...S.games[id]},nm=$("fAdd"+id).value.trim();
     if(!nm){$("fAdd"+id).focus();return;} if(g.pairs.some(p=>p.n.toLowerCase()===nm.toLowerCase())){toast("Такой участник уже есть.");return;}
     const pairs=g.pairs.map(p=>({...p})), k=rnd(pairs.length), giver=pairs[k];
-    pairs.push({n:nm,to:giver.to,fresh:true}); giver.to=nm; giver.fresh=true;
-    g.pairs=pairs; await store.saveDoc("games",id,g); S.games={...S.games,[id]:g}; sfx("done"); openFun();
-    toast(`${nm} в игре! Отправь ссылку ей и тому, у кого написано «новая ссылка» — остальным ничего менять не нужно.`);});
+    pairs.push({n:nm,to:giver.to,k:newTok(),fresh:true}); giver.to=nm;
+    g.pairs=pairs; const ok=await publishGame(id,g); if(!ok){giver.fresh=true;await store.saveDoc("games",id,g);} sfx("done"); openFun();
+    toast(ok?`${nm} в игре! Отправь ссылку только ей — у остальных всё обновится само.`:`${nm} в игре! Отправь ссылку ей и тому, у кого «новая ссылка».`);});
   document.querySelectorAll("[data-frem]").forEach(b=>b.onclick=async()=>{const [id,i]=b.dataset.frem.split("|"),g={...S.games[id]},x=g.pairs[+i];
     if(g.pairs.length<=3){toast("В игре должно остаться хотя бы 3 человека.");return;}
     if(!confirm(`Убрать ${x.n} из игры?`))return;
-    const pairs=g.pairs.map(p=>({...p})).filter(p=>p.n!==x.n), w=pairs.find(p=>p.to===x.n); if(w){w.to=x.to;w.fresh=true;}
-    g.pairs=pairs; await store.saveDoc("games",id,g); S.games={...S.games,[id]:g}; openFun();
-    toast("Готово. Одному человеку нужна новая ссылка — он отмечен «новая ссылка».");});
-  document.querySelectorAll("[data-fredraw]").forEach(b=>b.onclick=async()=>{if(!confirm("Перетянуть жребий? Старые ссылки перестанут быть верными — новые нужно будет отправить всем заново."))return;
-    const id=b.dataset.fredraw,g={...S.games[id]};g.pairs=drawPairs(g.pairs.map(p=>p.n));g.gid="g"+uid()+uid();delete g.date0;delete g.budget0;delete g.otok;
-    await store.saveDoc("games",id,g);S.games={...S.games,[id]:g};sfx("done");openFun();toast("Новый жребий готов. Отправь каждому новую ссылку.");});
+    const pairs=g.pairs.map(p=>({...p})).filter(p=>p.n!==x.n), w=pairs.find(p=>p.to===x.n); if(w){w.to=x.to;}
+    g.pairs=pairs; const ok=await publishGame(id,g); if(!ok&&w){w.fresh=true;await store.saveDoc("games",id,g);} openFun();
+    toast(ok?"Готово — у всех обновилось само, ничего пересылать не нужно.":"Готово. Одному человеку нужна новая ссылка — он отмечен «новая ссылка».");});
+  document.querySelectorAll("[data-fredraw]").forEach(b=>b.onclick=async()=>{if(!confirm("Перетянуть жребий? У всех по их же ссылкам появится новый человек."))return;
+    const id=b.dataset.fredraw,g={...S.games[id]},ks={};g.pairs.forEach(p=>ks[p.n]=p.k);
+    let np;for(let t=0;t<50;t++){np=drawPairs(g.pairs.map(p=>p.n));if(g.pairs.length<4||np.some(q=>g.pairs.find(p=>p.n===q.n).to!==q.to))break;}
+    g.pairs=np.map(p=>({...p,...(ks[p.n]?{k:ks[p.n]}:{})}));
+    const ok=await publishGame(id,g); sfx("done"); openFun();
+    toast(ok?"Жребий перетянут! Всем ничего пересылать не надо — их страницы обновятся сами, и подарок снова будет закрыт.":"Не получилось обновить на сервере. Проверь SQL для игр в Supabase.");});
   document.querySelectorAll("[data-fedit]").forEach(b=>b.onclick=()=>{funEdit=b.dataset.fedit;openFun();});
   document.querySelectorAll("[data-fsave]").forEach(b=>b.onclick=async()=>{const id=b.dataset.fsave,g={...S.games[id]};
     if(g.date0===undefined)g.date0=g.date||"";if(g.budget0===undefined)g.budget0=g.budget||"";if(!g.otok)g.otok=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");
     g.date=$("feD").value;g.budget=$("feB").value.trim();g.note=$("feN").value.trim();
     await store.saveDoc("games",id,g);S.games={...S.games,[id]:g};funEdit=null;
-    let ok=false;try{ok=await playRpc("set_game",{p_game:playKey(g),p_token:g.otok,p_data:{d:g.date,b:g.budget,no:g.note}});}catch(e){}
+    const ok=await publishGame(id,g);
     openFun();
     if(ok){sfx("done");toast("Сохранено — все увидят новую дату по своим ссылкам.");shareText(`📅 Внимание! «${g.title}»: ${g.date?"новая дата — "+nice(g.date):"изменения в игре"}${g.budget?", бюджет: "+g.budget:""}. Ссылки те же — откройте свою, там всё обновилось.`,"");}
     else toast("Сохранила у тебя, но на сервере не обновилось. Проверь, что SQL для игр выполнен в Supabase.");});

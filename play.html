@@ -59,6 +59,15 @@ const rpc=async(fn,args)=>{if(!CFG.supabaseUrl)throw new Error("nocfg");const r=
 const norm=s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ");
 const hsh=s=>{let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;let h2=0;for(const c of s)h2=(h2*31+c.charCodeAt(0))>>>0;return h.toString(36)+h2.toString(36);};
 const gameKey=g=>g.gid||("h"+hsh([g.org,g.ti,g.d||"",g.b||"",g.t].join("|")));
+
+/* live secret draw: each person's target is stored encrypted with a key only their link knows, so a redraw reaches everyone by the same link */
+const _te=new TextEncoder(), _hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");
+const _b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))), _ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function seatSecret(gk,name,k){return k?("k:"+k):("n:"+gk+"|"+String(name||"").trim().toLowerCase().replace(/\s+/g," "));}
+async function seatId(sec){return _hex(await crypto.subtle.digest("SHA-256",_te.encode("id|"+sec))).slice(0,16);}
+async function seatKey(sec){const raw=await crypto.subtle.digest("SHA-256",_te.encode("key|"+sec));return crypto.subtle.importKey("raw",raw,"AES-GCM",false,["encrypt","decrypt"]);}
+async function sealTo(sec,to){const iv=crypto.getRandomValues(new Uint8Array(12)),c=await crypto.subtle.encrypt({name:"AES-GCM",iv},await seatKey(sec),_te.encode(to));return _b64(iv)+"."+_b64(c);}
+async function openTo(sec,box){try{const [a,b]=box.split(".");const p=await crypto.subtle.decrypt({name:"AES-GCM",iv:_ub64(a)},await seatKey(sec),_ub64(b));return new TextDecoder().decode(p);}catch(e){return null;}}
 const myToken=k=>{let t=LS.get("bari-play-tok-"+k);if(!t){t=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("");LS.set("bari-play-tok-"+k,t);}return t;};
 let WKEY="bari-play-wish", LIVE=null;
 const wlHtml=(w,fresh)=>w.items.length?`<p class="muted" style="font-size:13px;margin:8px 0 2px">В списке: ${w.items.length}</p>`+w.items.map((it,i)=>`<div class="it ${fresh===i?"fresh":""}"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}</div><button class="x" data-d="${i}" aria-label="Удалить">✕</button></div>`).join(""):`<p class="muted" style="font-size:13px">Список пока пуст — добавь первое желание.</p>`;
@@ -83,10 +92,10 @@ function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn"
     const f=document.querySelector("#wl .fresh");if(f)f.scrollIntoView({block:"center",behavior:"smooth"});};
   $("#wt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#wa").click();}});
   if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}
-function game(g){const gk=g._gk||gameKey(g); if(!g._live){rpc("get_game",{p_game:gk}).then(r=>{const d=r&&r.data;if(!d)return;const ch=(d.d&&d.d!==g.d)||(d.b&&d.b!==g.b)||(d.no!==undefined&&d.no!==g.no);if(!ch)return;game({...g,_live:1,_gk:gk,_old:g.d,d:d.d||g.d,b:d.b||g.b,no:d.no!==undefined?d.no:g.no});}).catch(()=>{});} LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me))}; WKEY="bari-play-wish-"+gk;
+function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,no:g.no}; if(!g._live) syncGame(g,gk); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me))}; WKEY="bari-play-wish-"+gk;
   const T=GAMES[g.t]||GAMES.ayaz, key="bari-play-open-"+enc([g.ti,g.me]).slice(0,40), opened=!!LS.get(key);
   app.innerHTML=`<div class="bari">${BJ}</div><span class="label">${T.e} ${esc(T.n)}</span><h1>${esc(g.ti)}</h1>
-  ${g._live&&g._old&&g._old!==g.d?`<div class="card" style="background:#FFF1C9;text-align:center"><b>📅 Организатор перенёс день игры на ${esc(nice(g.d))}</b></div>`:""}<p class="muted">${esc(g.me)}, ${g.org?esc(g.org)+" позвала тебя в игру":"тебя позвали в игру"}.${g.d?` День игры — ${esc(nice(g.d))}.`:""}${g.b?` ${g.t==="ayaz"?"Бюджет":"Формат"}: ${esc(g.b)}.`:""}</p>
+  ${g._redrawn?`<div class="card" style="background:#E8E3FF;text-align:center"><b>🔄 Организатор перетянул жребий! Открой подарок заново — там новый человек.</b></div>`:""}${g._live&&g._old&&g._old!==g.d?`<div class="card" style="background:#FFF1C9;text-align:center"><b>📅 Организатор перенёс день игры на ${esc(nice(g.d))}</b></div>`:""}<p class="muted">${esc(g.me)}, ${g.org?esc(g.org)+" позвала тебя в игру":"тебя позвали в игру"}.${g.d?` День игры — ${esc(nice(g.d))}.`:""}${g.b?` ${g.t==="ayaz"?"Бюджет":"Формат"}: ${esc(g.b)}.`:""}</p>
   <div class="card" style="text-align:center"><p class="muted" id="hint">${opened?"Твой тайный человек:":"Нажми на подарок — там тайна только для тебя. Убедись, что никто не подглядывает!"}</p>
   <div class="gift ${opened?"open":""}" id="gift" role="button" aria-label="Открыть"><div class="box"></div><div class="rib"></div><div class="lid"></div><div class="bow"></div></div>
   <div class="who ${opened?"on":""}" id="who">${esc(g.to)}</div><p class="muted" id="verb" style="${opened?"":"display:none"}">Ты ${esc(T.verb)} этому человеку. Тсс — никому!</p></div>
@@ -95,7 +104,7 @@ function game(g){const gk=g._gk||gameKey(g); if(!g._live){rpc("get_game",{p_game
   <div class="card"><span class="label">Правила</span><ol>${T.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ol></div>
   ${wishEditor(g.me)}
   <footer><a href="./">BARI — планер и путешествия каждый день</a></footer>`;
-  $("#gift").onclick=()=>{if($("#gift").classList.contains("open"))return;$("#gift").classList.add("open");$("#who").classList.add("on");$("#verb").style.display="";$("#hint").textContent="Твой тайный человек:";LS.set(key,1);confetti();chime();$("#theirWish").style.display="";loadTheirs(g,gk);};
+  $("#gift").onclick=()=>{if($("#gift").classList.contains("open"))return;$("#gift").classList.add("open");$("#who").classList.add("on");$("#verb").style.display="";$("#hint").textContent="Твой тайный человек:";LS.set(key,1);LS.set("bari-play-to-"+gk+"|"+norm(g.me),g.to);confetti();chime();$("#theirWish").style.display="";loadTheirs(g,gk);};
   bindWish(); if(opened) loadTheirs(g,gk);
   clearInterval(window._twT); window._twT=setInterval(()=>{if(!document.hidden&&$("#gift")&&$("#gift").classList.contains("open"))loadTheirs(g,gk);},20000);}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&window._twG&&$("#gift")&&$("#gift").classList.contains("open"))loadTheirs(window._twG[0],window._twG[1]);});
@@ -131,6 +140,14 @@ function giftIdea(text,budget){const t=String(text||"");const f=FANDOM.find(([r]
   const twist=f?f[1].twist:c?c[1].twist:"Добавь записку с одним воспоминанием о вас — это будут помнить дольше подарка.";
   return {wrap,add:pick(adds),add2:pick(adds),twist,style:pick(STYLES)};}
 function ideaHtml(it,i){const d=giftIdea(it.t+" "+(it.no||""));return `<div class="idea" id="idea${i}"><p><b>🎀 Упаковка:</b> ${esc(d.wrap)}</p><p><b>➕ Добавь к подарку:</b> ${esc(d.add)}${d.add2!==d.add?` или ${esc(d.add2)}`:""}</p><p><b>✨ Изюминка:</b> ${esc(d.twist)}</p><button class="x more" data-more="${i}">Ещё идея ↻</button></div>`;}
+async function syncGame(g,gk){try{const r=await rpc("get_game",{p_game:gk});const d=r&&r.data;if(!d)return;
+    let to=g.to;if(d.a){const sec=await seatSecret(gk,g.me,g.k);const box=d.a[await seatId(sec)];if(box){const v=await openTo(sec,box);if(v)to=v;}}
+    const seen=LS.get("bari-play-to-"+gk+"|"+norm(g.me)), redrawn=seen&&seen!==to;
+    if(redrawn){LS.set("bari-play-open-"+enc([g.ti,g.me]).slice(0,40),null);}
+    const cur=window._shown||g; const ch=to!==cur.to||(d.d&&d.d!==cur.d)||(d.b&&d.b!==cur.b)||(d.no!==undefined&&d.no!==cur.no);
+    if(ch||redrawn) game({...g,_live:1,_gk:gk,_old:g.d,_redrawn:redrawn,to,d:d.d||g.d,b:d.b||g.b,no:d.no!==undefined?d.no:g.no});
+  }catch(e){}}
+setInterval(()=>{const h=location.hash.slice(1);if(!document.hidden&&h.startsWith("g=")){const g=dec(h.slice(2));if(g)syncGame(g,gameKey(g));}},45000);
 async function loadTheirs(g,gk){window._twG=[g,gk];const box=$("#twBody");if(!box)return;
   try{const r=await rpc("get_wish",{p_game:gk,p_person:norm(g.to)});const w=r&&r.data;
     if(!w||(!w.wish&&!(w.items||[]).length)){box.innerHTML=`<p class="muted">${esc(g.to)} ещё не написал(а) вишлист. Загляни позже — список появится здесь сам.</p>`;return;}
@@ -140,11 +157,11 @@ async function loadTheirs(g,gk){window._twG=[g,gk];const box=$("#twBody");if(!bo
     const open=(k)=>{const slot=$("#slot"+k);if(!slot)return;slot.innerHTML=ideaHtml(byKey(k),k);const m=slot.querySelector("[data-more]");if(m)m.onclick=()=>{open(k);pop();};};
     box.querySelectorAll("[data-idea]").forEach(b=>b.onclick=()=>{const k=b.dataset.idea,slot=$("#slot"+k);if(slot.innerHTML){slot.innerHTML="";return;}open(k);pop();});
   }catch(e){box.innerHTML=`<p class="muted">Живой вишлист скоро заработает. А пока попроси ${esc(g.to)} отправить вишлист в общий чат.</p>`;}}
-function wish(w){LIVE=null;app.innerHTML=`<div class="bari">${BH}</div><span class="label">Вишлист</span><h1>${esc(w.n||"Друг")} мечтает о…</h1>
+function wish(w){LIVE=null;window._shown=null;app.innerHTML=`<div class="bari">${BH}</div><span class="label">Вишлист</span><h1>${esc(w.n||"Друг")} мечтает о…</h1>
   ${w.wish?`<div class="card"><span class="label">Главное желание</span><p style="font-size:18px;font-weight:700;margin:4px 0">${esc(w.wish)}</p></div>`:""}
   <div class="card">${(w.items||[]).map(it=>`<div class="it"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">посмотреть</a>`:""}${it.no?`<br><span class="muted">${esc(it.no)}</span>`:""}</div></div>`).join("")||`<p class="muted">Список пока пуст.</p>`}</div>
   <a class="btn ghost" href="${base}#new">Создать свой вишлист</a><footer><a href="./">BARI — планер и путешествия каждый день</a></footer>`;}
-function home(){LIVE=null;WKEY="bari-play-wish";app.innerHTML=`<div class="bari">${BJ}</div><h1>Праздники с близкими</h1><p class="muted">Здесь открываются тайные игры и вишлисты из BARI.</p>${wishEditor("")}<footer><a href="./">Открыть BARI</a></footer>`;bindWish();}
+function home(){LIVE=null;window._shown=null;WKEY="bari-play-wish";app.innerHTML=`<div class="bari">${BJ}</div><h1>Праздники с близкими</h1><p class="muted">Здесь открываются тайные игры и вишлисты из BARI.</p>${wishEditor("")}<footer><a href="./">Открыть BARI</a></footer>`;bindWish();}
 function route(){const h=location.hash.slice(1);if(h.startsWith("g=")){const g=dec(h.slice(2));if(g&&g.me&&g.to)return game(g);}if(h.startsWith("w=")){const w=dec(h.slice(2));if(w)return wish(w);}home();}
 window.addEventListener("hashchange",route);route();
 })();

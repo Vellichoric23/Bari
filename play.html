@@ -27,7 +27,8 @@ input,textarea{font:inherit;width:100%;border:1.5px solid var(--soft);background
 svg.bari .bari-body{transform-box:view-box;transform-origin:100px 205px;animation:br 3.6s ease-in-out infinite}@keyframes br{50%{transform:scaleY(1.03) scaleX(.985)}}
 ol{padding-left:20px;margin:6px 0}li{margin:4px 0}
 .it{display:flex;justify-content:space-between;gap:8px;background:var(--soft);border-radius:12px;padding:10px 12px;margin:6px 0}
-.it a{color:var(--accent)}.x{background:none;color:var(--muted);width:auto;margin:0;padding:0 4px}
+.it a{color:var(--accent)}.it.fresh{animation:fresh 1.6s ease-out}@keyframes fresh{0%{background:#C9F2D4;transform:scale(1.03)}100%{background:var(--soft);transform:none}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);background:#1F1D3D;color:#fff;font-weight:700;padding:12px 18px;border-radius:14px;opacity:0;transition:all .25s;z-index:9;pointer-events:none;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}.x{background:none;color:var(--muted);width:auto;margin:0;padding:0 4px}
 .conf{position:fixed;inset:0;pointer-events:none;overflow:hidden}.conf i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;animation:fall 2.6s linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 footer{margin-top:20px}footer a{color:var(--muted);font-size:13px}
@@ -59,18 +60,27 @@ const hsh=s=>{let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;let h2=
 const gameKey=g=>g.gid||("h"+hsh([g.org,g.ti,g.d||"",g.b||"",g.t].join("|")));
 const myToken=k=>{let t=LS.get("bari-play-tok-"+k);if(!t){t=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("");LS.set("bari-play-tok-"+k,t);}return t;};
 let WKEY="bari-play-wish", LIVE=null;
+const wlHtml=(w,fresh)=>w.items.length?`<p class="muted" style="font-size:13px;margin:8px 0 2px">В списке: ${w.items.length}</p>`+w.items.map((it,i)=>`<div class="it ${fresh===i?"fresh":""}"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}</div><button class="x" data-d="${i}" aria-label="Удалить">✕</button></div>`).join(""):`<p class="muted" style="font-size:13px">Список пока пуст — добавь первое желание.</p>`;
+function toast(t){let el=$("#toast");if(!el){el=document.createElement("div");el.id="toast";document.body.appendChild(el);}el.textContent=t;el.classList.remove("on");void el.offsetWidth;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),2200);}
+function pop(){try{const C=window.AudioContext||window.webkitAudioContext,a=toast.ac||(toast.ac=new C()),o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.setValueAtTime(420,a.currentTime);o.frequency.exponentialRampToValueAtTime(980,a.currentTime+.08);g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.2,a.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.15);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.2);}catch(e){}}
 const wishEditor=name=>{const w=LS.get(WKEY)||{n:name||"",wish:"",items:[]};
   return `<div class="card"><span class="label">Мой вишлист</span><p class="muted">${LIVE?"Пиши, что тебе правда хочется. Твой тайный человек увидит список сразу — и всё, что ты добавишь завтра, тоже.":"Напиши, что тебе правда хочется, и отправь ссылку в общий чат — твоему тайному человеку будет легче."}</p><p class="muted" id="wsync" style="font-size:12.5px"></p>
   <input id="wn" placeholder="Твоё имя" value="${esc(w.n)}"><textarea id="ww" rows="2" placeholder="Главное желание">${esc(w.wish)}</textarea>
-  <div id="wl">${w.items.map((it,i)=>`<div class="it"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}</div><button class="x" data-d="${i}" aria-label="Удалить">✕</button></div>`).join("")}</div>
+  <div id="wl">${wlHtml(w)}</div>
   <input id="wt" placeholder="Что хочется"><input id="wp" placeholder="Цена (необязательно)"><input id="wu" placeholder="Ссылка (необязательно)">
   <button class="ghost" id="wa">+ Добавить</button>${LIVE?"":`<button id="ws">Отправить вишлист</button>`}</div>`;};
 function pushWish(w){if(!LIVE)return;const s=$("#wsync");if(s)s.textContent="Сохраняю…";
   rpc("set_wish",{p_game:LIVE.game,p_person:LIVE.me,p_token:LIVE.tok,p_data:{n:w.n,wish:w.wish,items:w.items}}).then(ok=>{const s=$("#wsync");if(s)s.textContent=ok?"✓ Сохранено — твой тайный человек это видит":"Этот вишлист уже ведётся с другого телефона. Открой ссылку там.";}).catch(()=>{const s=$("#wsync");if(s)s.textContent="Сохранено на телефоне. Живой вишлист включится, когда организатор его подключит.";});}
 function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn").value.trim();w.wish=$("#ww").value.trim();LS.set(WKEY,w);return w;};
   $("#ww").onchange=()=>pushWish(save());
-  $("#wa").onclick=()=>{const w=save(),t=$("#wt").value.trim();if(!t)return;const u=$("#wu").value.trim();w.items.push({t,p:$("#wp").value.trim(),u:/^https?:\/\//.test(u)?u:""});LS.set(WKEY,w);pushWish(w);route();};
-  document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const w=save();w.items.splice(+b.dataset.d,1);LS.set(WKEY,w);pushWish(w);route();});
+  const draw=fresh=>{const w=LS.get(WKEY)||{items:[]};$("#wl").innerHTML=wlHtml(w,fresh);bindDel();};
+  const bindDel=()=>document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const w=save(),gone=w.items[+b.dataset.d];w.items.splice(+b.dataset.d,1);LS.set(WKEY,w);pushWish(w);draw();toast("Удалено: "+(gone?gone.t:""));});
+  bindDel();
+  $("#wa").onclick=()=>{const w=save(),t=$("#wt").value.trim();if(!t){$("#wt").focus();toast("Сначала напиши, что хочется ✍️");return;}const u=$("#wu").value.trim();
+    w.items.push({t,p:$("#wp").value.trim(),u:/^https?:\/\//.test(u)?u:""});LS.set(WKEY,w);pushWish(w);draw(w.items.length-1);
+    $("#wt").value="";$("#wp").value="";$("#wu").value="";pop();toast("✓ Добавлено в вишлист");
+    const f=document.querySelector("#wl .fresh");if(f)f.scrollIntoView({block:"center",behavior:"smooth"});};
+  $("#wt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#wa").click();}});
   if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}
 function game(g){const gk=gameKey(g); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me))}; WKEY="bari-play-wish-"+gk;
   const T=GAMES[g.t]||GAMES.ayaz, key="bari-play-open-"+enc([g.ti,g.me]).slice(0,40), opened=!!LS.get(key);
@@ -87,8 +97,8 @@ function game(g){const gk=gameKey(g); LIVE={game:gk,me:norm(g.me),tok:myToken(gk
   $("#gift").onclick=()=>{if($("#gift").classList.contains("open"))return;$("#gift").classList.add("open");$("#who").classList.add("on");$("#verb").style.display="";$("#hint").textContent="Твой тайный человек:";LS.set(key,1);confetti();chime();$("#theirWish").style.display="";loadTheirs(g,gk);};
   bindWish(); if(opened) loadTheirs(g,gk);
   clearInterval(window._twT); window._twT=setInterval(()=>{if(!document.hidden&&$("#gift")&&$("#gift").classList.contains("open"))loadTheirs(g,gk);},20000);}
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)route();});
-async function loadTheirs(g,gk){const box=$("#twBody");if(!box)return;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&window._twG&&$("#gift")&&$("#gift").classList.contains("open"))loadTheirs(window._twG[0],window._twG[1]);});
+async function loadTheirs(g,gk){window._twG=[g,gk];const box=$("#twBody");if(!box)return;
   try{const r=await rpc("get_wish",{p_game:gk,p_person:norm(g.to)});const w=r&&r.data;
     if(!w||(!w.wish&&!(w.items||[]).length)){box.innerHTML=`<p class="muted">${esc(g.to)} ещё не написал(а) вишлист. Загляни позже — список появится здесь сам.</p>`;return;}
     const at=r.at?new Date(r.at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";

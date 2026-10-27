@@ -4571,7 +4571,11 @@ function funTeaser(){const s=funSeason(), top=s.g.find(x=>x.id!=="angel"&&x.id!=
 const rnd=n=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n;};
 const fairShuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
 function drawPairs(names){const n=names.length;if(n<2)return null;let p;for(let t=0;t<1000;t++){p=fairShuffle(names.map((_,i)=>i));if(p.every((x,i)=>x!==i))break;}return names.map((nm,i)=>({n:nm,to:names[p[i]]}));}
-function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:g.date||"",b:g.budget||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{})});}
+const hshP=s=>{let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;let h2=0;for(const c of s)h2=(h2*31+c.charCodeAt(0))>>>0;return h.toString(36)+h2.toString(36);};
+const playKey=g=>g.gid||("h"+hshP([g.org||"",g.title,(g.date0??g.date)||"",(g.budget0??g.budget)||"",g.type].join("|")));
+async function playRpc(fn,args){const C=window.BARI_CONFIG||{};if(!C.supabaseUrl)throw new Error("nocfg");const r=await fetch(C.supabaseUrl+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.supabaseAnonKey,"Content-Type":"application/json"},body:JSON.stringify(args)});if(!r.ok)throw new Error("rpc "+r.status);return r.json();}
+let funEdit=null;
+function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:(g.date0??g.date)||"",b:(g.budget0??g.budget)||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{})});}
 function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
 async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}
   window.open("https://wa.me/?text="+encodeURIComponent(text+"\n"+url),"_blank","noopener");}
@@ -4596,6 +4600,7 @@ function openFun(tab){if(tab)funTab=tab;
   else{const G=Object.entries(S.games||{}).sort((a,b)=>(b[1].at||"").localeCompare(a[1].at||""));
     body=G.length?G.map(([id,g])=>{const T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];return `<div class="fun-card"><div class="fun-h"><span class="fun-e">${T.g}</span><b>${esc(g.title)}</b></div><p class="tip" style="margin:0">${g.date?esc(nice(g.date))+" · ":""}${g.budget?esc(g.budget)+" · ":""}${g.pairs.length} участников</p>
       <div class="fun-people">${g.pairs.map((p,i)=>p.n===userName()?`<a class="mini-btn" href="${gameLink(g,p)}" target="_blank" rel="noopener">${ic("play")}Моя ссылка</a>`:`<button class="mini-btn" data-fsend="${id}|${i}">${ic("send")}${esc(p.n)}</button>`).join("")}</div><p class="tip" style="margin:4px 0 0">Нажми на имя — отправишь человеку его личную ссылку. Сама чужие ссылки не открывай: там тайна этого человека. Пары не видны ни тебе, ни мне — только каждому по своей ссылке.</p>
+      ${funEdit===id?`<div class="w-form"><label class="label">Новая дата</label><input id="feD" type="date" value="${esc(g.date||"")}"><label class="label">${g.type==="ayaz"?"Бюджет":"Формат"}</label><input id="feB" value="${esc(g.budget||"")}"><label class="label">Пожелание для всех</label><input id="feN" value="${esc(g.note||"")}"><button class="primary" data-fsave="${id}">${ic("check")}Сохранить для всех</button></div>`:`<button class="ghost" data-fedit="${id}">${ic("cal")}Изменить дату или бюджет</button>`}
       <button class="ghost" data-fdel="${id}">Удалить игру</button></div>`;}).join(""):`<p class="tip">Ты ещё не собирала игр. Открой вкладку «Игры» и нажми «Собрать игру».</p>`;}
   openSheet(`<div class="ci-sheet fun"><div class="cof-head">${bari({mood:"joy",size:64,wave:true})}<div><span class="label">Праздники с близкими</span><h3 style="margin:0">Игры, идеи и вишлисты</h3></div></div>
     <div class="seg m-tabs">${tabs.map(([k,n])=>`<button class="mini-btn ${funTab===k?"on":""}" data-ftab="${k}">${n}</button>`).join("")}</div><div class="fun-body">${body}</div><button class="ghost" id="funClose">Закрыть</button></div>`);
@@ -4622,6 +4627,15 @@ function bindFun(){const $=id=>document.getElementById(id);
     toast("Жребий брошен! Теперь отправь каждому его ссылку.");};
   document.querySelectorAll("[data-fsend]").forEach(b=>b.onclick=()=>{const [id,i]=b.dataset.fsend.split("|"), g=S.games[id], p=g.pairs[+i], T=FUN_GAMES.find(x=>x.id===g.type)||FUN_GAMES[0];
     shareText(`${p.n}, привет! Играем в «${g.title}» ${T.g} Открой ссылку — там тайна только для тебя:`,gameLink(g,p));});
+  document.querySelectorAll("[data-fedit]").forEach(b=>b.onclick=()=>{funEdit=b.dataset.fedit;openFun();});
+  document.querySelectorAll("[data-fsave]").forEach(b=>b.onclick=async()=>{const id=b.dataset.fsave,g={...S.games[id]};
+    if(g.date0===undefined)g.date0=g.date||"";if(g.budget0===undefined)g.budget0=g.budget||"";if(!g.otok)g.otok=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");
+    g.date=$("feD").value;g.budget=$("feB").value.trim();g.note=$("feN").value.trim();
+    await store.saveDoc("games",id,g);S.games={...S.games,[id]:g};funEdit=null;
+    let ok=false;try{ok=await playRpc("set_game",{p_game:playKey(g),p_token:g.otok,p_data:{d:g.date,b:g.budget,no:g.note}});}catch(e){}
+    openFun();
+    if(ok){sfx("done");toast("Сохранено — все увидят новую дату по своим ссылкам.");shareText(`📅 Внимание! «${g.title}»: ${g.date?"новая дата — "+nice(g.date):"изменения в игре"}${g.budget?", бюджет: "+g.budget:""}. Ссылки те же — откройте свою, там всё обновилось.`,"");}
+    else toast("Сохранила у тебя, но на сервере не обновилось. Проверь, что SQL для игр выполнен в Supabase.");});
   document.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=async()=>{if(!confirm("Удалить игру?"))return;await store.deleteDoc("games",b.dataset.fdel);const o={...S.games};delete o[b.dataset.fdel];S.games=o;openFun();});
   const saveW=async w=>{await store.saveDoc("wish","main",w);S.wish={...(S.wish||{}),main:w};};
   if($("wAdd")) $("wAdd").onclick=async()=>{const t=$("wT").value.trim();if(!t){$("wT").focus();return;}const w={...wishDoc(),wish:$("wMain").value.trim()};w.items=[...(w.items||[]),{t,p:$("wP").value.trim(),u:/^https?:\/\//.test($("wU").value.trim())?$("wU").value.trim():"",no:$("wN").value.trim()}];await saveW(w);sfx("pop");openFun();};

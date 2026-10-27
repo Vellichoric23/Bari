@@ -30,3 +30,27 @@ end $$;
 revoke all on public.play_wish from anon, authenticated;
 grant execute on function public.get_wish(text, text) to anon, authenticated;
 grant execute on function public.set_wish(text, text, text, jsonb) to anon, authenticated;
+
+-- organizer can change the date, budget and note later; everyone sees it by their old link
+create table if not exists public.play_game (
+  game text primary key,
+  data jsonb not null default '{}'::jsonb,
+  token text,
+  updated_at timestamptz not null default now()
+);
+alter table public.play_game enable row level security;
+create or replace function public.get_game(p_game text)
+returns jsonb language sql security definer set search_path = public as $$
+  select jsonb_build_object('data', data, 'at', updated_at) from play_game where game = p_game;
+$$;
+create or replace function public.set_game(p_game text, p_token text, p_data jsonb)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if length(p_game) > 80 or length(p_token) < 16 or length(p_data::text) > 4000 then return false; end if;
+  insert into play_game (game, data, token) values (p_game, p_data, p_token)
+  on conflict (game) do update set data = excluded.data, updated_at = now() where play_game.token = excluded.token;
+  return found;
+end $$;
+revoke all on public.play_game from anon, authenticated;
+grant execute on function public.get_game(text) to anon, authenticated;
+grant execute on function public.set_game(text, text, jsonb) to anon, authenticated;

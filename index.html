@@ -1495,7 +1495,7 @@ function renderRhythm(){
       ${notes.length?`<div>${notes.map(n=>`<div class="tpl"><span class="tile" style="--pc:var(${n.done?"--ok":"--accent"})">${ic(n.done?"check":"note")}</span><div class="body"><div class="title" style="font-weight:600">${esc(n.text)}</div><div class="meta"><span>${n.date?nice(n.date):""}</span><span>${n.done?"учтено":isOwner()?"ждёт Claude":"новая"}</span></div></div><button class="mini-btn danger" data-delnote="${n.id}" aria-label="Удалить заметку">${ic("trash")}</button></div>`).join("")}</div>`:""}
     </div>`:""}
     <h2>${ic("heart")}О себе</h2>
-    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${esc(nicheOf().n)}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="devList" style="margin-top:10px">📱 Устройства с моими уведомлениями</button>${isOwner()?`<button class="ghost" id="statsBtn" style="margin-top:10px">📊 Статистика BARI</button>`:""}<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
+    <div class="card"><div class="row" style="align-items:center;justify-content:space-between"><div><b>${esc(userName()||"Без имени")}</b><br><span class="tip">${(s.projects||[]).filter(p=>p.kind!=="home").map(p=>esc(p.name)).join(" · ")}${nicheOf()?`<br>Сфера: ${nichesOf().map(n=>esc(n.n)).join(", ")}`:""}${(s.hobbies||[]).length?`<br>Увлечения: ${s.hobbies.map(h=>esc(HOBBIES.find(x=>x.id===h)?.n||"")).join(", ")}`:""}${hasRoute()?`<br>Маршрут: ${settings.route.map(c=>flag(c,16)).join(" ")}`:""}</span></div><button class="mini-btn" id="obEdit">${ic("pen")}Изменить</button></div><button class="ghost" id="tourBtn" style="margin-top:10px">${ic("spark")}Экскурсия по BARI</button><button class="ghost" data-story style="margin-top:10px">${ic("book")}Сказка о BARI</button><button class="ghost" data-updates style="margin-top:10px">${ic("spark")}Что нового · сообщить об ошибке</button><button class="ghost" data-motion="${settings.motion==="on"?"off":"on"}" style="margin-top:10px">${settings.motion==="on"?"Анимации: всегда включены · выключить":"Анимации: как в настройках телефона · включить всегда"}</button><button class="ghost" data-sounds style="margin-top:10px">${settings.sounds===false?"Звуки: выключены · включить":"Звуки: включены · выключить"}</button>${window.sbClient?`<button class="ghost" id="notifDiag" style="margin-top:10px">🔔 Проверить уведомления</button><button class="ghost" id="devList" style="margin-top:10px">📱 Устройства с моими уведомлениями</button>${isOwner()?`<button class="ghost" id="statsBtn" style="margin-top:10px">📊 Статистика BARI</button>`:""}<button class="ghost" id="logoutBtn" style="margin-top:10px">Выйти из аккаунта</button>`:""}</div>
     <h2>${ic("heart")}Забота о себе</h2>
     ${careCard()}
     <h2>${ic("pin")}Где я бываю</h2>
@@ -3154,7 +3154,7 @@ const HOBBY_TIPS={
 };
 function picksForUser(){
   const j=journeyFor(todayKey()), n=nicheOf(), out=[];
-  if(n){const l=NICHE_BOOKS[n.id]||NICHE_BOOKS.other;out.push({id:"niche",n:n.id==="driver"?"Для дороги: аудиокниги":`Для твоей работы · ${n.n}`,g:n.g,why:n.id==="driver"?"Удобно слушать в машине: за смену — несколько глав.":"Подобрали по твоей сфере.",l});}
+  for(const n of nichesOf()){const l=NICHE_BOOKS[n.id]||NICHE_BOOKS.other;out.push({id:"niche-"+n.id,n:n.id==="driver"?"Для дороги: аудиокниги":`Для твоей работы · ${n.n}`,g:n.g,why:n.id==="driver"?"Удобно слушать в машине: за смену — несколько глав.":"Подобрали по твоей сфере.",l});}
   for(const h of (settings.hobbies||[])){const l=HOBBY_BOOKS[h];const hb=HOBBIES.find(x=>x.id===h);if(l&&hb)out.push({id:"h-"+h,n:`Хобби · ${hb.n}`,g:"book2",why:"По твоим увлечениям.",l});}
   const base=BOOK_PICKS.filter(p=>p.id==="wardrobe"||p.id==="kz"||(p.id==="italy"&&j.country==="Италия")||p.id==="time"||(p.id==="kids"&&hasKids())).map(p=>p.id==="kz"?{...p,why:"Главные книги казахской литературы — их стоит знать каждому."}:p.id==="time"?{...p,why:"Меньше суеты — больше времени на то, что важно.",l:p.l.map(b=>({...b,w:b.w.replace(/ клиент[а-я]*/g,"")}))}:p);
   if(!out.length) out.push({id:"niche",n:"Для начала",g:"tree",why:"Добавь сферу и увлечения в «О себе» — подборки станут точнее.",l:NICHE_BOOKS.other});
@@ -4038,7 +4038,7 @@ function moneyCard(k){
 function openMoney(){track("money",1);
   const m=moneyMonth||mKey(), st=monthStats(m), prev=monthStats(shiftMonth(m,-1)), pd=perDayLeft(m,st), g=settings.moneyGoal||null, lim=Number(settings.moneyLimit)||0;
   const cats=Object.entries(st.by).sort((a,b)=>b[1]-a[1]), max=cats.length?cats[0][1]:1;
-  const day=Math.floor((Date.now()-new Date(2026,0,1))/864e5), tip=MONEY_TIPS[day%MONEY_TIPS.length], earn=EARN[nicheOf()?.id]||EARN[isOwner()?"smm":"other"];
+  const day=Math.floor((Date.now()-new Date(2026,0,1))/864e5), tip=MONEY_TIPS[day%MONEY_TIPS.length], earn=(()=>{const a=[...new Set(nichesOf().flatMap(n=>EARN[n.id]||[]))];return a.length?a:EARN[isOwner()?"smm":"other"];})();
   const tabs=[["month","Траты"],["goal","Цель"],["tips","Лайфхаки"],["earn","Идеи"]];
   let body="";
   if(moneyTab==="month") body=`${cats.length?`<div class="m-bars">${cats.map(([c,v])=>{const C=mCat("out",c);return `<div class="m-bar"><span>${glyph(C[2],18)}${esc(C[1])}</span><b>${fmtMoney(v)}</b><i style="width:${Math.max(4,v/max*100)}%"></i></div>`;}).join("")}</div>`:`<p class="tip">В этом месяце пока нет расходов.</p>`}
@@ -4051,7 +4051,7 @@ function openMoney(){track("money",1);
       <button class="ghost danger" id="mGoalReset">Новая цель</button></div>`
     :`<p class="tip">На что копим? Например: отпуск, подушка безопасности, подарок близким.</p><div class="field"><label class="label" for="mGName">Цель</label><input id="mGName" type="text" placeholder="Например: подушка безопасности"></div><div class="field"><label class="label" for="mGT">Сумма, ${esc(CUR())}</label><input id="mGT" type="number" inputmode="numeric" placeholder="0"></div><button class="primary" id="mGoalSet">${ic("check")}Поставить цель</button>`;
   if(moneyTab==="tips") body=`<div class="story"><span class="label">Лайфхак дня</span><p>${esc(tip)}</p></div><ul class="m-tips">${MONEY_TIPS.filter(t=>t!==tip).map(t=>`<li>${esc(t)}</li>`).join("")}</ul><p class="tip">Это общие советы, а не финансовая консультация.</p>`;
-  if(moneyTab==="earn") body=`<p class="tip">Идеи дополнительного дохода${nicheOf()?` для сферы «${esc(nicheOf().n)}»`:""}:</p><ul class="m-tips">${earn.concat(EARN.other.slice(0,2)).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+  if(moneyTab==="earn") body=`<p class="tip">Идеи дополнительного дохода${nichesOf().length?` для ${nichesOf().map(n=>`«${esc(n.n)}»`).join(" и ")}`:""}:</p><ul class="m-tips">${earn.concat(EARN.other.slice(0,2)).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
   openSheet(`<div class="m-sheet"><div class="m-head"><button class="navbtn" id="mPrev" aria-label="Прошлый месяц">${ic("left")}</button><h3>Деньги · ${esc(monthName(m))}</h3><button class="navbtn" id="mNext" aria-label="Следующий месяц" ${m>=mKey()?"disabled":""}>${ic("right")}</button></div>
     <div class="m-stats"><div><small>Доход</small><b class="ok">${fmtMoney(st.inc)}</b></div><div><small>Расход</small><b>${fmtMoney(st.out)}</b></div><div><small>Остаток</small><b class="${st.inc-st.out<0?"danger":""}">${fmtMoney(st.inc-st.out)}</b></div></div>
     ${lim?`<div><span class="tip">Лимит: ${fmtMoney(st.out)} из ${fmtMoney(lim)}</span><span class="lvl-bar big ${st.out>lim?"over":""}"><i style="width:${Math.min(100,st.out/lim*100)}%"></i></span></div>`:""}
@@ -4567,7 +4567,7 @@ const FUN_NICHE={
  build:"Для бригады: «Тайный шеф» на объекте — по очереди готовите обед друг другу.",
  finance:"Для отдела: «Манито» в сезон отчётов — когда поддержка нужнее всего."};
 const APPLY_GROUP={smm:"content",creative:"content",teach:"teach",student:"teach",biz:"biz",sales:"biz",beauty:"biz",office:"team",it:"team",med:"team",oil:"team",gov:"team",finance:"team",build:"team",sport:"team",driver:"driver",mom:"family"};
-function applyFor(e){if(!e||!e.apply)return "";const n=nicheOf(), g=isOwner()?"content":n&&APPLY_GROUP[n.id];return (g&&e.apply[g])||"";}
+function applyFor(e){if(!e||!e.apply)return "";const gs=[...new Set((isOwner()?["content"]:[]).concat(nichesOf().map(n=>APPLY_GROUP[n.id])).filter(Boolean))];return gs.map(g=>e.apply[g]).filter(Boolean).slice(0,2).join("\n\n");}
 let funTab="games", funForm=null;
 const wishDoc=()=>S.wish&&S.wish.main||{items:[],wish:""};
 function funSeason(){const m=+todayKey().slice(5,7);return {g:FUN_GAMES.filter(x=>x.m.includes(m)),i:FUN_IDEAS.filter(x=>x.m.includes(m))};}
@@ -4990,7 +4990,10 @@ const PRIORITIES=[
   {id:"sleep",n:"Сон",h:{id:"sleep",name:"Сон до 23:30",glyph:"mountain",goal:1}},
   {id:"hobby",n:"Хобби",h:{id:"hobby",name:"Время на хобби",glyph:"pizza",goal:1}}
 ];
-const nicheOf=()=>NICHES.find(n=>n.id===settings.niche)||null;
+const nicheIds=()=>{const a=Array.isArray(settings.niches)&&settings.niches.length?settings.niches:(settings.niche&&settings.niche!=="other"?[settings.niche]:[]);return a.filter(id=>NICHES.some(n=>n.id===id)).slice(0,3);};
+const nicheGrid=d=>NICHES.map(n=>{const i=(d.niches||[]).indexOf(n.id);return `<button class="pick-c ${i>=0?"on":""}" data-niche="${n.id}">${glyph(n.g,18)}${esc(n.n)}${i===0&&d.niches.length>1?` <small style="opacity:.8">· главная</small>`:""}</button>`;}).join("");
+const nichesOf=()=>nicheIds().map(id=>NICHES.find(n=>n.id===id));
+const nicheOf=()=>nichesOf()[0]||null;
 const hasRoute=()=>Array.isArray(settings.route)&&settings.route.length>0;
 const mondayOf=k=>{const d=fromKey(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 function routeJourney(k){
@@ -5005,15 +5008,16 @@ function routeJourney(k){
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 let obDraft=null;
 function obStep2(edit){
-  const d=obDraft; d.prio=d.prio||settings.priorities||[]; d.hobbies=d.hobbies||settings.hobbies||[];
+  const d=obDraft; d.niches=d.niches||(d.niche?[d.niche]:nicheIds()); d.prio=d.prio||settings.priorities||[]; d.hobbies=d.hobbies||settings.hobbies||[];
   openSheet(`<div class="ci-sheet ob">
     <div class="ob-top">${bari({mood:"think",size:80})}<div><span class="label">Шаг 2 из 3</span><h3 style="margin:2px 0 0">Чем ты занимаешься?</h3><p class="tip" style="margin:4px 0 0">По нише я буду предлагать идеи для работы, а по приоритетам — привычки.</p></div></div>
-    <div><span class="label">Твоя сфера</span><div class="ob-grid">${NICHES.map(n=>`<button class="pick-c ${d.niche===n.id?"on":""}" data-niche="${n.id}">${glyph(n.g,18)}${esc(n.n)}</button>`).join("")}</div></div>
-    <label>Опиши подробнее (по желанию)<input id="obNicheText" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: репетитор английского для детей 7–10 лет"></label>
+    <div><span class="label">Чем ты занимаешься? Можно несколько — до 3</span><p class="tip" style="margin:2px 0 6px">Не название работы, а род занятий. Например, «Учитель» и «Свой бизнес», если днём ведёшь уроки, а вечером продаёшь торты. Первая выбранная — главная: под неё BARI подбирает советы чаще.</p><div class="ob-grid" id="obNiches">${nicheGrid(d)}</div></div>
+    <label>Расскажи подробнее (по желанию)<input id="obNicheText" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: учитель математики в школе + торты на заказ"></label>
     <div><span class="label">Что для тебя сейчас важнее всего? До 6</span><p class="tip" style="margin:2px 0 6px">Каждый выбор станет ежедневной привычкой в «Ритме». Меньше — легче держать.</p><div class="ob-grid">${PRIORITIES.map(p=>`<button class="pick-c ${d.prio.includes(p.id)?"on":""}" data-prio="${p.id}">${esc(p.n)}</button>`).join("")}</div></div>
     <div><span class="label">Твои увлечения — до 5</span><div class="ob-grid">${HOBBIES.map(h=>`<button class="pick-c ${(d.hobbies||[]).includes(h.id)?"on":""}" data-hob="${h.id}">${esc(h.n)}</button>`).join("")}</div></div>
     <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obNext">Дальше</button></div></div>`);
-  document.querySelectorAll("[data-niche]").forEach(b=>b.onclick=()=>{d.niche=b.dataset.niche;document.querySelectorAll("[data-niche]").forEach(z=>z.classList.toggle("on",z===b));});
+  const bindNiche=()=>document.querySelectorAll("[data-niche]").forEach(b=>b.onclick=()=>{const id=b.dataset.niche;let a=d.niches.slice();if(a.includes(id))a=a.filter(x=>x!==id);else if(a.length<3)a.push(id);else{toast("Можно до 3 — сними одну, чтобы выбрать другую.");return;}d.niches=a;d.niche=a[0]||"";document.getElementById("obNiches").innerHTML=nicheGrid(d);bindNiche();});
+  bindNiche();
   document.querySelectorAll("[data-prio]").forEach(b=>b.onclick=()=>{const id=b.dataset.prio;if(d.prio.includes(id))d.prio=d.prio.filter(x=>x!==id);else if(d.prio.length<6)d.prio=d.prio.concat(id);else{toast("Можно выбрать до 6 — сними одну, чтобы выбрать другую.");return;}b.classList.toggle("on",d.prio.includes(id));});
   document.querySelectorAll("[data-hob]").forEach(b=>b.onclick=()=>{const id=b.dataset.hob;if(d.hobbies.includes(id))d.hobbies=d.hobbies.filter(x=>x!==id);else if(d.hobbies.length<5)d.hobbies=d.hobbies.concat(id);else{toast("Можно выбрать до 5.");return;}b.classList.toggle("on",d.hobbies.includes(id));});
   const keep=()=>{d.nicheText=document.getElementById("obNicheText").value.trim();};
@@ -5042,7 +5046,7 @@ async function obFinish(edit){
   const d=obDraft; let route=d.route&&d.route.length?d.route:shuffle(readyCountries());
   const habits=d.prio&&d.prio.length?PRIORITIES.filter(p=>d.prio.includes(p.id)).map(p=>p.h):null;
   const same=hasRoute()&&JSON.stringify(route)===JSON.stringify(settings.route);
-  const next={...settings,...d.base,niche:d.niche||"other",nicheText:d.nicheText||"",priorities:d.prio||[],hobbies:d.hobbies||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
+  const next={...settings,...d.base,niche:(d.niches&&d.niches[0])||d.niche||"other",niches:d.niches&&d.niches.length?d.niches:(d.niche?[d.niche]:[]),nicheText:d.nicheText||"",priorities:d.prio||[],hobbies:d.hobbies||[],route,routeStart:same?settings.routeStart:mondayOf(todayKey()),onboarded:true};
   if(habits&&(!edit||!settings.habits)) next.habits=habits;
   if(!edit&&!next.newsSeen) next.newsSeen=NEWS.map(n=>n.id);
   await store.saveSettings(next); obDraft=null;
@@ -5056,7 +5060,8 @@ async function loadNicheIdeas(id){
   if(view==="today") render();
 }
 function nicheCard(k){
-  const n=nicheOf(); if(!n||typeof loadContent!=="function") return "";
+  const L=nichesOf(); if(!L.length||typeof loadContent!=="function") return "";
+  const n=L[(((Math.floor((fromKey(k)-new Date(2026,0,1))/864e5))%L.length)+L.length)%L.length];
   loadNicheIdeas(n.id);
   const data=nicheIdeas[n.id], items=data&&Array.isArray(data.items)?data.items:[];
   const start=((Math.floor((fromKey(k)-new Date(2026,0,1))/864e5)*3)%Math.max(items.length,1)+Math.max(items.length,1))%Math.max(items.length,1);
@@ -5362,7 +5367,7 @@ function renderMe(){
       ${e.facts.length?`<div class="facts"><span class="label">Удивительно</span><ul>${e.facts.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
       ${e.words.length?`<div class="words"><span class="label">Слова дня</span>${e.words.map(w=>`<div class="word"><b>${flag(e.country||j.country,18)} ${esc(w.it)}</b><span>${flag("Великобритания",14)} ${esc(w.en)} · ${esc(w.ru)}</span>${w.hint?`<small>${esc(w.hint)}</small>`:""}</div>`).join("")}</div>`:""}
       ${e.together&&hasKids()?`<div class="talk kid">${ic("heart")}<div><b>${isOwner()?"Вместе с дочкой":"Вместе с ребёнком"}</b><br>${esc(e.together)}</div></div>`:""}
-      ${(()=>{const t=applyFor(e);return t?`<div class="talk apply">${ic("spark")}<div><b>Польза для тебя</b><br>${esc(gx(t))}</div></div>`:"";})()}
+      ${(()=>{const t=applyFor(e);return t?`<div class="talk apply">${ic("spark")}<div><b>Польза для тебя</b><br>${esc(gx(t)).replace(/\n\n/g,"<br><br>")}</div></div>`:"";})()}
       ${e.talk?`<div class="talk">${ic("chat")}<div><b>Ввернуть в разговор</b><br>«${esc(e.talk)}»</div></div>`:""}
       <h4>Проверь себя</h4>${qhtml}
       ${e.done?`<div class="done-card">${bari({mood:"joy",wave:true,size:76,prop:PROPS.spark})}<div><b>Урок пройден: ${e.correct} из ${e.quiz.length}</b><br>+${XP.lesson+XP.right*e.correct} баллов. До завтра в ${esc(journeyFor(addDays(k,1)).city)}!</div></div>`:""}

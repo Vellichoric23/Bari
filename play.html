@@ -70,7 +70,7 @@ async function sealTo(sec,to){const iv=crypto.getRandomValues(new Uint8Array(12)
 async function openTo(sec,box){try{const [a,b]=box.split(".");const p=await crypto.subtle.decrypt({name:"AES-GCM",iv:_ub64(a)},await seatKey(sec),_ub64(b));return new TextDecoder().decode(p);}catch(e){return null;}}
 const myToken=k=>{let t=LS.get("bari-play-tok-"+k);if(!t){t=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("");LS.set("bari-play-tok-"+k,t);}return t;};
 let WKEY="bari-play-wish", LIVE=null;
-const wlHtml=(w,fresh)=>w.items.length?`<p class="muted" style="font-size:13px;margin:8px 0 2px">В списке: ${w.items.length}</p>`+w.items.map((it,i)=>`<div class="it ${fresh===i?"fresh":""}"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}</div><button class="x" data-d="${i}" aria-label="Удалить">✕</button></div>`).join(""):`<p class="muted" style="font-size:13px">Список пока пуст — добавь первое желание.</p>`;
+const wlHtml=(w,fresh)=>w.items.length?`<p class="muted" style="font-size:13px;margin:8px 0 2px">В списке: ${w.items.length}</p>`+w.items.map((it,i)=>`<div class="it ${fresh===i?"fresh":""}"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}</div><span style="display:flex;gap:6px;flex-shrink:0"><button class="x" data-e="${i}" aria-label="Изменить">✏️</button><button class="x" data-d="${i}" aria-label="Удалить">✕</button></span></div>`).join(""):`<p class="muted" style="font-size:13px">Список пока пуст — добавь первое желание.</p>`;
 function toast(t){let el=$("#toast");if(!el){el=document.createElement("div");el.id="toast";document.body.appendChild(el);}el.textContent=t;el.classList.remove("on");void el.offsetWidth;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("on"),2200);}
 function pop(){try{const C=window.AudioContext||window.webkitAudioContext,a=toast.ac||(toast.ac=new C()),o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.setValueAtTime(420,a.currentTime);o.frequency.exponentialRampToValueAtTime(980,a.currentTime+.08);g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.2,a.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.15);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.2);}catch(e){}}
 const wishEditor=name=>{const w=LS.get(WKEY)||{n:name||"",wish:"",items:[]};
@@ -83,12 +83,19 @@ function pushWish(w){if(!LIVE)return;const s=$("#wsync");if(s)s.textContent="С�
   rpc("set_wish",{p_game:LIVE.game,p_person:LIVE.me,p_token:LIVE.tok,p_data:{n:w.n,wish:w.wish,items:w.items}}).then(ok=>{const s=$("#wsync");if(s)s.textContent=ok?"✓ Сохранено — твой тайный человек это видит":"Этот вишлист уже ведётся с другого телефона. Открой ссылку там.";}).catch(()=>{const s=$("#wsync");if(s)s.textContent="Сохранено на телефоне. Живой вишлист включится, когда организатор его подключит.";});}
 function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn").value.trim();w.wish=$("#ww").value.trim();LS.set(WKEY,w);return w;};
   $("#ww").onchange=()=>pushWish(save());
-  const draw=fresh=>{const w=LS.get(WKEY)||{items:[]};$("#wl").innerHTML=wlHtml(w,fresh);bindDel();};
-  const bindDel=()=>document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const w=save(),gone=w.items[+b.dataset.d];w.items.splice(+b.dataset.d,1);LS.set(WKEY,w);pushWish(w);draw();toast("Удалено: "+(gone?gone.t:""));});
-  bindDel();
+  const draw=fresh=>{const w=LS.get(WKEY)||{items:[]};$("#wl").innerHTML=wlHtml(w,fresh);bindDel();bindEdit();};
+  const bindDel=()=>document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const w=save(),gone=w.items[+b.dataset.d];w.items.splice(+b.dataset.d,1);if(editing>=0)stopEdit();LS.set(WKEY,w);pushWish(w);draw();toast("Удалено: "+(gone?gone.t:""));});
+  let editing=-1;
+  const stopEdit=()=>{editing=-1;$("#wa").textContent="+ Добавить";const c=$("#wc");if(c)c.remove();$("#wt").value="";$("#wp").value="";$("#wu").value="";};
+  const bindEdit=()=>document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const w=LS.get(WKEY)||{items:[]},it=w.items[+b.dataset.e];if(!it)return;editing=+b.dataset.e;
+    $("#wt").value=it.t||"";$("#wp").value=it.p||"";$("#wu").value=it.u||"";$("#wa").textContent="✓ Сохранить изменения";
+    if(!$("#wc")){const c=document.createElement("button");c.id="wc";c.className="ghost";c.textContent="Отмена";c.onclick=stopEdit;$("#wa").after(c);}
+    $("#wt").focus();$("#wt").scrollIntoView({block:"center",behavior:"smooth"});toast("Исправь и нажми «Сохранить изменения»");});
+  bindDel();bindEdit();
   $("#wa").onclick=()=>{const w=save(),t=$("#wt").value.trim();if(!t){$("#wt").focus();toast("Сначала напиши, что хочется ✍️");return;}const u=$("#wu").value.trim();
-    w.items.push({t,p:$("#wp").value.trim(),u:/^https?:\/\//.test(u)?u:""});LS.set(WKEY,w);pushWish(w);draw(w.items.length-1);
-    $("#wt").value="";$("#wp").value="";$("#wu").value="";pop();toast("✓ Добавлено в вишлист");
+    const item={t,p:$("#wp").value.trim(),u:/^https?:\/\//.test(u)?u:""};const was=editing;
+    if(was>=0&&w.items[was]){w.items[was]=item;}else w.items.push(item);
+    LS.set(WKEY,w);pushWish(w);draw(was>=0?was:w.items.length-1);stopEdit();pop();toast(was>=0?"✓ Исправлено":"✓ Добавлено в вишлист");
     const f=document.querySelector("#wl .fresh");if(f)f.scrollIntoView({block:"center",behavior:"smooth"});};
   $("#wt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#wa").click();}});
   if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}

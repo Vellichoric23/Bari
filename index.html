@@ -362,10 +362,15 @@ body{background:transparent!important}
 .city-night .city-hero .greet{color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.35)}
 .city-hero .scene-bari{right:-6px;bottom:4px;top:auto}
 .city-hero .bubble{right:130px;bottom:150px;max-width:240px;line-height:1.4}
+.bubble{pointer-events:none}
 .bubble .bb-ru{display:block;font-weight:600;font-size:12px;color:#5B5670;margin-top:4px}
 .bubble .bb-a{display:block;font-weight:800;font-size:12px;color:#6C5BFF;margin-top:4px}
 .city-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;max-width:calc(100% - 130px)}
 .city-chips::-webkit-scrollbar{display:none}
+@media (hover:hover) and (pointer:fine){.city-chips,.cat-chips,.route-flags,.fy-row{scrollbar-width:thin;scrollbar-color:rgba(140,125,255,.55) transparent;cursor:grab}
+.city-chips::-webkit-scrollbar,.cat-chips::-webkit-scrollbar,.route-flags::-webkit-scrollbar,.fy-row::-webkit-scrollbar{display:block;height:6px}
+.city-chips::-webkit-scrollbar-thumb,.cat-chips::-webkit-scrollbar-thumb,.route-flags::-webkit-scrollbar-thumb,.fy-row::-webkit-scrollbar-thumb{background:rgba(140,125,255,.55);border-radius:6px}
+.hscroll-drag{cursor:grabbing;user-select:none}}
 .city-chip{flex:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:14px;padding:6px 10px 6px 7px;font-weight:800;font-size:12.5px;color:#2A2550;box-shadow:0 4px 14px rgba(30,27,46,.10)}
 /* glass cards so the city shows through */
 .hero,.stat,.block,.card,.day,.journey,.weekbar,.empty,.news,.saved,.result,.item,.today-box,.place-card,.list>.task,.home-list .task,.chips .chip{background:color-mix(in srgb,var(--surface) 80%,transparent)!important;-webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2)}
@@ -2296,6 +2301,15 @@ function cityBgSvg(k,W=400){
     <rect y="${BASE+100}" width="${W}" height="${860-BASE-100}" fill="${plaza}"/>${stones}${puddles}${drifts}${fallen}
   </svg>`;
 }
+
+/* horizontal rows on a computer: mouse wheel and drag scroll them sideways */
+(function(){const SEL=".city-chips,.cat-chips,.route-flags,.fy-row";
+  document.addEventListener("wheel",e=>{const r=e.target.closest?.(SEL);if(!r||r.scrollWidth<=r.clientWidth+2||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;const max=r.scrollWidth-r.clientWidth;if((e.deltaY<0&&r.scrollLeft<=0)||(e.deltaY>0&&r.scrollLeft>=max-1))return;e.preventDefault();r.scrollLeft+=e.deltaY;},{passive:false});
+  let drag=null;
+  document.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"||e.button!==0)return;const r=e.target.closest?.(SEL);if(!r||r.scrollWidth<=r.clientWidth+2)return;drag={r,x:e.clientX,l:r.scrollLeft,moved:false};});
+  document.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x;if(Math.abs(dx)>5){drag.moved=true;drag.r.classList.add("hscroll-drag");}if(drag.moved)drag.r.scrollLeft=drag.l-dx;});
+  document.addEventListener("pointerup",()=>{if(!drag)return;const d=drag;drag=null;d.r.classList.remove("hscroll-drag");if(d.moved){const stop=ev=>{ev.stopPropagation();ev.preventDefault();};d.r.addEventListener("click",stop,{capture:true,once:true});setTimeout(()=>d.r.removeEventListener("click",stop,{capture:true}),50);}});
+})();
 function cityChipsHtml(k){
   const j=journeyFor(k);
   return `<div class="city-chips" role="list">${itemsFor(j).map(([g,l])=>`<button class="city-chip" role="listitem" data-item="${esc(l)}">${glyph(g,24)}<span>${esc(l)}</span></button>`).join("")}</div>`;

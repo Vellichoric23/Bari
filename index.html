@@ -188,6 +188,12 @@ select,input[type=text],input[type=date],input[type=number]{font:600 15px var(--
 .pick{display:flex;gap:6px;flex-wrap:wrap}
 .pick button{border:1px solid var(--line);background:var(--surface-2);border-radius:99px;padding:8px 12px;font-weight:700;font-size:14px;cursor:pointer;display:flex;gap:6px;align-items:center}
 .pick button svg.i{width:16px;height:16px}
+.bal-card .cd-head{display:flex;justify-content:space-between;align-items:center}
+.bal-bar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--surface-2);margin:10px 0 6px}.bal-bar i{display:block;height:100%;transition:width .5s}.bal-bar .w{background:var(--accent)}.bal-bar .l{background:var(--home)}
+.bal-leg{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:700}.bal-leg .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}.dot.w{background:var(--accent)}.dot.l{background:var(--home)}
+.bal-card #balMove{margin-top:8px}
+ol.guide{padding-left:22px;margin:12px 0;display:grid;gap:10px}ol.guide li b{display:block}ol.guide li span{color:var(--muted);font-size:14px}
+.guide-ex{background:var(--surface-2);border-radius:14px;padding:12px;margin-bottom:8px}
 .qa-row{display:flex;gap:8px;align-items:center}.qa-row input{flex:1;font-size:17px;padding:14px 14px;border-radius:14px}
 .qa-mic{flex:none;width:50px;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);font-size:22px;cursor:pointer}
 .qa-mic.on{background:var(--accent);animation:qaPulse 1s ease-in-out infinite}@keyframes qaPulse{50%{transform:scale(1.08)}}
@@ -1330,6 +1336,44 @@ function ringSvg(plan,done,lim,size=104,r=42){
   return `<svg viewBox="0 0 ${size} ${size}"><circle class="trk" cx="${size/2}" cy="${size/2}" r="${r}"/><circle class="pl" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${C}" stroke-dashoffset="${pOff}"/><circle class="dn" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${C}" stroke-dashoffset="${dOff}"/></svg>`;
 }
 
+/* balance: work should leave room for life */
+const LIFE_IDEAS=()=>[["Прогулка 20 минут","me",1/3],["Позвонить близким","me",.25],["Почитать 15 минут","read",.25],hasKids()?["Время с ребёнком без телефона","me",.5]:["Чай без телефона","me",.25],["Ранний сон","me",.25]];
+function balanceCard(k,work,home){
+  const wH=work.reduce((a,t)=>a+Number(t.hours||0),0), lH=home.reduce((a,t)=>a+Number(t.hours||0),0), lim=settings.limit;
+  const nowM=new Date().getHours()*60+new Date().getMinutes(), endM=parseHM(settings.dayEnd)||1080;
+  const openW=work.filter(t=>!t.done&&!t.startedAt);
+  const after=nowM>endM&&openW.length;
+  const sum=wH+lH||1, wp=Math.round(wH/sum*100);
+  let msg;
+  if(after) msg=`Рабочее время закончилось. ${openW.length} ${plural(openW.length,"дело ждёт","дела ждут","дел ждут")} — пусть подождут до завтра.`;
+  else if(!lH) msg="Сегодня нет ничего для тебя. Добавь хотя бы 20 минут — работа подождёт.";
+  else if(wH>lim) msg=`Работы больше нормы на ${fmtH(wH-lim)}. Что можно отдать завтрашнему дню?`;
+  else msg="Хороший баланс: есть работа и есть ты.";
+  return `<section class="card bal-card"><div class="cd-head"><span class="label">${ic("heart")} Баланс дня</span><button class="mini-btn" data-guide>Как заполнять</button></div>
+    <div class="bal-bar"><i class="w" style="width:${lH||wH?wp:50}%"></i><i class="l" style="width:${lH||wH?100-wp:50}%"></i></div>
+    <div class="bal-leg"><span><b class="dot w"></b>Работа · ${fmtH(wH)} из ${fmtH(lim)}</span><span><b class="dot l"></b>Жизнь · ${fmtH(lH)}</span></div>
+    <p class="tip" style="margin:6px 0 0">${esc(gx(msg))}</p>
+    ${after?`<button class="mini-btn" id="balMove">${ic("right")}Перенести работу на завтра</button>`:""}
+    ${!lH?`<div class="qa-rec">${LIFE_IDEAS().map((x,i)=>`<button class="mini-btn" data-life="${i}">+ ${esc(x[0])}</button>`).join("")}</div>`:""}
+  </section>`;}
+document.addEventListener("click",async e=>{
+  const b=e.target.closest?.("[data-life]");if(b){const x=LIFE_IDEAS()[+b.dataset.life];if(!x)return;await store.saveTask({id:uid(),title:x[0],project:x[1]==="read"?"books":"house",stage:x[1],date:todayKey(),hours:x[2],done:false,piece:uid(),time:""});sfx("pop");toast("✓ Добавила в «Для себя и дома»");return;}
+  if(e.target.closest?.("#balMove")){const k=todayKey();for(const t of workTasks(tasks.filter(t=>t.date===k&&!t.done&&!t.startedAt)))await store.saveTask({...t,date:addDays(k,1)});toast("Перенесла на завтра. Отдыхай 🌙");return;}
+  if(e.target.closest?.("[data-guide]"))openGuide();
+});
+const GUIDE=[
+ ["Утром — 2 минуты","Запиши 3–5 дел на сегодня. Нажми «+» и пиши как говоришь: «в 10 созвон с клиентом на час», «купить подарок маме». День, время и длительность я пойму сама. Можно голосом 🎤."],
+ ["Одно дело — одно действие","Не «отчёт», а «отправить отчёт директору». Большое дело раздели на шаги по 1–2 часа — так легче начать."],
+ ["Время — только для встреч","Звонок в 15:00, урок с 10 до 12. Остальное без времени: я сама расставлю дела по дню и не дам выйти за твой лимит часов."],
+ ["Обязательно что-то для себя","Прогулка, книга, время с близкими — это тоже план. Такие дела идут в «Дом и я» и не съедают рабочие часы. В «Балансе дня» видно, хватает ли тебе жизни."],
+ ["Повторяющееся — один раз","Планёрка по понедельникам, тренировка по средам: добавь в «Ритм» → «Регулярные дела», дальше они появятся сами."],
+ ["Вечером — закрыть день","Отметь сделанное ✓. Что не успела — перенеси на завтра одной кнопкой. После рабочего времени работа ждёт до утра."]];
+function openGuide(){track("guide",1);openSheet(`<div class="ob-top">${bari({mood:"happy",size:70})}<div><span class="label">Инструкция</span><h3 style="margin:2px 0 0">Как заполнять планер</h3><p class="tip" style="margin:4px 0 0">Цель BARI — успевать главное в работе и не забывать жить.</p></div></div>
+  <ol class="guide">${GUIDE.map(([t,d])=>`<li><b>${esc(t)}</b><span>${esc(gx(d))}</span></li>`).join("")}</ol>
+  <div class="guide-ex"><span class="label">Примеры</span><div class="qa-rec">${["в 10 созвон с клиентом на час","завтра отправить отчёт","погулять с дочкой 30 мин","испечь торт в субботу"].map(x=>`<button class="mini-btn" data-gex="${esc(x)}">${esc(x)}</button>`).join("")}</div><p class="tip" style="margin:6px 0 0">Нажми пример — откроется добавление с этим текстом.</p></div>
+  <div class="actions"><button class="primary" id="gOk">Понятно</button></div>`);
+  document.getElementById("gOk").onclick=closeSheet;
+  document.querySelectorAll("#sheetIn [data-gex]").forEach(b=>b.onclick=()=>{const v=b.dataset.gex;closeSheet();setTimeout(()=>{openAdd();const i=document.getElementById("qaT");if(i){i.value=v;i.dispatchEvent(new Event("input"));}},250);});}
 function renderToday(){
   const k=todayKey(), now=new Date(), hr=now.getHours();
   const all=tasks.filter(t=>t.date===k);
@@ -1395,6 +1439,7 @@ function renderToday(){
       </div>
       <div class="ring ${ringCls}">${ringSvg(total,doneH,lim)}<div class="ring-c"><b class="hours">${fmtH(doneH)}</b><span>из ${fmtH(total)}</span></div></div>
     </div>
+    ${balanceCard(k,work,home)}
     ${closeDayBtn(k)}
     ${studioStrip(k)}
     ${quickInbox()}
@@ -1644,7 +1689,7 @@ function openAdd(){
   const drawQuick=()=>{
     const rec=recentTitles(), SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     openSheet(`
-      <div class="add-head"><h3>${ic("plus")}Что сделать?</h3></div>
+      <div class="add-head"><h3>${ic("plus")}Что сделать?</h3><button type="button" class="mini-btn" data-guide>? Как заполнять</button></div>
       <div class="qa-row"><input id="qaT" type="text" value="${esc(st.qtext)}" placeholder="Например: завтра в 15:00 позвонить поставщику" autocomplete="off" enterkeyhint="done">${SR?`<button type="button" class="qa-mic" id="qaMic" aria-label="Сказать голосом">🎤</button>`:""}</div>
       <p class="tip" style="margin:6px 0 0">Пиши как говоришь — день, время и сколько займёт я пойму сама.</p>
       <div class="qa-prev" id="qaPrev"></div>
@@ -4574,6 +4619,8 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
+ {id:"n-balance",g:"heart",t:"Баланс: работа и жизнь",d:"BARI следит, чтобы в дне было место для тебя. Вечером напомнит, что работа подождёт до завтра.",
+  steps:[{v:"today",sel:".bal-card",t:"«Баланс дня»: сколько работы и сколько жизни. Нет ничего для себя — добавь в один тап. Там же «Как заполнять» — короткая инструкция."}]},
  {id:"n-quick",g:"spark2",t:"Задача за 3 секунды ⚡",d:"Пиши или скажи как есть: «завтра в 15:00 позвонить поставщику» — день и время я пойму сама.",
   steps:[{v:"today",sel:"#fab",t:"Нажми «+» и просто напиши или нажми 🎤. «Повторить» — твои частые дела в один тап."}]},
  {id:"n-niches",g:"apple",t:"Ты — это не одна профессия",d:"Учитель и свой бизнес? Выбери до 3 занятий — советы, книги и идеи подстроятся под каждое.",
@@ -5064,7 +5111,7 @@ function openTour(i=0){
 function markToured(){try{localStorage.setItem("bari-toured","1");}catch(e){} if(!settings.toured&&store&&store.saveSettings) store.saveSettings({...settings,toured:true});}
 document.body.insertAdjacentHTML("beforeend",`<button class="help-fab" id="helpFab" aria-label="Подсказка по этому экрану">?</button>`);
 document.getElementById("helpFab").onclick=()=>openHelp(view);
-document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))startTour();if(e.target.closest?.("#addHelp"))openHelp("add");});
+document.addEventListener("click",e=>{if(e.target.closest?.("#tourBtn"))startTour();if(e.target.closest?.("#addHelp"))openGuide();});
 
 /* ---------- personalisation: niche, priorities, own travel route ---------- */
 const NICHES=[
@@ -5211,7 +5258,7 @@ async function openDevices(){const sb=window.sbClient;if(!sb)return;
     if(id===mine){try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}try{localStorage.removeItem("bari-push");}catch(e){}}
     toast("Устройство удалено — туда больше не придут твои напоминания.");openDevices();});}
 document.addEventListener("click",e=>{if(e.target.closest?.("#devList"))openDevices();if(e.target.closest?.("#statsBtn"))openStats();});
-const FEAT_NAMES={open:"Открыли приложение",task_done:"Закрывали дела",lesson_done:"Прошли урок",coffee:"Кофе",route:"Маршрут",level:"Уровни",fun:"Праздники",game_create:"Создали игру",news:"Новинки",generator:"Генератор идей",money:"Деньги",studio:"Студия",story:"Сказка",tour:"Экскурсия",updates:"Что нового"};
+const FEAT_NAMES={guide:"Инструкция",open:"Открыли приложение",task_done:"Закрывали дела",lesson_done:"Прошли урок",coffee:"Кофе",route:"Маршрут",level:"Уровни",fun:"Праздники",game_create:"Создали игру",news:"Новинки",generator:"Генератор идей",money:"Деньги",studio:"Студия",story:"Сказка",tour:"Экскурсия",updates:"Что нового"};
 async function openStats(){const sb=window.sbClient;if(!sb)return;
   openSheet(`<div class="ci-sheet"><span class="label">Только для тебя</span><h3 style="margin:0">Статистика BARI</h3><p class="tip">Загружаю…</p></div>`);
   const {data:d,error}=await sb.rpc("admin_stats");

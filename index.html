@@ -5010,9 +5010,9 @@ let obDraft=null;
 function obStep2(edit){
   const d=obDraft; d.niches=d.niches||(d.niche?[d.niche]:nicheIds()); d.prio=d.prio||settings.priorities||[]; d.hobbies=d.hobbies||settings.hobbies||[];
   openSheet(`<div class="ci-sheet ob">
-    <div class="ob-top">${bari({mood:"think",size:80})}<div><span class="label">Шаг 2 из 3</span><h3 style="margin:2px 0 0">Чем ты занимаешься?</h3><p class="tip" style="margin:4px 0 0">По нише я буду предлагать идеи для работы, а по приоритетам — привычки.</p></div></div>
+    <div class="ob-top">${bari({mood:"think",size:80})}<div><span class="label">Шаг 2 из 3</span><h3 style="margin:2px 0 0">Чем ты занимаешься?</h3><p class="tip" style="margin:4px 0 0">По твоим занятиям я подберу идеи и советы для работы, а по приоритетам — привычки.</p></div></div>
     <div><span class="label">Чем ты занимаешься? Можно несколько — до 3</span><p class="tip" style="margin:2px 0 6px">Не название работы, а род занятий. Например, «Учитель» и «Свой бизнес», если днём ведёшь уроки, а вечером продаёшь торты. Первая выбранная — главная: под неё BARI подбирает советы чаще.</p><div class="ob-grid" id="obNiches">${nicheGrid(d)}</div></div>
-    <label>Расскажи подробнее (по желанию)<input id="obNicheText" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: учитель математики в школе + торты на заказ"></label>
+    <label>Расскажи подробнее (по желанию)<input id="obNicheText" style="width:100%;display:block;margin-top:6px" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: учитель математики в школе + торты на заказ"></label>
     <div><span class="label">Что для тебя сейчас важнее всего? До 6</span><p class="tip" style="margin:2px 0 6px">Каждый выбор станет ежедневной привычкой в «Ритме». Меньше — легче держать.</p><div class="ob-grid">${PRIORITIES.map(p=>`<button class="pick-c ${d.prio.includes(p.id)?"on":""}" data-prio="${p.id}">${esc(p.n)}</button>`).join("")}</div></div>
     <div><span class="label">Твои увлечения — до 5</span><div class="ob-grid">${HOBBIES.map(h=>`<button class="pick-c ${(d.hobbies||[]).includes(h.id)?"on":""}" data-hob="${h.id}">${esc(h.n)}</button>`).join("")}</div></div>
     <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obNext">Дальше</button></div></div>`);

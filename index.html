@@ -188,6 +188,12 @@ select,input[type=text],input[type=date],input[type=number]{font:600 15px var(--
 .pick{display:flex;gap:6px;flex-wrap:wrap}
 .pick button{border:1px solid var(--line);background:var(--surface-2);border-radius:99px;padding:8px 12px;font-weight:700;font-size:14px;cursor:pointer;display:flex;gap:6px;align-items:center}
 .pick button svg.i{width:16px;height:16px}
+.qa-row{display:flex;gap:8px;align-items:center}.qa-row input{flex:1;font-size:17px;padding:14px 14px;border-radius:14px}
+.qa-mic{flex:none;width:50px;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);font-size:22px;cursor:pointer}
+.qa-mic.on{background:var(--accent);animation:qaPulse 1s ease-in-out infinite}@keyframes qaPulse{50%{transform:scale(1.08)}}
+.qa-prev{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px;min-height:8px}.qa-chip{background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 10px;font-size:13px;font-weight:700}
+.qa-rec{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.qa-rec .mini-btn{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.seg .mini-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .pick button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .preview{display:grid;gap:8px;background:var(--surface-2);border-radius:16px;padding:12px}
 .pv{display:flex;gap:10px;align-items:center;font-size:14px}
@@ -1572,9 +1578,57 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
 const projPick=(sel,filter)=>settings.projects.filter(filter).map(p=>`<button data-p="${p.id}" aria-pressed="${sel===p.id}">${ic(p.icon||"task")}${esc(p.name)}</button>`).join("");
 
 const STAGE_LABEL={idea:"Придумать",script:"Сценарий",text:"Текст",shoot:"Съёмка",design:"Дизайн",edit:"Монтаж",post:"Выложить"};
+/* quick add: understand «завтра в 15:00 позвонить поставщику 30 мин» */
+const QA_WD={"понедельник":1,"пн":1,"вторник":2,"вт":2,"среда":3,"среду":3,"ср":3,"четверг":4,"чт":4,"пятница":5,"пятницу":5,"пт":5,"суббота":6,"субботу":6,"сб":6,"воскресенье":0,"вс":0};
+const QA_MON={"января":0,"февраля":1,"марта":2,"апреля":3,"мая":4,"июня":5,"июля":6,"августа":7,"сентября":8,"октября":9,"ноября":10,"декабря":11};
+const QA_END="(?=[\\s,.!?;]|$)";
+function parseQuick(raw){
+  let s=" "+String(raw||"").replace(/\s+/g," ").trim()+" ";
+  const out={date:todayKey(),dateSet:false,time:"",end:"",hours:null,stage:null,project:null};
+  const cut=(re,fn)=>{const m=s.match(re);if(!m)return false;if(fn(m)===false)return false;s=s.replace(m[0]," ");return true;};
+  const pad=n=>String(n).padStart(2,"0"), k2=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  const setD=k=>{out.date=k;out.dateSet=true;};
+  cut(new RegExp("\\sпослезавтра"+QA_END,"i"),()=>setD(addDays(todayKey(),2)))||
+  cut(new RegExp("\\sзавтра"+QA_END,"i"),()=>setD(addDays(todayKey(),1)))||
+  cut(new RegExp("\\sсегодня"+QA_END,"i"),()=>setD(todayKey()))||
+  cut(new RegExp("\\s(?:во?\\s)?("+Object.keys(QA_WD).join("|")+")"+QA_END,"i"),m=>{const w=QA_WD[m[1].toLowerCase()],d=fromKey(todayKey());let add=(w-d.getDay()+7)%7;setD(addDays(todayKey(),add));})||
+  cut(new RegExp("\\s(\\d{1,2})\\s("+Object.keys(QA_MON).join("|")+")"+QA_END,"i"),m=>{const n=new Date(),d=new Date(n.getFullYear(),QA_MON[m[2].toLowerCase()],+m[1]);if(k2(d)<todayKey())d.setFullYear(d.getFullYear()+1);setD(k2(d));})||
+  cut(new RegExp("\\s(\\d{1,2})\\.(\\d{1,2})"+QA_END),m=>{const n=new Date(),mo=+m[2]-1,da=+m[1];if(mo>11||da>31||da<1)return false;const d=new Date(n.getFullYear(),mo,da);if(k2(d)<todayKey())d.setFullYear(d.getFullYear()+1);setD(k2(d));});
+  const H=(h,mi,part)=>{h=+h;mi=+(mi||0);if(part){part=part.toLowerCase();if((part.startsWith("веч")||part.startsWith("дня"))&&h<12)h+=12;if(part.startsWith("ноч")&&h===12)h=0;}if(h>23||mi>59)return null;return pad(h)+":"+pad(mi);};
+  // range «с 10 до 12», «с 9:30 до 11»
+  cut(new RegExp("\\sс\\s(\\d{1,2})(?:[:.](\\d{2}))?\\sдо\\s(\\d{1,2})(?:[:.](\\d{2}))?(?:\\s(утра|дня|вечера|ночи))?"+QA_END,"i"),m=>{const a=H(m[1],m[2],m[5]),b=H(m[3],m[4],m[5]);if(!a||!b)return false;out.time=a;out.end=b;})||
+  cut(new RegExp("\\s(?:в|к|на)?\\s?(\\d{1,2})[:.](\\d{2})(?:\\s(утра|дня|вечера|ночи))?"+QA_END,"i"),m=>{const a=H(m[1],m[2],m[3]);if(!a)return false;out.time=a;})||
+  cut(new RegExp("\\s(?:в|к)\\s(\\d{1,2})(?:\\s(утра|дня|вечера|ночи|часов|часа|ч))?"+QA_END,"i"),m=>{const p=m[2]&&/утр|дня|веч|ноч/i.test(m[2])?m[2]:"";let h=+m[1];if(!p&&h>=1&&h<=7)h+=12;const a=H(h,0,p);if(!a)return false;out.time=a;});
+  // duration
+  cut(new RegExp("\\s(?:на\\s)?(\\d+(?:[.,]\\d+)?)\\s?(минут[ау]?|мин|м|часа|часов|час|ч)"+QA_END,"i"),m=>{const v=parseFloat(m[1].replace(",","."));out.hours=/^м/i.test(m[2])?v/60:v;})||
+  cut(new RegExp("\\s(?:на\\s)?полчаса"+QA_END,"i"),()=>{out.hours=.5;})||
+  cut(new RegExp("\\s(?:на\\s)?полтора\\sчаса"+QA_END,"i"),()=>{out.hours=1.5;})||
+  cut(new RegExp("\\sна\\sчас"+QA_END,"i"),()=>{out.hours=1;});
+  let title=s.replace(/\s+/g," ").trim().replace(/^[,.;:!-]+|[,;:-]+$/g,"").trim();
+  const low=title.toLowerCase();
+  if(/испечь|выпеч|торт|пирог|печень/.test(low))out.stage="bake";
+  else if(/почитать|дочитать|прочитать|книг/.test(low))out.stage="read";
+  else if(/убор|убрать|постира|стирк|помыть|погладить|пропылесос|разобрать шкаф/.test(low))out.stage="clean";
+  else if(/маникюр|педикюр|массаж|прогул|погулять|йог|трениров|спортзал|в зал|бассейн|врач|стомат|продукт|в магазин|приготовить|ужин|обед|завтрак|с семьёй|с семьей|с мамой|с детьми|с дочкой|с сыном/.test(low))out.stage="me";
+  const P=(settings.projects||[]).filter(p=>p.kind!=="home");
+  for(const p of P){const n=String(p.name||"").toLowerCase();if(n.length>2&&low.includes(n)){out.project=p.id;out.stage=null;break;}}
+  if(out.time&&out.end){const d=((parseHM(out.end)-parseHM(out.time)+1440)%1440)||1440;out.hours=Math.round(d/60*100)/100;}
+  if(out.time&&!out.end){const h=out.hours||1;out.end=hm(parseHM(out.time)+Math.round(h*60));}
+  out.title=title?title.charAt(0).toUpperCase()+title.slice(1):"";
+  return out;
+}
+
+function recentTitles(){const seen=new Set(),out=[];for(const t of [...allTasks].sort((a,b)=>(b.date||"")>(a.date||"")?1:-1)){const ti=(t.title||"").trim();if(!ti||ti.length>40||seen.has(ti.toLowerCase())||t.stage==="post"||t.stage==="stories")continue;seen.add(ti.toLowerCase());out.push(ti);if(out.length>=6)break;}return out;}
+const QA_STAGE={bake:"Выпечка",read:"Чтение",clean:"Дом",me:"Для себя"};
+function qaPreview(r){const ch=[];
+  ch.push(`📅 ${r.date===todayKey()?"Сегодня":r.date===addDays(todayKey(),1)?"Завтра":niceWd(r.date)}`);
+  ch.push(r.time?`⏰ ${r.time}–${r.end}`:"⏰ BARI найдёт время");
+  if(r.hours)ch.push(`⏱ ${fmtH(r.hours)}`);
+  if(r.stage)ch.push(`🏠 ${QA_STAGE[r.stage]}`);else ch.push(`💼 ${esc(proj(r.project||workProjects()[0]?.id).name||"Работа")}`);
+  return ch.map(c=>`<span class="qa-chip">${c}</span>`).join("");}
 function openAdd(){
   const work=settings.projects.filter(p=>p.kind!=="home");
-  const st={kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",end:"",timed:false,note:"",par:false,homeStage:"me",ptime:postTime(work[0]?.id)};
+  const st={quick:true,qtext:"",qday:null,kind:contentMode()?"content":"task",fmt:"reels",stages:FORMATS.reels.stages.slice(),project:work[0]?.id,date:todayKey(),title:"",hours:1,time:"",end:"",timed:false,note:"",par:false,homeStage:"me",ptime:postTime(work[0]?.id)};
   const span=()=>{const a=parseHM(st.time),b=parseHM(st.end);if(a===null||b===null)return 0;const d=(b-a+1440)%1440;return d||1440;};
   const fixNight=()=>{st.note="";if(!st.timed||st.date!==todayKey())return;const a=parseHM(st.time);if(a===null)return;const n=new Date(),nowM=n.getHours()*60+n.getMinutes();
     if(a<nowM-15&&a<360){const tm=addDays(todayKey(),1);st.date=tm;st.note=gx(`${st.time} сегодня уже прошло — поставила на ночь с ${["воскресенья","понедельника","вторника","среды","четверга","пятницы","субботы"][n.getDay()]} на ${["воскресенье","понедельник","вторник","среду","четверг","пятницу","субботу"][(n.getDay()+1)%7]}.`);}
@@ -1587,7 +1641,42 @@ function openAdd(){
       <p class="tip when-line">${esc(whenLine())}</p>${st.note?`<p class="tip when-note">${esc(st.note)}</p>`:""}<label class="par-tog"><input type="checkbox" id="aPar" ${st.par?"checked":""}> Можно делать параллельно с другими делами — не занимает время в плане</label></div>`;
   const dateRow=(label)=>`<div class="field"><label class="label" for="aDate">${label}</label>
       <div class="row"><button type="button" class="tog" data-qd="0" aria-pressed="${st.date===todayKey()}">Сегодня</button><button type="button" class="tog" data-qd="1" aria-pressed="${st.date===addDays(todayKey(),1)}">Завтра</button><input id="aDate" type="date" value="${st.date}" min="${todayKey()}" style="flex:1"></div></div>`;
+  const drawQuick=()=>{
+    const rec=recentTitles(), SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    openSheet(`
+      <div class="add-head"><h3>${ic("plus")}Что сделать?</h3></div>
+      <div class="qa-row"><input id="qaT" type="text" value="${esc(st.qtext)}" placeholder="Например: завтра в 15:00 позвонить поставщику" autocomplete="off" enterkeyhint="done">${SR?`<button type="button" class="qa-mic" id="qaMic" aria-label="Сказать голосом">🎤</button>`:""}</div>
+      <p class="tip" style="margin:6px 0 0">Пиши как говоришь — день, время и сколько займёт я пойму сама.</p>
+      <div class="qa-prev" id="qaPrev"></div>
+      <div class="seg" style="margin-top:4px"><button type="button" class="mini-btn" data-qday="0">Сегодня</button><button type="button" class="mini-btn" data-qday="1">Завтра</button></div>
+      ${rec.length?`<span class="label" style="margin-top:12px">Повторить</span><div class="qa-rec">${rec.map(t=>`<button type="button" class="mini-btn" data-qrec="${esc(t)}">${esc(t)}</button>`).join("")}</div>`:""}
+      <div class="actions"><button class="ghost" id="qaMore">Подробнее</button><button class="primary" id="qaSave">${ic("check")}Добавить</button></div>`);
+    const inp=document.getElementById("qaT"), prev=document.getElementById("qaPrev");
+    const parsed=()=>{const r=parseQuick(st.qtext);if(st.qday!==null&&!r.dateSet){r.date=addDays(todayKey(),st.qday);}return r;};
+    const upd=()=>{const r=parsed();prev.innerHTML=st.qtext.trim()?qaPreview(r):"";document.querySelectorAll("#sheetIn [data-qday]").forEach(b=>b.classList.toggle("on",r.date===addDays(todayKey(),+b.dataset.qday)));};
+    inp.oninput=()=>{st.qtext=inp.value;upd();};
+    inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();document.getElementById("qaSave").click();}};
+    document.querySelectorAll("#sheetIn [data-qday]").forEach(b=>b.onclick=()=>{st.qday=+b.dataset.qday;upd();});
+    document.querySelectorAll("#sheetIn [data-qrec]").forEach(b=>b.onclick=()=>{st.qtext=b.dataset.qrec;inp.value=st.qtext;upd();inp.focus();});
+    const mic=document.getElementById("qaMic");
+    if(mic) mic.onclick=()=>{try{const r=new SR();r.lang="ru-RU";r.interimResults=true;mic.classList.add("on");r.onresult=e=>{st.qtext=[...e.results].map(x=>x[0].transcript).join(" ");inp.value=st.qtext;upd();};r.onend=()=>mic.classList.remove("on");r.onerror=()=>{mic.classList.remove("on");toast("Не получилось услышать — попробуй ещё раз или напиши.");};r.start();}catch(e){toast("Голосовой ввод здесь не работает — напиши текстом.");}};
+    document.getElementById("qaMore").onclick=()=>{const r=parsed();st.quick=false;st.title=r.title||st.qtext;st.date=r.date<todayKey()?todayKey():r.date;
+      if(r.stage){st.kind="home";st.homeStage=r.stage;st.hours=r.hours||STAGES[r.stage].h;}else{st.kind="task";if(r.project)st.project=r.project;if(r.hours)st.hours=r.hours;}
+      if(r.time){st.timed=true;st.time=r.time;st.end=r.end;}draw();};
+    document.getElementById("qaSave").onclick=async()=>{
+      const r=parsed();if(!r.title){inp.focus();inp.placeholder="Сначала напиши, что сделать";return;}
+      let date=r.date<todayKey()?todayKey():r.date, msg="";
+      if(r.time&&date===todayKey()&&!r.dateSet){const n=new Date();if(parseHM(r.time)<n.getHours()*60+n.getMinutes()-15){date=addDays(todayKey(),1);msg=" на завтра — сегодня это время уже прошло";}}
+      const hours=r.hours||(r.stage?STAGES[r.stage].h:1);
+      closeSheet();
+      if(r.stage){const pid=r.stage==="read"?"books":r.stage==="bake"?"bake":"house";await store.saveTask({id:uid(),title:r.title,project:pid,stage:r.stage,date,hours,done:false,piece:uid(),time:r.time||""});}
+      else await store.saveTask({id:uid(),title:r.title,project:r.project||work[0]?.id,stage:"task",date,hours,done:false,piece:uid(),time:r.time||""});
+      sfx("pop");toast("✓ Добавила"+(msg||(date===todayKey()?" на сегодня":date===addDays(todayKey(),1)?" на завтра":" на "+niceWd(date))));
+    };
+    upd();inp.focus();
+  };
   const draw=()=>{
+    if(st.quick){drawQuick();return;}
     const hasPost=st.stages.includes("post");
     const plan=st.kind==="content"?planPiece(st.date,st.stages,st.project):[];
     let body="";
@@ -4485,6 +4574,8 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
+ {id:"n-quick",g:"spark2",t:"Задача за 3 секунды ⚡",d:"Пиши или скажи как есть: «завтра в 15:00 позвонить поставщику» — день и время я пойму сама.",
+  steps:[{v:"today",sel:"#fab",t:"Нажми «+» и просто напиши или нажми 🎤. «Повторить» — твои частые дела в один тап."}]},
  {id:"n-niches",g:"apple",t:"Ты — это не одна профессия",d:"Учитель и свой бизнес? Выбери до 3 занятий — советы, книги и идеи подстроятся под каждое.",
   steps:[{v:"rhythm",sel:"#obEdit",t:"«О себе» → «Изменить»: до 3 занятий и до 6 главных целей. «Ритм» теперь тоже под тебя — без лишнего про сторис, если ты не ведёшь соцсети."}]},
  {id:"n-wishedit",g:"heart",t:"Опечатка в вишлисте? ✏️",d:"Желание теперь можно исправить карандашом — тайный друг сразу увидит новую версию.",

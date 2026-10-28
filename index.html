@@ -982,7 +982,7 @@ const STAGES = {
   shoot:{name:"Съёмка",h:0.75,icon:"cam"}, edit:{name:"Монтаж",h:1,icon:"film"}, design:{name:"Дизайн",h:1,icon:"palette"},
   post:{name:"Выложить",h:0.25,icon:"send"}, stories:{name:"Сторис",h:0.5,icon:"stories"}, plan:{name:"Контент-план",h:1.5,icon:"cal"},
   report:{name:"Отчёт",h:1,icon:"present"}, tz:{name:"ТЗ к съёмке",h:1,icon:"clip"}, check:{name:"Контроль",h:0.25,icon:"eye"},
-  target:{name:"Таргет",h:0.25,icon:"target"}, stats:{name:"Аналитика",h:0.5,icon:"chart"}, task:{name:"Задача",h:1,icon:"task"},
+  target:{name:"Таргет",h:0.25,icon:"target"}, prep:{name:"Подготовка",h:1,icon:"clip"}, meet:{name:"Встреча",h:1,icon:"chat"}, learn:{name:"Обучение",h:1,icon:"book"}, stats:{name:"Аналитика",h:0.5,icon:"chart"}, task:{name:"Задача",h:1,icon:"task"},
   read:{name:"Чтение",h:0.5,icon:"book",home:true}, bake:{name:"Выпечка",h:1.5,icon:"bake",home:true},
   clean:{name:"Уборка",h:1,icon:"clean",home:true}, me:{name:"Для себя",h:0.5,icon:"heart",home:true}
 };
@@ -996,6 +996,9 @@ const FORMATS = {
 const STAGE_ORDER = ["report","plan","stats","tz","idea","script","text","shoot","design","edit","check","target","task","stories","post","read","bake","clean","me"];
 const WORK_TPL = ["stories","post","plan","report","tz","edit","check","target","stats","task"];
 const HOME_TPL = ["read","bake","clean","me"];
+const workTpl=()=>studioOn()?WORK_TPL:["task","prep","meet","learn","report","check"];
+const TPL_EX={content:"сторис про курсы",teach:"проверить тетради",biz:"заказ у поставщика",team:"планёрка в понедельник",driver:"мойка и проверка машины",family:"прогулка с малышом"};
+const tplEx=()=>"Например: "+(studioOn()?TPL_EX.content:(TPL_EX[APPLY_GROUP[nicheOf()?.id]]||"планёрка в понедельник"));
 const WD = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
 const WD_FULL = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
 const MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
@@ -1499,7 +1502,7 @@ function renderRhythm(){
     <div class="card">
       ${(s.places||[]).length?(s.places||[]).map((pl,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(pl.project).color})">${ic("pin")}</span><div class="body"><div class="title">${esc(proj(pl.project).name)}</div><div class="meta"><span>${[1,2,3,4,5,6,0].filter(d=>pl.days.includes(d)).map(d=>WD[d]).join(" ")}</span>${pl.time?`<span class="hours">${esc(pl.time)}</span>`:""}${pl.note?`<span>${esc(pl.note)}</span>`:""}</div></div><button class="mini-btn danger" data-delplace="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Пока не указано.</p>`}
       <button class="mini-btn" id="addPlace">${ic("plus")}Добавить место</button>
-      <p class="tip">Съёмку для проекта приложение ставит на дни, когда ты там.</p>
+      <p class="tip">${studioOn()?"Съёмку для проекта приложение ставит на дни, когда ты там.":"Офис, школа, объект — BARI будет знать, где ты в какой день."}</p>
     </div>
     <h2>${ic("timer")}Рабочее время</h2>
     <div class="card">
@@ -1522,20 +1525,20 @@ function renderRhythm(){
     <h2>${ic("tent")}Занятые периоды</h2>
     <div class="card">
       ${(s.blocks||[]).length?s.blocks.map((b,i)=>`<div class="tpl"><span class="tile" style="--pc:var(${proj(b.project).color})">${ic("tent")}</span><div class="body"><div class="title">${esc(b.title)}</div><div class="meta"><span>${nice(b.from)} — ${nice(b.to)}</span><span>${esc(b.note||"")}</span></div></div><button class="mini-btn danger" data-delblk="${i}" aria-label="Убрать">${ic("trash")}</button></div>`).join(""):`<p class="tip">Нет занятых периодов.</p>`}
-      <p class="tip">В эти дни приложение не ставит этапы нового контента.</p>
+      <p class="tip">${studioOn()?"В эти дни приложение не ставит этапы нового контента.":"Отпуск, командировка, сессия — BARI покажет, когда ты занят(а)."}</p>
     </div>
-    <h2>${ic("send")}Время публикаций</h2>
+    ${studioOn()?`<h2>${ic("send")}Время публикаций</h2>
     <div class="card">
       <p class="tip">Выкладка встаёт в расписание на это время. Все публикации должны выходить с ${esc(s.dayStart)} до ${esc(s.dayEnd)}.</p>
       ${s.projects.filter(p=>p.kind!=="home").map(p=>`<div class="row"><label for="pt-${p.id}">${projTile(p)}${esc(p.name)}</label><input type="time" id="pt-${p.id}" data-pt="${p.id}" value="${esc(postTime(p.id))}" min="${esc(s.dayStart)}" max="${esc(s.dayEnd)}"></div>`).join("")}
-    </div>
+    </div>`:""}
     <h2>${ic("timer")}Сколько реально уходит</h2>
     <div class="card">${statsHtml()}</div>
-    <h2>${ic("cal")}День для каждого этапа</h2>
+    ${studioOn()?`<h2>${ic("cal")}День для каждого этапа</h2>
     <div class="card">
       <p class="tip">Однотипную работу удобнее делать пачкой: в один день идеи для всех проектов, в другой весь монтаж. Новый Reels или карусель встают на эти дни перед датой выхода.</p>
       ${["idea","script","text","shoot","design","edit"].map(st=>`<div class="row"><label for="sd-${st}"><span class="tile" style="width:32px;height:32px">${ic(STAGES[st].icon)}</span>${STAGES[st].name}</label><select id="sd-${st}" data-sd="${st}">${dayOpts(s.stageDay[st])}</select></div>`).join("")}
-    </div>
+    </div>`:""}
     <h2>${ic("star")}Проекты</h2>
     <div class="card">
       ${s.projects.filter(p=>p.kind!=="home").map(p=>`<div class="row"><label>${projTile(p)}${esc(p.name)}</label></div>`).join("")}
@@ -1703,13 +1706,13 @@ function openEdit(id){
 
 function openAddTpl(kind){
   const home=kind==="home";
-  const st={title:"",project:home?"books":settings.projects[0]?.id,stage:home?"read":"stories",days:home?[1,2,3,4,5,6,0]:[1,2,3,4,5,6],hours:home?0.5:0.5,time:""};
+  const st={title:"",project:home?"books":settings.projects[0]?.id,stage:home?"read":(studioOn()?"stories":"task"),days:home?[1,2,3,4,5,6,0]:[1,2,3,4,5,6],hours:home?0.5:0.5,time:""};
   const draw=()=>{
     openSheet(`
       <h3>${ic(home?"heart":"repeat")}${home?"Домашнее дело":"Регулярная задача"}</h3>
-      <div class="field"><label class="label" for="rTitle">Что делать</label><input id="rTitle" type="text" value="${esc(st.title)}" placeholder="${home?"Например: генеральная уборка":"Например: сторис про курсы"}"></div>
+      <div class="field"><label class="label" for="rTitle">Что делать</label><input id="rTitle" type="text" value="${esc(st.title)}" placeholder="${home?"Например: генеральная уборка":esc(tplEx())}"></div>
       ${home?"":`<div class="field"><span class="label">Проект</span><div class="pick">${projPick(st.project,p=>p.kind!=="home")}</div></div>`}
-      <div class="field"><span class="label">Тип</span><div class="pick">${(home?HOME_TPL:WORK_TPL).map(s=>`<button data-s="${s}" aria-pressed="${st.stage===s}">${ic(STAGES[s].icon)}${STAGES[s].name}</button>`).join("")}</div></div>
+      <div class="field"><span class="label">Тип</span><div class="pick">${(home?HOME_TPL:workTpl()).map(s=>`<button data-s="${s}" aria-pressed="${st.stage===s}">${ic(STAGES[s].icon)}${STAGES[s].name}</button>`).join("")}</div></div>
       <div class="field"><span class="label">По каким дням</span><div class="toggles">${[1,2,3,4,5,6,0].map(d=>`<button class="tog" data-d="${d}" aria-pressed="${st.days.includes(d)}">${WD[d]}</button>`).join("")}</div></div>
       <div class="row"><div class="field" style="flex:1"><label class="label" for="rHours">Часов</label><input id="rHours" type="number" min="0.25" step="0.25" value="${st.hours}"></div>
       <div class="field" style="flex:1"><label class="label" for="rTime">Время</label><input id="rTime" type="text" value="${esc(st.time)}" placeholder="${home?"вечер":"10:00"}"></div></div>
@@ -4917,7 +4920,7 @@ const HELP={
     "<b>Регулярные дела</b> — то, что повторяется (каждый день, по понедельникам). Я сама создаю их на две недели вперёд.",
     "<b>Где я бываю</b> — дни в офисе или у клиента, <b>Занятые периоды</b> — отпуск и поездки: туда задачи не встанут.",
     "<b>Сколько реально уходит</b> — когда пользуешься таймером ▶, я считаю настоящее время и предлагаю поправить оценки.",
-    "<b>Заметки</b> — для Claude: изменения в графике, задачи, сроки."]},
+    "<b>Забота о себе</b> — вода, сон, движение: маленькие привычки на каждый день."]},
   me:{t:"Я — 20 минут для себя",m:"joy",i:"spark",p:[
     "<b>Путешествие:</b> каждый месяц я «живу» в новой стране, каждую неделю — в новом городе. Фон, факты, слова и наклейки — всё про этот город. Флажки сверху — маршрут на год.",
     "<b>Урок дня</b> на 5 минут. Тема зависит от дня недели: пн — история, вт — искусство, ср — язык, чт — кино, пт — кухня, сб — книги, вс — квиз недели. Новые уроки появляются каждое утро.",
@@ -5007,11 +5010,11 @@ function obStep2(edit){
     <div class="ob-top">${bari({mood:"think",size:80})}<div><span class="label">Шаг 2 из 3</span><h3 style="margin:2px 0 0">Чем ты занимаешься?</h3><p class="tip" style="margin:4px 0 0">По нише я буду предлагать идеи для работы, а по приоритетам — привычки.</p></div></div>
     <div><span class="label">Твоя сфера</span><div class="ob-grid">${NICHES.map(n=>`<button class="pick-c ${d.niche===n.id?"on":""}" data-niche="${n.id}">${glyph(n.g,18)}${esc(n.n)}</button>`).join("")}</div></div>
     <label>Опиши подробнее (по желанию)<input id="obNicheText" value="${esc(d.nicheText||settings.nicheText||"")}" placeholder="Например: репетитор английского для детей 7–10 лет"></label>
-    <div><span class="label">Что для тебя сейчас важнее всего? До 4</span><div class="ob-grid">${PRIORITIES.map(p=>`<button class="pick-c ${d.prio.includes(p.id)?"on":""}" data-prio="${p.id}">${esc(p.n)}</button>`).join("")}</div></div>
+    <div><span class="label">Что для тебя сейчас важнее всего? До 6</span><p class="tip" style="margin:2px 0 6px">Каждый выбор станет ежедневной привычкой в «Ритме». Меньше — легче держать.</p><div class="ob-grid">${PRIORITIES.map(p=>`<button class="pick-c ${d.prio.includes(p.id)?"on":""}" data-prio="${p.id}">${esc(p.n)}</button>`).join("")}</div></div>
     <div><span class="label">Твои увлечения — до 5</span><div class="ob-grid">${HOBBIES.map(h=>`<button class="pick-c ${(d.hobbies||[]).includes(h.id)?"on":""}" data-hob="${h.id}">${esc(h.n)}</button>`).join("")}</div></div>
     <div class="actions"><button class="ghost" id="obBack">Назад</button><button class="primary" id="obNext">Дальше</button></div></div>`);
   document.querySelectorAll("[data-niche]").forEach(b=>b.onclick=()=>{d.niche=b.dataset.niche;document.querySelectorAll("[data-niche]").forEach(z=>z.classList.toggle("on",z===b));});
-  document.querySelectorAll("[data-prio]").forEach(b=>b.onclick=()=>{const id=b.dataset.prio;if(d.prio.includes(id))d.prio=d.prio.filter(x=>x!==id);else if(d.prio.length<4)d.prio=d.prio.concat(id);else{toast("Можно выбрать до 4.");return;}b.classList.toggle("on",d.prio.includes(id));});
+  document.querySelectorAll("[data-prio]").forEach(b=>b.onclick=()=>{const id=b.dataset.prio;if(d.prio.includes(id))d.prio=d.prio.filter(x=>x!==id);else if(d.prio.length<6)d.prio=d.prio.concat(id);else{toast("Можно выбрать до 6 — сними одну, чтобы выбрать другую.");return;}b.classList.toggle("on",d.prio.includes(id));});
   document.querySelectorAll("[data-hob]").forEach(b=>b.onclick=()=>{const id=b.dataset.hob;if(d.hobbies.includes(id))d.hobbies=d.hobbies.filter(x=>x!==id);else if(d.hobbies.length<5)d.hobbies=d.hobbies.concat(id);else{toast("Можно выбрать до 5.");return;}b.classList.toggle("on",d.hobbies.includes(id));});
   const keep=()=>{d.nicheText=document.getElementById("obNicheText").value.trim();};
   document.getElementById("obBack").onclick=()=>{keep();openOnboarding(edit,true);};

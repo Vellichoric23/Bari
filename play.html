@@ -79,11 +79,30 @@ const wishEditor=name=>{const w=LS.get(WKEY)||{n:name||"",wish:"",items:[]};
   <div id="wl">${wlHtml(w)}</div>
   <input id="wt" placeholder="Что хочется"><input id="wp" placeholder="Цена (необязательно)"><input id="wu" placeholder="Ссылка (необязательно)">
   <button class="ghost" id="wa">+ Добавить</button>${LIVE?"":`<button id="ws">Отправить вишлист</button>`}</div>`;};
-function pushWish(w){if(!LIVE)return;const s=$("#wsync");if(s)s.textContent="Сохраняю…";
-  rpc("set_wish",{p_game:LIVE.game,p_person:LIVE.me,p_token:LIVE.tok,p_data:{n:w.n,wish:w.wish,items:w.items}}).then(ok=>{const s=$("#wsync");if(s)s.textContent=ok?"✓ Сохранено — твой тайный человек это видит":"Этот вишлист уже ведётся с другого телефона. Открой ссылку там.";}).catch(()=>{const s=$("#wsync");if(s)s.textContent="Сохранено на телефоне. Живой вишлист включится, когда организатор его подключит.";});}
+const wsync=(t,bad)=>{const s=$("#wsync");if(s){s.textContent=t;s.style.color=bad?"#C0392B":"";s.style.fontWeight=bad?"700":"";}};
+const PEND=()=>"bari-play-pend-"+(LIVE?LIVE.game+"|"+LIVE.me:"");
+function pushWish(w){if(!LIVE)return;const L=LIVE;wsync("Сохраняю…");LS.set(PEND(),1);
+  rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:L.tok,p_data:{n:w.n,wish:w.wish,items:w.items}}).then(ok=>{
+    if(ok){LS.set("bari-play-pend-"+L.game+"|"+L.me,null);wsync("✓ Сохранено — твой тайный человек это видит");}
+    else wsync("Этот вишлист уже заполнен из другого браузера или телефона. Открой свою ссылку там, где писала в первый раз (например, в WhatsApp, а не в Safari) — или напиши организатору.",true);
+  }).catch(()=>{wsync("⚠️ Нет связи — пока сохранено только на этом телефоне. Я отправлю сама, когда появится интернет.",true);});}
+function retryPending(){if(LIVE&&LS.get(PEND())){const w=LS.get(WKEY);if(w)pushWish(w);}}
+addEventListener("online",retryPending);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)retryPending();});
+/* on open: if my list never reached the server (old bug or no internet) — send it now; on a new browser — show what is already saved */
+async function healWish(){if(!LIVE)return;const L=LIVE;try{const r=await rpc("get_wish",{p_game:L.game,p_person:L.me});const srv=r&&r.data;const loc=LS.get(WKEY);
+    const has=w=>w&&((w.wish||"").trim()||(w.items||[]).length);
+    if(has(loc)&&(!has(srv)||JSON.stringify({w:loc.wish||"",i:loc.items||[]})!==JSON.stringify({w:srv.wish||"",i:srv.items||[]}))){pushWish(loc);return;}
+    if(!has(loc)&&has(srv)){LS.set(WKEY,{n:srv.n||"",wish:srv.wish||"",items:srv.items||[]});const ww=$("#ww");if(ww&&!ww.value)ww.value=srv.wish||"";const wl=$("#wl");if(wl&&window._wDraw)window._wDraw();wsync("✓ Твой вишлист уже сохранён — тайный человек его видит");return;}
+    if(has(srv))wsync("✓ Сохранено — твой тайный человек это видит");
+    else wsync("Твой вишлист пока пуст — напиши хоть одно желание, и тайный человек его увидит.");
+  }catch(e){}}
 function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn").value.trim();w.wish=$("#ww").value.trim();LS.set(WKEY,w);return w;};
-  $("#ww").onchange=()=>pushWish(save());
-  const draw=fresh=>{const w=LS.get(WKEY)||{items:[]};$("#wl").innerHTML=wlHtml(w,fresh);bindDel();bindEdit();};
+  let wT=null;const wNow=()=>{clearTimeout(wT);wT=null;pushWish(save());};
+  $("#ww").oninput=()=>{save();wsync("Сохраняю…");clearTimeout(wT);wT=setTimeout(wNow,900);};
+  $("#ww").onblur=()=>{if(wT)wNow();};$("#wn").onchange=()=>pushWish(save());
+  addEventListener("pagehide",()=>{if(wT)wNow();});document.addEventListener("visibilitychange",()=>{if(document.hidden&&wT)wNow();});
+  const draw=fresh=>{const w=LS.get(WKEY)||{items:[]};$("#wl").innerHTML=wlHtml(w,fresh);bindDel();bindEdit();};window._wDraw=()=>draw();
   const bindDel=()=>document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const w=save(),gone=w.items[+b.dataset.d];w.items.splice(+b.dataset.d,1);if(editing>=0)stopEdit();LS.set(WKEY,w);pushWish(w);draw();toast("Удалено: "+(gone?gone.t:""));});
   let editing=-1;
   const stopEdit=()=>{editing=-1;$("#wa").textContent="+ Добавить";const c=$("#wc");if(c)c.remove();$("#wt").value="";$("#wp").value="";$("#wu").value="";};
@@ -99,7 +118,8 @@ function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn"
     const f=document.querySelector("#wl .fresh");if(f)f.scrollIntoView({block:"center",behavior:"smooth"});};
   $("#wt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#wa").click();}});
   if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}
-function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,no:g.no}; if(!g._live) syncGame(g,gk); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me))}; WKEY="bari-play-wish-"+gk;
+function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,no:g.no}; if(!g._live) syncGame(g,gk); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me))}; WKEY="bari-play-wish-"+gk+"|"+norm(g.me);
+  if(!LS.get(WKEY)){const old=LS.get("bari-play-wish-"+gk);if(old&&norm(old.n||g.me)===norm(g.me))LS.set(WKEY,old);}
   const T=GAMES[g.t]||GAMES.ayaz, key="bari-play-open-"+enc([g.ti,g.me]).slice(0,40), opened=!!LS.get(key);
   app.innerHTML=`<div class="bari">${BJ}</div><span class="label">${T.e} ${esc(T.n)}</span><h1>${esc(g.ti)}</h1>
   ${g._redrawn?`<div class="card" style="background:#E8E3FF;text-align:center"><b>🔄 Организатор перетянул жребий! Открой подарок заново — там новый человек.</b></div>`:""}${g._live&&g._old&&g._old!==g.d?`<div class="card" style="background:#FFF1C9;text-align:center"><b>📅 Организатор перенёс день игры на ${esc(nice(g.d))}</b></div>`:""}<p class="muted">${esc(g.me)}, ${g.org?esc(g.org)+" позвала тебя в игру":"тебя позвали в игру"}.${g.d?` День игры — ${esc(nice(g.d))}.`:""}${g.b?` ${g.t==="ayaz"?"Бюджет":"Формат"}: ${esc(g.b)}.`:""}</p>
@@ -112,7 +132,7 @@ function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,
   ${wishEditor(g.me)}
   <footer><a href="./">BARI — планер и путешествия каждый день</a></footer>`;
   $("#gift").onclick=()=>{if($("#gift").classList.contains("open"))return;$("#gift").classList.add("open");$("#who").classList.add("on");$("#verb").style.display="";$("#hint").textContent="Твой тайный человек:";LS.set(key,1);LS.set("bari-play-to-"+gk+"|"+norm(g.me),g.to);confetti();chime();$("#theirWish").style.display="";loadTheirs(g,gk);};
-  bindWish(); if(opened) loadTheirs(g,gk);
+  bindWish(); healWish(); if(opened) loadTheirs(g,gk);
   clearInterval(window._twT); window._twT=setInterval(()=>{if(!document.hidden&&$("#gift")&&$("#gift").classList.contains("open"))loadTheirs(g,gk);},20000);}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&window._twG&&$("#gift")&&$("#gift").classList.contains("open"))loadTheirs(window._twG[0],window._twG[1]);});
 
@@ -157,13 +177,13 @@ async function syncGame(g,gk){try{const r=await rpc("get_game",{p_game:gk});cons
 setInterval(()=>{const h=location.hash.slice(1);if(!document.hidden&&h.startsWith("g=")){const g=dec(h.slice(2));if(g)syncGame(g,gameKey(g));}},45000);
 async function loadTheirs(g,gk){window._twG=[g,gk];const box=$("#twBody");if(!box)return;
   try{const r=await rpc("get_wish",{p_game:gk,p_person:norm(g.to)});const w=r&&r.data;
-    if(!w||(!w.wish&&!(w.items||[]).length)){box.innerHTML=`<p class="muted">${esc(g.to)} ещё не написал(а) вишлист. Загляни позже — список появится здесь сам.</p>`;return;}
+    if(!w||(!w.wish&&!(w.items||[]).length)){box.innerHTML=`<p class="muted">Вишлист ${esc(g.to)} пока не дошёл. Если она уже писала — пусть просто откроет свою ссылку ещё раз: список отправится сам и появится здесь.</p>`;return;}
     const at=r.at?new Date(r.at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
     box.innerHTML=`${w.wish?`<p style="font-size:17px;font-weight:700;margin:4px 0">${esc(w.wish)}</p>`:""}${(w.items||[]).map((it,i)=>`<div class="it" style="flex-wrap:wrap"><div style="flex:1"><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">посмотреть</a>`:""}</div><button class="x ib" data-idea="${i}">💡 Идеи</button><div class="idea-slot" id="slot${i}" style="width:100%"></div></div>`).join("")}${w.wish?`<div class="it" style="flex-wrap:wrap"><div style="flex:1"><b>Главное желание:</b> ${esc(w.wish)}</div><button class="x ib" data-idea="w">💡 Идеи</button><div class="idea-slot" id="slotw" style="width:100%"></div></div>`:""}${at?`<p class="muted" style="font-size:12px">обновлено ${esc(at)}</p>`:""}`;
     const items=[...(w.items||[])];const byKey=k=>k==="w"?{t:w.wish}:items[+k];
     const open=(k)=>{const slot=$("#slot"+k);if(!slot)return;slot.innerHTML=ideaHtml(byKey(k),k);const m=slot.querySelector("[data-more]");if(m)m.onclick=()=>{open(k);pop();};};
     box.querySelectorAll("[data-idea]").forEach(b=>b.onclick=()=>{const k=b.dataset.idea,slot=$("#slot"+k);if(slot.innerHTML){slot.innerHTML="";return;}open(k);pop();});
-  }catch(e){box.innerHTML=`<p class="muted">Живой вишлист скоро заработает. А пока попроси ${esc(g.to)} отправить вишлист в общий чат.</p>`;}}
+  }catch(e){box.innerHTML=`<p class="muted">Не получилось загрузить — проверь интернет. Я попробую ещё раз через несколько секунд.</p>`;}}
 function wish(w){LIVE=null;window._shown=null;app.innerHTML=`<div class="bari">${BH}</div><span class="label">Вишлист</span><h1>${esc(w.n||"Друг")} мечтает о…</h1>
   ${w.wish?`<div class="card"><span class="label">Главное желание</span><p style="font-size:18px;font-weight:700;margin:4px 0">${esc(w.wish)}</p></div>`:""}
   <div class="card">${(w.items||[]).map(it=>`<div class="it"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">посмотреть</a>`:""}${it.no?`<br><span class="muted">${esc(it.no)}</span>`:""}</div></div>`).join("")||`<p class="muted">Список пока пуст.</p>`}</div>

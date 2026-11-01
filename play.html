@@ -79,12 +79,17 @@ const wishEditor=name=>{const w=LS.get(WKEY)||{n:name||"",wish:"",items:[]};
   <div id="wl">${wlHtml(w)}</div>
   <input id="wt" placeholder="Что хочется"><input id="wp" placeholder="Цена (необязательно)"><input id="wu" placeholder="Ссылка (необязательно)">
   <button class="ghost" id="wa">+ Добавить</button>${LIVE?"":`<button id="ws">Отправить вишлист</button>`}</div>`;};
+async function linkTok(L){try{const pre=L.k?"k:":"n:",src=L.k?("w|"+L.k+"|"+L.me):("w|"+L.game+"|"+L.me);L.ltok=pre+_hex(await crypto.subtle.digest("SHA-256",_te.encode(src))).slice(0,40);}catch(e){}return L.ltok;}
 const wsync=(t,bad)=>{const s=$("#wsync");if(s){s.textContent=t;s.style.color=bad?"#C0392B":"";s.style.fontWeight=bad?"700":"";}};
 const PEND=()=>"bari-play-pend-"+(LIVE?LIVE.game+"|"+LIVE.me:"");
+async function setWishAny(L,data){const lt=L.ltok||await linkTok(L);
+  /* new rule: the personal link is the key; fall back to this browser's old key until the server is updated */
+  if(lt){const ok=await rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:lt,p_data:data});if(ok)return true;}
+  return await rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:L.tok,p_data:data});}
 function pushWish(w){if(!LIVE)return;const L=LIVE;wsync("Сохраняю…");LS.set(PEND(),1);
-  rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:L.tok,p_data:{n:w.n,wish:w.wish,items:w.items}}).then(ok=>{
+  setWishAny(L,{n:w.n,wish:w.wish,items:w.items}).then(ok=>{
     if(ok){LS.set("bari-play-pend-"+L.game+"|"+L.me,null);wsync("✓ Сохранено — твой тайный человек это видит");}
-    else wsync("Этот вишлист уже заполнен из другого браузера или телефона. Открой свою ссылку там, где писала в первый раз (например, в WhatsApp, а не в Safari) — или напиши организатору.",true);
+    else wsync("Не получилось сохранить: этот вишлист начали в другом браузере. Открой ссылку там, где писала впервые, — после обновления BARI это ограничение уйдёт.",true);
   }).catch(()=>{wsync("⚠️ Нет связи — пока сохранено только на этом телефоне. Я отправлю сама, когда появится интернет.",true);});}
 function retryPending(){if(LIVE&&LS.get(PEND())){const w=LS.get(WKEY);if(w)pushWish(w);}}
 addEventListener("online",retryPending);
@@ -118,7 +123,7 @@ function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn"
     const f=document.querySelector("#wl .fresh");if(f)f.scrollIntoView({block:"center",behavior:"smooth"});};
   $("#wt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#wa").click();}});
   if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}
-function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,no:g.no}; if(!g._live) syncGame(g,gk); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me))}; WKEY="bari-play-wish-"+gk+"|"+norm(g.me);
+function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,no:g.no}; if(!g._live) syncGame(g,gk); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me)),ltok:null,k:g.k||""};linkTok(LIVE); WKEY="bari-play-wish-"+gk+"|"+norm(g.me);
   if(!LS.get(WKEY)){const old=LS.get("bari-play-wish-"+gk);if(old&&norm(old.n||g.me)===norm(g.me))LS.set(WKEY,old);}
   const T=GAMES[g.t]||GAMES.ayaz, key="bari-play-open-"+enc([g.ti,g.me]).slice(0,40), opened=!!LS.get(key);
   app.innerHTML=`<div class="bari">${BJ}</div><span class="label">${T.e} ${esc(T.n)}</span><h1>${esc(g.ti)}</h1>

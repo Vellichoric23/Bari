@@ -4695,6 +4695,8 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
+ {id:"n-onewish",g:"heart",t:"Один вишлист на всё 🎁",d:"Вишлист в BARI и в играх теперь общий, а ссылка — живая: друзья всегда видят свежий список.",
+  steps:[{v:"today",go:()=>{forYouOpen="fun";render();},sel:"[data-fun='wish']",t:"«Мой вишлист»: пиши здесь или в игре — список один. «Поделиться» даёт живую ссылку."}]},
  {id:"n-quote1",g:"lantern",t:"Цитата дня — для тебя",d:"Одна цитата в день, под твои цели и город: Абай, Чехов, Данте, герои книг и фильмов. BARI одевается как её автор.",
   steps:[{v:"today",sel:"#bariBtn",t:"Нажми на BARI — цитата дня. Нажми ещё раз — расскажу, в чей образ я сегодня оделся и какая погода в городе."}]},
  {id:"n-balance",g:"heart",t:"Баланс: работа и жизнь",d:"BARI следит, чтобы в дне было место для тебя. Вечером напомнит, что работа подождёт до завтра.",
@@ -4819,7 +4821,28 @@ async function publishGame(id,g){if(!g.otok)g.otok=newTok();if(g.date0===undefin
   g.rev=(g.rev||0)+1; await store.saveDoc("games",id,g); S.games={...S.games,[id]:g};
   try{return await playRpc("set_game",{p_game:gk,p_token:g.otok,p_data:{d:g.date,b:g.budget,no:g.note,a,rev:g.rev}});}catch(e){return false;}}
 function gameLink(g,p){return PLAY_URL+"#g="+b64u({t:g.type,ti:g.title,d:(g.date0??g.date)||"",b:(g.budget0??g.budget)||"",no:g.note||"",me:p.n,to:p.to,org:g.org||"",...(g.gid?{gid:g.gid}:{}),...(p.k?{k:p.k}:{})});}
-function wishLink(){const w=wishDoc();return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
+
+/* one wishlist everywhere: the BARI tab, every game you play in, and a live link for friends */
+const wNorm=x=>String(x||"").trim().toLowerCase().replace(/\s+/g," ");
+const wHsh=s=>{let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;let h2=0;for(const c of s)h2=(h2*31+c.charCodeAt(0))>>>0;return h.toString(36)+h2.toString(36);};
+async function wSha(src){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(src));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("").slice(0,40);}
+const gameKeyOf=g=>g.gid||("h"+wHsh([g.org||"",g.title,(g.date0??g.date)||"",(g.budget0??g.budget)||"",g.type].join("|")));
+function myGameSeats(){const me=wNorm(userName());if(!me)return [];return Object.values(S.games||{}).filter(g=>Array.isArray(g.pairs)).map(g=>{const p=g.pairs.find(x=>wNorm(x.n)===me);return p?{g,p,gk:gameKeyOf(g)}:null;}).filter(Boolean);}
+async function seatTok(gk,p){const me=wNorm(p.n);return p.k?"k:"+await wSha("w|"+p.k+"|"+me):"n:"+await wSha("w|"+gk+"|"+me);}
+function wishPub(){const w=wishDoc();return w.pub&&w.pub.g?w.pub:null;}
+async function ensureWishPub(){let pub=wishPub();if(pub)return pub;const r=()=>Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,"0")).join("");pub={g:"me-"+r(),s:r()};const w={...wishDoc(),pub};await store.saveDoc("wish","main",w);S.wish={...(S.wish||{}),main:w};return pub;}
+let _wOutT=null;
+function wishSyncOut(){clearTimeout(_wOutT);_wOutT=setTimeout(async()=>{const sb=window.sbClient;if(!sb)return;const w=wishDoc(),data={n:userName()||"",wish:w.wish||"",items:(w.items||[]).slice(0,40)};
+  try{const pub=await ensureWishPub();await sb.rpc("set_wish",{p_game:pub.g,p_person:"me",p_token:"k:"+await wSha("w|"+pub.s+"|me"),p_data:data});}catch(e){}
+  for(const x of myGameSeats()){try{await sb.rpc("set_wish",{p_game:x.gk,p_person:wNorm(x.p.n),p_token:await seatTok(x.gk,x.p),p_data:data});}catch(e){}}},600);}
+/* bring in a list written on the game page, so nothing is typed twice */
+let _wInDone=false;
+async function wishSyncIn(){if(_wInDone)return;_wInDone=true;const sb=window.sbClient;if(!sb)return;const w=wishDoc();
+  for(const x of myGameSeats()){try{const {data:r}=await sb.rpc("get_wish",{p_game:x.gk,p_person:wNorm(x.p.n)});const gw=r&&r.data;if(!gw)continue;
+    const have=new Set((w.items||[]).map(it=>wNorm(it.t)));const add=(gw.items||[]).filter(it=>it&&it.t&&!have.has(wNorm(it.t)));
+    if(add.length||(!w.wish&&gw.wish)){const nw={...wishDoc(),wish:wishDoc().wish||gw.wish||"",items:[...(wishDoc().items||[]),...add]};await store.saveDoc("wish","main",nw);S.wish={...(S.wish||{}),main:nw};toast(`Добавила в вишлист ${add.length} ${plural(add.length,"желание","желания","желаний")} из игры «${x.g.title}»`);if(funTab==="wish")openFun();wishSyncOut();}
+  }catch(e){}}}
+function wishLink(){const w=wishDoc(),pub=wishPub();if(pub)return PLAY_URL+"#v="+b64u({g:pub.g,p:"me",n:userName()||""});return PLAY_URL+"#w="+b64u({n:userName()||"Друг",wish:w.wish||"",items:(w.items||[]).slice(0,30)});}
 async function shareText(text,url){try{if(navigator.share){await navigator.share({text,url});return;}}catch(e){if(e&&e.name==="AbortError")return;}
   window.open("https://wa.me/?text="+encodeURIComponent(text+"\n"+url),"_blank","noopener");}
 function openFun(tab){track("fun",1);if(tab)funTab=tab;
@@ -4835,7 +4858,8 @@ function openFun(tab){track("fun",1);if(tab)funTab=tab;
     const ord=FUN_IDEAS.slice().sort((a,b)=>(seas(b)?1:0)-(seas(a)?1:0));
     body=`<p class="tip">Праздники для своих — из сериалов, разных стран и наших традиций.</p>${ord.map(x=>`<div class="fun-card"><div class="fun-h"><span class="fun-e">${x.g}</span><b>${esc(x.n)}</b>${seas(x)?`<span class="rt-tag now">сейчас сезон</span>`:""}</div><p>${esc(x.t)}</p><button class="mini-btn" data-fshare="${esc(x.n)}">${ic("send")}Предложить друзьям</button></div>`).join("")}`;}
   else if(funTab==="wish"){const w=wishDoc();
-    body=`<p class="tip">Список того, что тебе правда хочется. Поделись ссылкой — друзьям не придётся гадать, а подарок будет в радость.</p>
+    wishSyncIn();const seats=myGameSeats();
+    body=`<p class="tip">Список того, что тебе правда хочется. Он один на всё: ${seats.length?`твои игры (${seats.map(x=>"«"+esc(x.g.title)+"»").join(", ")}) видят его сразу, а `:""}по ссылке друзья всегда видят свежую версию.</p>
       <label class="label">Моё главное желание</label><textarea id="wMain" rows="2" placeholder="Например: научиться печь хлеб или съездить в Самарканд">${esc(w.wish||"")}</textarea>
       <div class="w-list">${(w.items||[]).map((it,i)=>`<div class="w-it"><div><b>${esc(it.t)}</b>${it.p?` <small>· ${esc(it.p)}</small>`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">ссылка</a>`:""}${it.no?`<br><small>${esc(it.no)}</small>`:""}</div><button class="icon-btn" data-wdel="${i}" aria-label="Удалить">✕</button></div>`).join("")||`<p class="tip">Пока пусто — добавь первое желание.</p>`}</div>
       <div class="w-form"><input id="wT" placeholder="Что хочется (например, книга «Абай жолы»)"><input id="wP" placeholder="Цена (необязательно)"><input id="wU" placeholder="Ссылка на товар (необязательно)"><input id="wN" placeholder="Подсказка: размер, цвет…"><button class="ghost" id="wAdd">${ic("plus")}Добавить</button></div>
@@ -4903,11 +4927,11 @@ function bindFun(){const $=id=>document.getElementById(id);
     if(ok){sfx("done");toast("Сохранено — все увидят новую дату по своим ссылкам.");shareText(`📅 Внимание! «${g.title}»: ${g.date?"новая дата — "+nice(g.date):"изменения в игре"}${g.budget?", бюджет: "+g.budget:""}. Ссылки те же — откройте свою, там всё обновилось.`,"");}
     else toast("Сохранила у тебя, но на сервере не обновилось. Проверь, что SQL для игр выполнен в Supabase.");});
   document.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=async()=>{if(!confirm("Удалить игру?"))return;await store.deleteDoc("games",b.dataset.fdel);const o={...S.games};delete o[b.dataset.fdel];S.games=o;openFun();});
-  const saveW=async w=>{await store.saveDoc("wish","main",w);S.wish={...(S.wish||{}),main:w};};
+  const saveW=async w=>{await store.saveDoc("wish","main",w);S.wish={...(S.wish||{}),main:w};wishSyncOut();};
   if($("wAdd")) $("wAdd").onclick=async()=>{const t=$("wT").value.trim();if(!t){$("wT").focus();return;}const w={...wishDoc(),wish:$("wMain").value.trim()};w.items=[...(w.items||[]),{t,p:$("wP").value.trim(),u:/^https?:\/\//.test($("wU").value.trim())?$("wU").value.trim():"",no:$("wN").value.trim()}];await saveW(w);sfx("pop");openFun();};
   if($("wMain")) $("wMain").onchange=async()=>saveW({...wishDoc(),wish:$("wMain").value.trim()});
   document.querySelectorAll("[data-wdel]").forEach(b=>b.onclick=async()=>{const w={...wishDoc()};w.items=(w.items||[]).filter((_,i)=>i!==+b.dataset.wdel);await saveW(w);openFun();});
-  if($("wShare")) $("wShare").onclick=async()=>{await saveW({...wishDoc(),wish:$("wMain").value.trim()});const w=wishDoc();if(!w.wish&&!(w.items||[]).length){toast("Добавь хотя бы одно желание.");return;}shareText(`Мой вишлист в BARI ${"🎁"} — вдруг пригодится:`,wishLink());};
+  if($("wShare")) $("wShare").onclick=async()=>{await saveW({...wishDoc(),wish:$("wMain").value.trim()});const w=wishDoc();if(!w.wish&&!(w.items||[]).length){toast("Добавь хотя бы одно желание.");return;}if(window.sbClient)await ensureWishPub();wishSyncOut();shareText(`Мой вишлист в BARI ${"🎁"} — вдруг пригодится:`,wishLink());};
 }
 document.addEventListener("click",e=>{const b=e.target.closest?.("[data-fun]");if(b){funForm=null;openFun(b.dataset.fun);}});
 

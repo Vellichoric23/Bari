@@ -78,7 +78,7 @@ const wishEditor=name=>{const w=LS.get(WKEY)||{n:name||"",wish:"",items:[]};
   <input id="wn" placeholder="Твоё имя" value="${esc(w.n)}"><textarea id="ww" rows="2" placeholder="Главное желание">${esc(w.wish)}</textarea>
   <div id="wl">${wlHtml(w)}</div>
   <input id="wt" placeholder="Что хочется"><input id="wp" placeholder="Цена (необязательно)"><input id="wu" placeholder="Ссылка (необязательно)">
-  <button class="ghost" id="wa">+ Добавить</button>${LIVE?"":`<button id="ws">Отправить вишлист</button>`}</div>`;};
+  <button class="ghost" id="wa">+ Добавить</button><button id="ws">${LIVE?"Поделиться вишлистом":"Отправить вишлист"}</button>${LIVE?`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Это живая ссылка: всё, что ты добавишь потом, друзья увидят по ней сами.</p>`:""}</div>`;};
 async function linkTok(L){try{const pre=L.k?"k:":"n:",src=L.k?("w|"+L.k+"|"+L.me):("w|"+L.game+"|"+L.me);L.ltok=pre+_hex(await crypto.subtle.digest("SHA-256",_te.encode(src))).slice(0,40);}catch(e){}return L.ltok;}
 const wsync=(t,bad)=>{const s=$("#wsync");if(s){s.textContent=t;s.style.color=bad?"#C0392B":"";s.style.fontWeight=bad?"700":"";}};
 const PEND=()=>"bari-play-pend-"+(LIVE?LIVE.game+"|"+LIVE.me:"");
@@ -122,7 +122,8 @@ function bindWish(){const save=()=>{const w=LS.get(WKEY)||{items:[]};w.n=$("#wn"
     LS.set(WKEY,w);pushWish(w);draw(was>=0?was:w.items.length-1);stopEdit();pop();toast(was>=0?"✓ Исправлено":"✓ Добавлено в вишлист");
     const f=document.querySelector("#wl .fresh");if(f)f.scrollIntoView({block:"center",behavior:"smooth"});};
   $("#wt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#wa").click();}});
-  if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}
+  if($("#ws")) $("#ws").onclick=()=>{const w=save();if(!w.wish&&!w.items.length){$("#wt").focus();toast("Сначала добавь хотя бы одно желание");return;}
+    if(LIVE){pushWish(w);share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#v="+enc({g:LIVE.game,p:LIVE.me,n:w.n||""}));return;}share(`Мой вишлист ${w.n?"("+w.n+") ":""}🎁`,base+"#w="+enc({n:w.n,wish:w.wish,items:w.items}));};}
 function game(g){const gk=g._gk||gameKey(g); window._shown={to:g.to,d:g.d,b:g.b,no:g.no}; if(!g._live) syncGame(g,gk); LIVE={game:gk,me:norm(g.me),tok:myToken(gk+"|"+norm(g.me)),ltok:null,k:g.k||""};linkTok(LIVE); WKEY="bari-play-wish-"+gk+"|"+norm(g.me);
   if(!LS.get(WKEY)){const old=LS.get("bari-play-wish-"+gk);if(old&&norm(old.n||g.me)===norm(g.me))LS.set(WKEY,old);}
   const T=GAMES[g.t]||GAMES.ayaz, key="bari-play-open-"+enc([g.ti,g.me]).slice(0,40), opened=!!LS.get(key);
@@ -193,8 +194,12 @@ function wish(w){LIVE=null;window._shown=null;app.innerHTML=`<div class="bari">$
   ${w.wish?`<div class="card"><span class="label">Главное желание</span><p style="font-size:18px;font-weight:700;margin:4px 0">${esc(w.wish)}</p></div>`:""}
   <div class="card">${(w.items||[]).map(it=>`<div class="it"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">посмотреть</a>`:""}${it.no?`<br><span class="muted">${esc(it.no)}</span>`:""}</div></div>`).join("")||`<p class="muted">Список пока пуст.</p>`}</div>
   <a class="btn ghost" href="${base}#new">Создать свой вишлист</a><footer><a href="./">BARI — планер и путешествия каждый день</a></footer>`;}
+async function liveView(v){LIVE=null;window._shown=null;app.innerHTML=`<div class="bari">${BH}</div><p class="muted">Загружаю вишлист…</p>`;
+  const load=async()=>{try{const r=await rpc("get_wish",{p_game:v.g,p_person:v.p});const w=(r&&r.data)||{};const cur=JSON.stringify(w);if(cur===liveView._last)return;liveView._last=cur;wish({n:w.n||v.n,wish:w.wish||"",items:w.items||[]});
+      const h=$("h1");if(h)h.insertAdjacentHTML("afterend",`<p class="muted" style="font-size:12.5px">Живой вишлист — обновляется сам${r&&r.at?` · ${esc(new Date(r.at).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}))}`:""}</p>`);}catch(e){if(!liveView._last)app.innerHTML=`<p class="muted">Не получилось загрузить — проверь интернет и обнови страницу.</p>`;}};
+  liveView._last=null;await load();clearInterval(window._lvT);window._lvT=setInterval(()=>{if(!document.hidden)load();},30000);}
 function home(){LIVE=null;window._shown=null;WKEY="bari-play-wish";app.innerHTML=`<div class="bari">${BJ}</div><h1>Праздники с близкими</h1><p class="muted">Здесь открываются тайные игры и вишлисты из BARI.</p>${wishEditor("")}<footer><a href="./">Открыть BARI</a></footer>`;bindWish();}
-function route(){const h=location.hash.slice(1);if(h.startsWith("g=")){const g=dec(h.slice(2));if(g&&g.me&&g.to)return game(g);}if(h.startsWith("w=")){const w=dec(h.slice(2));if(w)return wish(w);}home();}
+function route(){const h=location.hash.slice(1);if(h.startsWith("g=")){const g=dec(h.slice(2));if(g&&g.me&&g.to)return game(g);}if(h.startsWith("w=")){const w=dec(h.slice(2));if(w)return wish(w);}if(h.startsWith("v=")){const v=dec(h.slice(2));if(v&&v.g&&v.p)return liveView(v);}home();}
 window.addEventListener("hashchange",route);route();
 })();
 </script></body></html>

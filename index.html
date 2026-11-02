@@ -1422,7 +1422,7 @@ function renderToday(){
     :(ci&&ci.kind!=="start")?{mood:"think",prop:PROPS.q,size:150}
     :hr<12?{mood:"happy",wave:true,size:150}
     :{mood:"happy",arms:"hold",prop:PROPS[se],size:150};
-  let bariState=bariState0.outfit?bariState0:{...bariState0,outfit:monthLook().o};
+  let bariState=bariState0.outfit?bariState0:{...bariState0,outfit:lookToday(k).o};
   {const wv=weatherNow(jr.city);if(wv&&wv.rain&&bariState.mood!=="sleep")bariState={...bariState,arms:"down",wave:false,prop:RPROP.umbrella};}
   window.bariStateNow=bariState;
   setTimeout(()=>typeof placeBari==="function"&&placeBari(),0);
@@ -1474,8 +1474,8 @@ function renderToday(){
   if(settingsLoaded&&!window._openTracked&&window.sbUserId){window._openTracked=1;track("open",1);}
   if(!window._taleChk&&settingsLoaded){window._taleChk=1;let seen=false;try{seen=!!localStorage.getItem("bari-tale");}catch(e){seen=true;}if(!seen&&settings.onboarded!==false&&(settings.onboarded||isOwner()))setTimeout(()=>{if(document.getElementById("sheet").hidden&&!document.getElementById("splash"))openStory(true);},3200);}
   const bb=document.getElementById("bariBtn");
-  const bariSay=(q)=>{const b=document.getElementById("bariBubble");if(!b||!bb)return;b.innerHTML=`«${esc(q.q)}»${q.ru?`<span class="bb-ru">${esc(q.ru)}</span>`:""}<span class="bb-a">— ${esc(q.a)}</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:bariState.mood==="sleep"?"happy":"wink",prop:"",outfit:outfitFor(q)});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);};
-  if(bb){bb.onclick=()=>{const n=(bb._n=(bb._n||0)+1);if(n===2){const L=monthLook(),b=document.getElementById("bariBubble");b.innerHTML=`${esc(L.line)}<span class="bb-a">${esc(L.n)} · ${esc(L.w)}</span><span class="bb-ru">Книга есть во вкладке «Книги».</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:"joy",prop:"",outfit:L.o});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);return;}const q=n===1?quoteOfDay(k):QUOTES[Math.floor(Math.random()*QUOTES.length)];bariSay(q);};
+  const bariSay=(q)=>{const b=document.getElementById("bariBubble");if(!b||!bb)return;b.innerHTML=`«${esc(q.q)}»${q.ru?`<span class="bb-ru">${esc(q.ru)}</span>`:""}<span class="bb-a">— ${esc(q.a)}</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:bariState.mood==="sleep"?"happy":"wink",prop:"",outfit:lookToday(k).o});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);};
+  if(bb){bb.onclick=()=>{const n=(bb._n=(bb._n||0)+1);if(n%2===0){const L=lookToday(k),b=document.getElementById("bariBubble");b.innerHTML=`${esc(L.line)}<span class="bb-ru">Новая цитата и новый образ — завтра.</span>`;b.hidden=false;bb.innerHTML=bari({...bariState,mood:"joy",prop:"",outfit:L.o});clearTimeout(bb._t);bb._t=setTimeout(()=>{b.hidden=true;bb.innerHTML=bari(bariState);},8000);return;}bariSay(quoteOfDay(k));};
     if(!renderToday._said){renderToday._said=true;setTimeout(()=>{if(view==="today"&&document.getElementById("bariBubble")){bb._n=1;bariSay(quoteOfDay(k));}},1500);}}
   const mo=document.getElementById("moveOverdue");
   if(mo) mo.onclick=async()=>{for(const t of overdue) await store.saveTask({...t,date:k});};
@@ -2694,7 +2694,7 @@ const monthLook=(d=new Date())=>MONTH_LOOK[d.getMonth()];
 const outfitSvg=n=>n.split("+").map(x=>OUTFIT[x]||"").join("");
 const OUTFIT_BY={"Абай Құнанбайұлы":"borik","Ыбырай Алтынсарин":"scholar","Мағжан Жұмабаев":"beret","Қазақ мақалы":"takiya","Лао-цзы":"straw","Сенека":"laurel","Сократ":"laurel","Гераклит":"laurel","Антон Чехов":"pince","Антуан де Сент-Экзюпери":"aviator","Козьма Прутков":"tophat","Александр Пушкин":"tophat","Бенджамин Франклин":"glasses","Фёдор Достоевский":"beard"};
 const OUTFIT_NAME={borik:"в бөрік, как Абай",scholar:"в образе просветителя",beret:"в берете поэта",takiya:"в тақии",straw:"в шляпе мудреца",laurel:"в лавровом венке",pince:"в пенсне, как Чехов",aviator:"в шлеме лётчика",tophat:"в цилиндре",glasses:"в очках Франклина",beard:"с бородой Достоевского"};
-const outfitFor=q=>OUTFIT_BY[q.a]||monthLook().o;
+const outfitFor=q=>q.o||OUTFIT_BY[q.a]||monthLook().o;
 /* ---------- quotes, cultural code (Қазақтың мәдени коды), badges ---------- */
 const QUOTES=[
   {q:"Ғылым таппай мақтанба.",ru:"Не хвались, пока не постиг знания.",a:"Абай Құнанбайұлы",s:"название стихотворения",tip:"Сегодня 20 минут на урок во вкладке «Я» — это и есть ғылым."},
@@ -2724,7 +2724,69 @@ const QUOTES=[
   {q:"Я знаю, что ничего не знаю.",ru:"",a:"Сократ",s:"по «Апологии Сократа» Платона",tip:"Задай вопрос, который давно стесняешься задать.",own:"Задай вопрос, который давно стеснялась задать клиенту."}
 ];
 const userSeed=()=>{const s=String(window.sbUserId||settings.name||"");let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;};
-const quoteOfDay=k=>QUOTES[((Math.floor((fromKey(k)-new Date(2026,0,1))/864e5)+userSeed())%QUOTES.length+QUOTES.length)%QUOTES.length];
+/* more quotes: Kazakh, Russian, book and film characters, and the language of each route country.
+   t = whom it suits (priorities and work groups), c = country whose language it is in, o = BARI's outfit, on = how to name that outfit */
+QUOTES.push(
+  {q:"Талап, еңбек, терең ой, қанағат, рақым — ойлап қой, бес асыл іс, көнсеңіз.",ru:"Стремление, труд, глубокая мысль, умеренность, милосердие — пять драгоценных дел, если ты согласишься.",a:"Абай Құнанбайұлы",s:"«Ғылым таппай мақтанба»",t:"work study teach",c:"Казахстан",tip:"Выбери из пяти одно — и сделай сегодня по нему один шаг."},
+  {q:"Сөзі жоғалған жұрттың өзі де жоғалады.",ru:"Народ, потерявший свой язык, исчезает и сам.",a:"Ахмет Байтұрсынұлы",s:"мысль просветителя",t:"lang study teach content",c:"Казахстан",o:"glasses",on:"в круглых очках, как Ахмет Байтұрсынұлы",tip:"Скажи сегодня пять фраз по-казахски — дома, в такси, в магазине."},
+  {q:"Еңбек түбі — береке.",ru:"В основе труда — достаток.",a:"Қазақ мақалы",s:"пословица",t:"work money biz driver",c:"Казахстан",tip:"Сделай сегодня то дело, которое принесёт деньги, первым."},
+  {q:"Оқу — инемен құдық қазғандай.",ru:"Учиться — всё равно что иглой колодец копать.",a:"Қазақ мақалы",s:"пословица",t:"study lang teach",c:"Казахстан",tip:"Не жди быстрого результата: 15 минут учёбы сегодня — это и есть игла."},
+  {q:"Жеті рет өлшеп, бір рет кес.",ru:"Семь раз отмерь — один раз отрежь.",a:"Қазақ мақалы",s:"пословица",t:"biz money team",c:"Казахстан",tip:"Перед важным решением сегодня выпиши три «за» и три «против»."},
+  {q:"Жақсы сөз — жарым ырыс.",ru:"Доброе слово — половина счастья.",a:"Қазақ мақалы",s:"пословица",t:"family team driver content",c:"Казахстан",tip:"Скажи сегодня одно конкретное доброе слово коллеге, клиенту или пассажиру."},
+  {q:"Денсаулық — зор байлық.",ru:"Здоровье — великое богатство.",a:"Қазақ мақалы",s:"пословица",t:"health sport sleep",c:"Казахстан",tip:"Сегодня — вода, 20 минут прогулки и сон до полуночи."},
+  {q:"Көп жасаған білмейді, көпті көрген біледі.",ru:"Знает не тот, кто долго жил, а тот, кто много видел.",a:"Қазақ мақалы",s:"пословица",t:"study hobby content",c:"Казахстан",tip:"Открой урок города дня — сегодня ты тоже немного путешествуешь."},
+  {q:"Ана — бір қолымен бесікті, бір қолымен әлемді тербетеді.",ru:"Мать одной рукой качает колыбель, а другой — весь мир.",a:"Қазақ мақалы",s:"пословица",t:"family",c:"Казахстан",tip:"Позвони сегодня маме — или сделай что-то приятное для себя, если мама — это ты."},
+  {q:"Мы все учились понемногу чему-нибудь и как-нибудь.",ru:"",a:"Александр Пушкин",s:"«Евгений Онегин»",t:"study teach",tip:"Выбери одну тему и выучи её не «как-нибудь», а до конца — хотя бы маленькую."},
+  {q:"Все счастливые семьи похожи друг на друга, каждая несчастливая семья несчастлива по-своему.",ru:"",a:"Анна Каренина",s:"первая фраза романа Льва Толстого",t:"family calm",o:"anna",on:"в зимней шапке, как Анна Каренина",tip:"Сделай сегодня с семьёй одну маленькую общую вещь: ужин, прогулку, игру."},
+  {q:"В человеке должно быть всё прекрасно: и лицо, и одежда, и душа, и мысли.",ru:"",a:"Антон Чехов",s:"доктор Астров, «Дядя Ваня»",t:"health calm content biz",tip:"Удели сегодня 15 минут себе: одежда, уход, тишина."},
+  {q:"Спасение утопающих — дело рук самих утопающих.",ru:"",a:"Остап Бендер",s:"«Двенадцать стульев», Ильф и Петров",t:"work biz money",tip:"Не жди, пока кто-то решит за тебя: сделай первый шаг по делу, которое тянется."},
+  {q:"Счастливые часов не наблюдают.",ru:"",a:"Александр Грибоедов",s:"«Горе от ума»",t:"hobby family calm",o:"glasses",on:"в очках, как Грибоедов",tip:"Найди сегодня час на любимое дело, за которым забываешь о времени."},
+  {q:"Никогда и ничего не просите! Сами предложат и сами всё дадут!",ru:"",a:"Воланд",s:"«Мастер и Маргарита», Михаил Булгаков",t:"biz money work",o:"tophat",on:"в цилиндре — загадочно, как в романе Булгакова",tip:"Покажи сегодня свою работу так, чтобы предложили сами: портфолио, отзыв, результат."},
+  {q:"Спокойствие, только спокойствие!",ru:"",a:"Карлсон",s:"«Малыш и Карлсон», Астрид Линдгрен",t:"calm family driver",o:"aviator",on:"в шлеме лётчика — Карлсон ведь тоже летает",tip:"Когда сегодня станет нервно — три медленных вдоха, а потом решай."},
+  {q:"Вы видите, но не наблюдаете.",ru:"",a:"Шерлок Холмс",s:"«Скандал в Богемии», Артур Конан Дойл",t:"study content team",o:"sherlock",on:"в охотничьей шапке, как Шерлок Холмс",tip:"Заметь сегодня три детали, мимо которых обычно проходишь."},
+  {q:"Нужно бежать со всех ног, чтобы только остаться на месте, а чтобы куда-то попасть, надо бежать вдвое быстрее!",ru:"",a:"Червонная Королева",s:"«Алиса в Зазеркалье», Льюис Кэрролл",t:"work content biz",o:"alice",on:"с бантом Алисы",tip:"Выбери одно дело, которое двигает тебя вперёд, а не просто держит на месте."},
+  {q:"— Куда мне отсюда идти? — А куда ты хочешь попасть? — Мне всё равно. — Тогда всё равно, куда идти.",ru:"",a:"Чеширский Кот",s:"«Алиса в Стране чудес», Льюис Кэрролл",t:"work study calm",o:"hatter",on:"в шляпе из Страны чудес",tip:"Запиши одной фразой, куда ты хочешь прийти к концу месяца."},
+  {q:"В сорок лет жизнь только начинается.",ru:"",a:"«Москва слезам не верит»",s:"фильм Владимира Меньшова, 1979",t:"calm family work",tip:"Начни сегодня то, что давно считаешь «уже поздно»."},
+  {q:"Жизнь как коробка шоколадных конфет: никогда не знаешь, какая начинка тебе попадётся.",ru:"",a:"Форрест Гамп",s:"фильм Роберта Земекиса, 1994",t:"calm hobby family",tip:"Скажи сегодня «да» одной маленькой неожиданности."},
+  {q:"Не стоит уходить в мечты и забывать о жизни.",ru:"",a:"Альбус Дамблдор",s:"«Гарри Поттер и философский камень», Джоан Роулинг",t:"calm family sleep",o:"scholar",on:"в шапке мудреца",tip:"Мечтай — но сегодня закрой работу вовремя и побудь с близкими."},
+  {q:"Всё, что нам нужно решить, — что делать с тем временем, которое нам отпущено.",ru:"",a:"Гэндальф",s:"«Братство Кольца», Джон Толкин",t:"work calm study",o:"straw",on:"в шляпе странника",tip:"Реши утром одно главное дело дня — остальное подождёт."},
+  {q:"Fatti non foste a viver come bruti, ma per seguir virtute e canoscenza.",ru:"Вы созданы не для того, чтобы жить как звери, а чтобы стремиться к доблести и знанию.",a:"Данте Алигьери",s:"«Божественная комедия», Ад, песнь XXVI",t:"study teach",c:"Италия",o:"laurel",on:"в лавровом венке, как Данте",tip:"Узнай сегодня одну новую вещь — урок города ждёт."},
+  {q:"Chi va piano va sano e va lontano.",ru:"Кто идёт медленно, идёт надёжно и далеко.",a:"Итальянская пословица",s:"пословица",t:"calm health driver work",c:"Италия",tip:"Не торопи себя сегодня: одно дело спокойно и до конца."},
+  {q:"Hiljaa hyvä tulee.",ru:"Хорошее приходит не спеша.",a:"Финская пословица",s:"пословица",t:"calm work",c:"Финляндия",tip:"Дай сегодня одному делу время — без спешки и без самокритики."},
+  {q:"This above all: to thine own self be true.",ru:"Превыше всего — будь верен самому себе.",a:"Уильям Шекспир",s:"«Гамлет», слова Полония",t:"calm content",c:"Великобритания",o:"beret",on:"в берете, как Шекспир",tip:"Откажись сегодня от одного дела, которое делаешь только «потому что надо»."},
+  {q:"시작이 반이다.",ru:"Начало — уже половина дела.",a:"Корейская пословица",s:"пословица",t:"work study sport",c:"Южная Корея",tip:"Начни сегодня то, что откладываешь, — хотя бы на 5 минут."},
+  {q:"Бірлік болмай, тірлік болмас.",ru:"Без единства нет жизни.",a:"Қазақ мақалы",s:"пословица",t:"team family",c:"Казахстан",tip:"Сделай сегодня одно дело вместе с кем-то, а не в одиночку."},
+  {q:"Sabr tagi — sariq oltin.",ru:"Терпение в конце концов оборачивается золотом.",a:"Узбекская пословица",s:"пословица",t:"calm money biz",c:"Узбекистан",tip:"Не бросай начатое на середине: сегодня один маленький шаг."},
+  {q:"Damlaya damlaya göl olur.",ru:"Капля за каплей — и вот уже озеро.",a:"Турецкая пословица",s:"пословица",t:"money study health",c:"Турция",tip:"Отложи сегодня небольшую сумму или выучи 5 слов — капли складываются."},
+  {q:"七転び八起き",ru:"Упади семь раз — поднимись восемь.",a:"Японская пословица",s:"пословица",t:"sport work calm",c:"Япония",tip:"Если вчера не получилось — сегодня просто начни заново."},
+  {q:"Γνῶθι σεαυτόν.",ru:"Познай самого себя.",a:"Надпись в храме Аполлона в Дельфах",s:"древнегреческое изречение",t:"calm study",c:"Греция",o:"laurel",on:"в лавровом венке, как в Дельфах",tip:"Запиши сегодня: что даёт тебе силы, а что их забирает."},
+  {q:"Petit à petit, l'oiseau fait son nid.",ru:"Понемногу птица вьёт своё гнездо.",a:"Французская пословица",s:"пословица",t:"family money work",c:"Франция",tip:"Сделай сегодня один маленький шаг к большой цели."},
+  {q:"Poco a poco se va lejos.",ru:"Понемногу уходишь далеко.",a:"Испанская пословица",s:"пословица",t:"sport study lang",c:"Испания",tip:"10 минут сегодня — языка, спорта или чтения. Главное — не пропустить."},
+  {q:"Pies, ¿para qué los quiero si tengo alas para volar?",ru:"Ноги — зачем они мне, если у меня есть крылья, чтобы летать?",a:"Фрида Кало",s:"из дневника, 1953",t:"hobby content calm",c:"Мексика",o:"spring",on:"в венке из цветов, как Фрида",tip:"Сделай сегодня что-то творческое — просто для себя."},
+  {q:"Oost west, thuis best.",ru:"Восток, запад — а дома лучше всего.",a:"Голландская пословица",s:"пословица",t:"family calm sleep",c:"Нидерланды",tip:"Устрой сегодня тихий домашний вечер без работы."}
+);
+const OUTFIT_SEASON={autumn:"autumn",winter:"winter",spring:"spring",summer:"summer"};
+const WARM_LOOKS=new Set(["winter","anna","snowq","tymaq","autumn"]);
+const qHash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h;};
+function quoteWant(){const w=new Set(settings.priorities||[]);try{nichesOf().forEach(n=>{const g=APPLY_GROUP[n.id];if(g)w.add(g);});}catch(e){}if(isOwner()){w.add("content");w.add("family");}if(hasKids())w.add("family");return w;}
+function quoteRank(k,skip){const j=journeyFor(k),want=quoteWant(),day=Math.floor((fromKey(k)-new Date(2026,0,1))/864e5),seed=userSeed();
+  let best=null,bv=-1;QUOTES.forEach((q,i)=>{if(skip&&skip.has(i))return;if(q.c&&q.c!=="Казахстан"&&q.c!==j.country)return;const tags=(q.t||"").split(" ");const w=1+(q.c&&q.c===j.country?3:0)+(tags.some(t=>want.has(t))?2:0);
+    const r=(qHash(q.q+"|"+day+"|"+seed)%100000+1)/100001, v=Math.pow(r,1/w);if(v>bv){bv=v;best=i;}});return best;}
+/* one quote per day, picked for this person and this city; no repeats within a week */
+function quoteIdx(k){const skip=new Set();for(let i=1;i<=7;i++)skip.add(quoteRank(addDays(k,-i)));return quoteRank(k,skip);}
+const quoteOfDay=k=>{const c=quoteOfDay._c||(quoteOfDay._c={});const key=k+"|"+(settings.priorities||[]).join()+"|"+(settings.niches||[settings.niche]).join()+"|"+journeyFor(k).country;if(!(key in c))c[key]=quoteIdx(k);return QUOTES[c[key]];};
+/* BARI dresses as the author or hero of today's quote; a scarf on top when it's cold in the city */
+function lookToday(k){const q=quoteOfDay(k),j=journeyFor(k),wx=typeof weatherNow==="function"?weatherNow(j.city):null,se=seasonOf();
+  const base=q.o||OUTFIT_BY[q.a]||OUTFIT_SEASON[se]||"autumn", cold=(wx&&(wx.snow||wx.temp<=8))||(!wx&&se==="winter");
+  const o=cold&&!WARM_LOOKS.has(base)?base+"+autumn":base;
+  const who=q.on||OUTFIT_NAME[q.o||OUTFIT_BY[q.a]]||"";
+  const why=who?`Сегодня я ${who} — из цитаты дня.`:`Сегодня я в образе по погоде.`;
+  const wline=wx?` В городе ${j.city} ${wx.temp>0?"+":""}${wx.temp}°${cold&&!WARM_LOOKS.has(base)?", поэтому шарф":""}.`:"";
+  return {o,line:why+wline,q};}
+
+/* whom the older quotes suit */
+{const T={"Абай Құнанбайұлы":"study work calm","Ыбырай Алтынсарин":"study teach family","Мағжан Жұмабаев":"teach family","Қазақ мақалы":"work calm","Лао-цзы":"work study","Сенека":"calm hobby","Антон Чехов":"content work","Антуан де Сент-Экзюпери":"family calm","Козьма Прутков":"work calm","Александр Пушкин":"study hobby","Гераклит":"calm","Бенджамин Франклин":"work money biz","Фёдор Достоевский":"content hobby","Сократ":"study teach"};
+ QUOTES.forEach(q=>{if(!q.t)q.t=T[q.a]||"calm";if(!q.c&&q.ru&&/[әғқңөұүһі]/i.test(q.q))q.c="Казахстан";});}
 /* ---------- «Мұра»: Kazakh heritage, bilingual ---------- */
 const MURA=[
 {id:"salt",kz:"Салт-дәстүр",ru:"Обычаи и обряды",g:"flower",
@@ -3036,7 +3098,7 @@ function renderCode(){
     <div class="mura-grid">${MURA.map(s=>{const r=s.c.filter(c=>codeProg.read[c.id]).length;return `<button class="mura-sec" data-msec="${s.id}">${glyph(s.g,34)}<b>${esc(s.kz)}</b><small>${esc(s.ru)}</small><span class="ms-p"><i style="width:${r/s.c.length*100}%"></i></span><small class="ms-n">${r} / ${s.c.length}</small></button>`;}).join("")}</div>
     <h2>${ic("idea")}Квиз</h2>
     <div class="card">${muraQuizHtml()}</div>
-    <section class="card quote-card"><div class="cc-top">${bari({mood:"happy",size:60,outfit:outfitFor(q)})}<span class="label">Цитата дня</span></div><blockquote>«${esc(q.q)}»</blockquote>${q.ru?`<p class="tip">${esc(q.ru)}</p>`:""}<p class="q-a">— ${esc(q.a)}<span class="tip">, ${esc(q.s)}</span></p></section>`;
+    <section class="card quote-card"><div class="cc-top">${bari({mood:"happy",size:60,outfit:lookToday(todayKey()).o})}<span class="label">Цитата дня</span></div><blockquote>«${esc(q.q)}»</blockquote>${q.ru?`<p class="tip">${esc(q.ru)}</p>`:""}<p class="q-a">— ${esc(q.a)}<span class="tip">, ${esc(q.s)}</span></p></section>`;
   }
   V.querySelectorAll("[data-cread]").forEach(b=>b.onclick=()=>markCodeRead(b.dataset.cread));
   V.querySelectorAll("[data-ml]").forEach(b=>b.onclick=()=>{muraLang=b.dataset.ml;try{localStorage.setItem("bari-mura-lang",muraLang);}catch(e){}render();});
@@ -3098,7 +3160,7 @@ function checkNewBadges(){
   else toast(`Новый сувенир: «${fresh[0].n}» — ${TIER[fresh[0].tier]}!`);
 }
 
-function quoteCard(k){const q=quoteOfDay(k);return `<section class="card quote-card today-q"><div class="cc-top">${bari({mood:"wink",size:64,outfit:outfitFor(q)})}<div><span class="label">Совет дня от BARI${OUTFIT_BY[q.a]?" · "+OUTFIT_NAME[OUTFIT_BY[q.a]]:""}</span><blockquote>«${esc(q.q)}»</blockquote></div></div>${q.ru?`<p class="tip" style="margin:0">${esc(q.ru)}</p>`:""}<p class="q-a">— ${esc(q.a)}</p><div class="talk">${ic("spark")}<div>${esc(isOwner()&&q.own?q.own:q.tip)}</div></div></section>`;}
+function quoteCard(k){const q=quoteOfDay(k);return `<section class="card quote-card today-q"><div class="cc-top">${bari({mood:"wink",size:64,outfit:lookToday(todayKey()).o})}<div><span class="label">Совет дня от BARI${OUTFIT_BY[q.a]?" · "+OUTFIT_NAME[OUTFIT_BY[q.a]]:""}</span><blockquote>«${esc(q.q)}»</blockquote></div></div>${q.ru?`<p class="tip" style="margin:0">${esc(q.ru)}</p>`:""}<p class="q-a">— ${esc(q.a)}</p><div class="talk">${ic("spark")}<div>${esc(isOwner()&&q.own?q.own:q.tip)}</div></div></section>`;}
 
 /* ---------- library: room, shelf, picks ---------- */
 let books={}, libFilter="all";
@@ -3926,7 +3988,7 @@ function legendsHtml(){
 }
 function openLegend(i){
   const j=journeyFor(todayKey()), x=itemInfo(j).legends[i];
-  openSheet(`<div class="ci-sheet"><div class="cc-top">${bari({mood:"think",size:64,outfit:monthLook().o})}<div><span class="tag">${esc(x.kind||"легенда")}</span><h3 style="margin:4px 0 0">${esc(x.title)}</h3><span class="tip">${flag(j.country,18)} ${esc(j.city)}</span></div></div>
+  openSheet(`<div class="ci-sheet"><div class="cc-top">${bari({mood:"think",size:64,outfit:lookToday(todayKey()).o})}<div><span class="tag">${esc(x.kind||"легенда")}</span><h3 style="margin:4px 0 0">${esc(x.title)}</h3><span class="tip">${flag(j.country,18)} ${esc(j.city)}</span></div></div>
     <p style="line-height:1.65;margin:0">${esc(x.text)}</p>
     ${x.where?`<div class="talk">${ic("pin")}<div><b>Где увидеть</b><br>${esc(x.where)}</div></div>`:""}
     ${x.truth?`<div class="talk kid">${ic("eye")}<div><b>Правда или вымысел</b><br>${esc(x.truth)}</div></div>`:""}
@@ -4633,6 +4695,8 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
+ {id:"n-quote1",g:"lantern",t:"Цитата дня — для тебя",d:"Одна цитата в день, под твои цели и город: Абай, Чехов, Данте, герои книг и фильмов. BARI одевается как её автор.",
+  steps:[{v:"today",sel:"#bariBtn",t:"Нажми на BARI — цитата дня. Нажми ещё раз — расскажу, в чей образ я сегодня оделся и какая погода в городе."}]},
  {id:"n-balance",g:"heart",t:"Баланс: работа и жизнь",d:"BARI следит, чтобы в дне было место для тебя. Вечером напомнит, что работа подождёт до завтра.",
   steps:[{v:"today",sel:".bal-card",t:"«Баланс дня»: сколько работы и сколько жизни. Нет ничего для себя — добавь в один тап. Там же «Как заполнять» — короткая инструкция."}]},
  {id:"n-quick",g:"spark2",t:"Задача за 3 секунды ⚡",d:"Пиши или скажи как есть: «завтра в 15:00 позвонить поставщику» — день и время я пойму сама.",
@@ -5105,7 +5169,7 @@ const TOUR=["intro","today","add","week","rhythm","me","code","lib","bari"];
 function helpSlide(key,i,n){
   const h=HELP[key], list=h.p.filter(x=>(hasKids()||!/ребёнк|детей|дети/.test(x)||key==="rhythm")&&(isOwner()||!x.startsWith("<b>Заметки</b>")));
   return `<div class="help-slide">
-    <div class="help-top">${bari({mood:h.m,size:76,wave:key==="intro",outfit:monthLook().o})}<div><span class="label">${n>1?`${i+1} из ${n}`:"Подсказка"}</span><h3>${h.i?ic(h.i):""}${esc(h.t)}</h3></div></div>
+    <div class="help-top">${bari({mood:h.m,size:76,wave:key==="intro",outfit:lookToday(todayKey()).o})}<div><span class="label">${n>1?`${i+1} из ${n}`:"Подсказка"}</span><h3>${h.i?ic(h.i):""}${esc(h.t)}</h3></div></div>
     <ul class="help-list">${list.map(x=>`<li>${x}</li>`).join("")}</ul>
   </div>`;
 }

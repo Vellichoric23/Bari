@@ -14,7 +14,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Golos+Text:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Golos+Text:wght@400;500;600;700;800&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <style>
 /* Layout: phone-first app — greeting hero with day ring, task cards with icon tiles, fixed bottom tab bar, slide-up sheets */
@@ -194,6 +194,25 @@ select,input[type=text],input[type=date],input[type=number]{font:600 15px var(--
 .bal-card #balMove{margin-top:8px}
 ol.guide{padding-left:22px;margin:12px 0;display:grid;gap:10px}ol.guide li b{display:block}ol.guide li span{color:var(--muted);font-size:14px}
 .guide-ex{background:var(--surface-2);border-radius:14px;padding:12px;margin-bottom:8px}
+.daily{background:#FBF8F1;color:#1E1B2E;border-radius:22px;padding:16px 14px 14px;box-shadow:var(--shadow);border:1px solid #EADFC8}
+.daily-mast{display:grid;justify-items:center;text-align:center;border-bottom:3px double #1E1B2E;padding-bottom:10px;margin-bottom:12px}
+.daily-name{font-family:"PT Serif",Georgia,serif;font-size:34px;font-weight:700;letter-spacing:-.5px;line-height:1.1}
+.daily-date,.daily-sub{font-family:"PT Serif",Georgia,serif;font-size:12.5px;color:#6B6150;text-transform:uppercase;letter-spacing:.08em}
+.daily-covers{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;scroll-snap-type:x mandatory}.daily-covers::-webkit-scrollbar{display:none}
+.mag-cover{flex:none;width:168px;min-height:200px;scroll-snap-align:start;border:0;border-radius:14px;padding:12px;background:var(--mc);color:#fff;text-align:left;display:flex;flex-direction:column;gap:6px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.mag-n{font-family:"PT Serif",Georgia,serif;font-size:22px;font-weight:700;line-height:1.05;border-bottom:1px solid rgba(255,255,255,.5);padding-bottom:6px}
+.mag-k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.85}
+.mag-h{font-family:"PT Serif",Georgia,serif;font-size:15px;line-height:1.25;flex:1}
+.mag-c{font-size:12px;font-weight:700;opacity:.9}
+.mag{font-family:"PT Serif",Georgia,serif;color:var(--ink)}
+.mag-top{text-align:center;border-bottom:3px double var(--mc);padding-bottom:10px;margin-bottom:6px}
+.mag-title{font-family:"PT Serif",Georgia,serif;font-size:32px;margin:4px 0;color:var(--mc);justify-content:center}
+.mag-small{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.mag-art{padding:12px 0;border-bottom:1px solid var(--line)}.mag-art h3{font-family:"PT Serif",Georgia,serif;font-weight:700;font-size:19px;line-height:1.25;margin:0 0 6px}.mag-art.lead h3{font-size:24px}
+.mag-art p{margin:0 0 8px;font-size:16px;line-height:1.55}.mag-art.lead>p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:4px 6px 0 0;color:var(--mc);font-weight:700}
+.mag-why{font-size:14.5px!important;color:var(--muted)}.mag-talk{font-style:italic;font-size:14.5px!important;border-left:3px solid var(--mc);padding-left:10px}
+.mag-src{font-family:var(--body);font-size:12.5px;color:var(--mc)}
+.mag-nav{display:flex;justify-content:space-between;gap:8px;margin-top:12px;font-family:var(--body)}
 .qa-row{display:flex;gap:8px;align-items:center}.qa-row input{flex:1;font-size:17px;padding:14px 14px;border-radius:14px}
 .qa-mic{flex:none;width:50px;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);font-size:22px;cursor:pointer}
 .qa-mic.on{background:var(--accent);animation:qaPulse 1s ease-in-out infinite}@keyframes qaPulse{50%{transform:scale(1.08)}}
@@ -4695,6 +4714,8 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
+ {id:"n-daily",g:"book2",t:"Утренняя газета BARI Daily 📰",d:"Сводка стала газетой из журналов: Мир, Казахстан, Деньги, Книги, Кино и звёзды, Наука. Первым идёт то, что ближе твоей работе.",
+  steps:[{v:"me",sel:".daily",t:"Листай обложки журналов и открывай любой — там короткие статьи и ссылки на источники."}]},
  {id:"n-onewish",g:"heart",t:"Один вишлист на всё 🎁",d:"Вишлист в BARI и в играх теперь общий, а ссылка — живая: друзья всегда видят свежий список.",
   steps:[{v:"today",go:()=>{forYouOpen="fun";render();},sel:"[data-fun='wish']",t:"«Мой вишлист»: пиши здесь или в игре — список один. «Поделиться» даёт живую ссылку."}]},
  {id:"n-quote1",g:"lantern",t:"Цитата дня — для тебя",d:"Одна цитата в день, под твои цели и город: Абай, Чехов, Данте, герои книг и фильмов. BARI одевается как её автор.",
@@ -5360,7 +5381,7 @@ async function openDevices(){const sb=window.sbClient;if(!sb)return;
     if(id===mine){try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}try{localStorage.removeItem("bari-push");}catch(e){}}
     toast("Устройство удалено — туда больше не придут твои напоминания.");openDevices();});}
 document.addEventListener("click",e=>{if(e.target.closest?.("#devList"))openDevices();if(e.target.closest?.("#statsBtn"))openStats();});
-const FEAT_NAMES={guide:"Инструкция",open:"Открыли приложение",task_done:"Закрывали дела",lesson_done:"Прошли урок",coffee:"Кофе",route:"Маршрут",level:"Уровни",fun:"Праздники",game_create:"Создали игру",news:"Новинки",generator:"Генератор идей",money:"Деньги",studio:"Студия",story:"Сказка",tour:"Экскурсия",updates:"Что нового"};
+const FEAT_NAMES={daily:"Газета BARI Daily",guide:"Инструкция",open:"Открыли приложение",task_done:"Закрывали дела",lesson_done:"Прошли урок",coffee:"Кофе",route:"Маршрут",level:"Уровни",fun:"Праздники",game_create:"Создали игру",news:"Новинки",generator:"Генератор идей",money:"Деньги",studio:"Студия",story:"Сказка",tour:"Экскурсия",updates:"Что нового"};
 async function openStats(){const sb=window.sbClient;if(!sb)return;
   openSheet(`<div class="ci-sheet"><span class="label">Только для тебя</span><h3 style="margin:0">Статистика BARI</h3><p class="tip">Загружаю…</p></div>`);
   const {data:d,error}=await sb.rpc("admin_stats");
@@ -5525,6 +5546,26 @@ const TOPIC_BRIEF={
   books:"Одна книга автора из страны или о городе: о чём, главная идея, цитата-мысль своими словами, кому подойдёт."
 };
 let erud={}, digest={}, meBusy=false, meErr="", meCtl=null;
+/* BARI Daily: the morning summary as a little newspaper made of magazines */
+const MAGS={world:{n:"Мир",k:"Главное за сутки",c:"#1F3A5F",i:"globe"},kz:{n:"Казахстан",k:"Что меняется дома",c:"#0E7C86",i:"pin"},money:{n:"Деньги и работа",k:"Налоги, цены, карьера",c:"#2F6B3A",i:"apple"},books:{n:"Книги",k:"Литература и премии",c:"#7A3E1D",i:"book"},stars:{n:"Кино и звёзды",k:"Премьеры и люди",c:"#8E2C5A",i:"film"},sci:{n:"Наука и небо",k:"Открытия и то, что видно над головой",c:"#3E3A8C",i:"spark"}};
+const MAG_FIRST={content:["stars","world"],biz:["money","kz"],teach:["books","sci"],team:["money","world"],driver:["kz","money"],family:["kz","stars"]};
+function digestIssues(dg){if(!dg)return [];if(Array.isArray(dg.issues)&&dg.issues.length)return dg.issues.filter(x=>x&&Array.isArray(x.items)&&x.items.length);
+  if(Array.isArray(dg.items)&&dg.items.length)return [{id:"world",name:"Главное",items:dg.items}];return [];}
+function issueOrder(L){const g=[...(isOwner()?["content"]:[]),...nichesOf().map(n=>APPLY_GROUP[n.id])].filter(Boolean);const first=[];g.forEach(x=>(MAG_FIRST[x]||[]).forEach(id=>{if(!first.includes(id))first.push(id);}));
+  return [...L].sort((a,b)=>{const ia=first.indexOf(a.id),ib=first.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib);});}
+const magOf=x=>({...(MAGS[x.id]||{n:x.name||"Главное",k:"",c:"#3B2FA8",i:"sun"}),...(x.name?{n:x.name}:{})});
+function dailyHtml(k,dg){const L=issueOrder(digestIssues(dg));
+  if(!L.length)return `<div class="empty"><span class="tile">${ic("sun")}</span>Свежий выпуск BARI Daily выходит каждое утро около 8:00.</div>`;
+  const d=fromKey(k),n=L.reduce((a,x)=>a+x.items.length,0);
+  return `<section class="daily"><div class="daily-mast"><span class="daily-date">${WD_FULL[d.getDay()]}, ${esc(nice(k))}</span><b class="daily-name">BARI Daily</b><span class="daily-sub">${L.length} ${plural(L.length,"журнал","журнала","журналов")} · ${n} ${plural(n,"история","истории","историй")} · 5 минут чтения</span></div>
+    <div class="daily-covers">${L.map((x,i)=>{const m=magOf(x);return `<button class="mag-cover" data-mag="${i}" style="--mc:${m.c}"><span class="mag-n">${esc(m.n)}</span><span class="mag-k">${esc(m.k)}</span><span class="mag-h">${esc(x.items[0].title||"")}</span><span class="mag-c">${x.items.length} ${plural(x.items.length,"статья","статьи","статей")} →</span></button>`;}).join("")}</div></section>`;}
+function openMag(k,i){const L=issueOrder(digestIssues(digest[k]||contentCache.digest[k]));const x=L[i];if(!x)return;const m=magOf(x);track("daily",1);
+  openSheet(`<article class="mag" style="--mc:${m.c}"><header class="mag-top"><span class="mag-small">BARI Daily · ${esc(nice(k))}</span><h2 class="mag-title">${esc(m.n)}</h2><span class="mag-small">${esc(m.k)}</span></header>
+    ${x.items.map((n,j)=>`<section class="mag-art ${j===0?"lead":""}"><h3>${esc(n.title||"")}</h3><p>${esc(n.what||"")}</p>${n.why?`<p class="mag-why"><b>Почему важно.</b> ${esc(n.why)}</p>`:""}${n.talk?`<p class="mag-talk">«${esc(n.talk)}»</p>`:""}${n.src?`<a class="mag-src" href="${esc(n.src)}" target="_blank" rel="noopener">Источник${n.srcName?": "+esc(n.srcName):""}</a>`:""}</section>`).join("")}
+    <div class="mag-nav">${i>0?`<button class="ghost" data-magjump="${i-1}">← ${esc(magOf(L[i-1]).n)}</button>`:"<span></span>"}${i<L.length-1?`<button class="primary" data-magjump="${i+1}">${esc(magOf(L[i+1]).n)} →</button>`:`<button class="primary" id="magClose">Готово</button>`}</div></article>`);
+  document.querySelectorAll("#sheetIn [data-magjump]").forEach(b=>b.onclick=()=>openMag(k,+b.dataset.magjump));const c=document.getElementById("magClose");if(c)c.onclick=closeSheet;}
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-mag]");if(b)openMag(meToday(),+b.dataset.mag);});
+
 const meToday=()=>todayKey();
 function lessonFor(k){const e=erud[k]||null, f=window.BARI_FIXES?.lessons?.[k];return e&&f?{...e,...f}:e;}
 function meStats(){
@@ -5617,9 +5658,7 @@ function renderMe(){
       ${e.done?`<div class="done-card">${bari({mood:"joy",wave:true,size:76,prop:PROPS.spark})}<div><b>Урок пройден: ${e.correct} из ${e.quiz.length}</b><br>+${XP.lesson+XP.right*e.correct} баллов. До завтра в ${esc(journeyFor(addDays(k,1)).city)}!</div></div>`:""}
     </article>`;
   }
-  const news=dg&&Array.isArray(dg.items)&&dg.items.length
-    ?dg.items.map(n=>`<details class="news"><summary><span class="tag">${esc(n.area||"")}</span><b>${esc(n.title||"")}</b></summary><p>${esc(n.what||"")}</p>${n.why?`<p class="tip">${esc(n.why)}</p>`:""}${n.talk?`<div class="talk">${ic("chat")}<div>«${esc(n.talk)}»</div></div>`:""}</details>`).join("")
-    :`<div class="empty"><span class="tile">${ic("sun")}</span>Свежая сводка появляется каждое утро около 8:00.</div>`;
+  const news=dailyHtml(k,dg);
   const past=Object.values(erud).filter(x=>x&&x.date<k&&x.title).sort((a,b)=>a.date<b.date?1:-1).slice(0,7);
   document.getElementById("view-me").innerHTML=`
     <div class="journey">
@@ -5637,8 +5676,8 @@ function renderMe(){
     <h2>${ic(tp.icon)}Урок дня</h2>
     ${e&&e.city&&e.city!==j.city?`<p class="lib-cap2" style="margin:0 0 8px">BARI ещё готовит урок про ${esc(j.city)}. Пока — урок из города ${esc(e.city)} (${esc(e.country||"")}).</p>`:""}
     <div class="card">${lesson}</div>
-    <h2>${ic("sun")}Мир сегодня</h2>
-    <div class="list">${news}</div>
+    <h2>${ic("sun")}Утренняя газета</h2>
+    ${news}
     ${past.length?`<h2>${ic("book")}Прошлые уроки</h2><div class="list">${past.map(x=>`<div class="task done"><span class="tile">${ic((TOPICS.find(t=>t.k===x.topic)||TOPICS[0]).icon)}</span><div class="body"><div class="title" style="text-decoration:none">${esc(x.title)}</div><div class="meta"><span>${esc(x.topicName)}</span><span>${esc(x.city)}</span><span>${niceWd(x.date)}</span>${x.done?`<span>${x.correct} из ${x.quiz.length}</span>`:"<span>не завершён</span>"}</div></div></div>`).join("")}</div>`:""}`;
   const sb=document.getElementById("startLesson"); if(sb) sb.onclick=()=>genLesson();
   const sl=document.getElementById("stopLesson"); if(sl) sl.onclick=()=>meCtl?.abort();

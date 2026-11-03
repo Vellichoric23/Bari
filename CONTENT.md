@@ -12,12 +12,12 @@
 | `content/lessons/<citySlug>/<topic>.json` | урок; `topic` ∈ `history, art, lang, film, food, books, logic` |
 | `content/city/<citySlug>.json` | карточки города, легенды и 7 «фактов дня» |
 | `content/history/MM-DD.json` | «В этот день в истории»: `{date:"MM-DD", year, text}` |
-| `content/digest/YYYY-MM-DD.json` | 6 новостей дня |
+| `content/digest/YYYY-MM-DD.json` | утренняя газета BARI Daily: 4–6 журналов по 2–4 истории |
 | `content/ideas/<niche>.json` | идеи по сферам: `smm, teach, biz, beauty, it, creative, student, mom, office, driver, med, build, sales, sport, oil, finance, gov, other` |
 
 ## Что делать каждое утро (D0 = сегодня, D1 = завтра, время Атырау)
 
-1. **Новости:** `digest/D0.json`, если его нет.
+1. **Газета BARI Daily:** `digest/D0.json`, если его нет (формат ниже, `issues`). Только важное и интересное, без пустословия; на газету — не больше 10% лимита.
 2. **История:** `history/MM-DD.json` для D0 и D1, если нет.
 3. **Основной маршрут:** по `plan.json` для D0 и D1 проверь `lessons/<citySlug>/<topic>.json` и `city/<citySlug>.json`; создай недостающие.
 4. **Очередь:** возьми **три первых города** из `backlog.json` (если лимита мало — хотя бы один). Для каждого: Если `city/<slug>.json` ещё нет — создай его. Если он уже есть — не переписывай, только проверь. Затем создай недостающие уроки города (`history, art, lang, film, food, books, logic`) в `lessons/<slug>/`. Когда все 7 уроков на месте — убери город из очереди. Названия `items` в `city/<slug>.json` должны совпадать с CITY_ITEMS (или COUNTRY_ITEMS) в index.html.
@@ -37,6 +37,13 @@
 ### city
 `{city, country, items:{<метка>:{text,tip}}, legends:[{title, kind, text (80–120 слов), where, truth}] (4–6), days:[{fact, word:{it,en,ru,hint}}] (7)}`.
 Метки `items` должны совпадать с метками, которые приложение показывает для города: возьми их из `CITY_ITEMS` / `COUNTRY_ITEMS` в `index.html` (ключ — `mark` города из `countries.json`).
+
+### digest — газета BARI Daily
+`{date, edition:"BARI Daily", issues:[{id, items:[{title, what, why, talk, src, srcName}]}], items:[…]}`.
+- `id` журнала: `world` (Мир), `kz` (Казахстан), `money` (Деньги и работа), `books` (Книги: премии, новые книги, экранизации), `stars` (Кино и звёзды: премьеры, люди культуры — без сплетен и слухов), `sci` (Наука и небо). Журнал без хороших новостей — пропусти.
+- `what` 2–3 предложения с фактами (кто, что, когда, цифры), `why` — что это значит для читателя, `talk` — одна фраза для разговора, `src` — ссылка на открытую страницу источника.
+- Только проверенные факты из открытых страниц, даты и цифры как в источнике; о политике — нейтрально, без оценок.
+- `items` — для старых версий приложения: по одной главной новости каждого журнала в старом формате `{area, title, what, why, talk}`.
 
 ### ideas
 `{week:"YYYY-MM-DD", items:[{t, why, step}] (8–10), dates:[{d:"YYYY-MM-DD", t, idea}] (поводы на ближайшие 2 месяца, только реальные даты)}`.

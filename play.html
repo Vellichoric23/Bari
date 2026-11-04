@@ -100,6 +100,9 @@ async function healWish(){if(!LIVE)return;const L=LIVE;try{const r=await rpc("ge
     const same=has(loc)&&has(srv)&&JSON.stringify({w:loc.wish||"",i:loc.items||[]})===JSON.stringify({w:srv.wish||"",i:srv.items||[]});
     /* only changes that never reached the server are sent; otherwise the server copy is the fresh one (it may come from another phone or browser) */
     if(has(loc)&&!same&&(LS.get(PEND())||!has(srv))){pushWish(loc);return;}
+    /* items this phone has but the server lost — bring them back instead of dropping them */
+    if(has(loc)&&has(srv)&&!same){const key=it=>norm(it&&it.t);const sv=new Set((srv.items||[]).map(key));const back=(loc.items||[]).filter(it=>it&&it.t&&!sv.has(key(it)));
+      if(back.length){const m={n:srv.n||loc.n||"",wish:srv.wish||loc.wish||"",items:[...(srv.items||[]),...back]};LS.set(WKEY,m);const ww=$("#ww");if(ww)ww.value=m.wish;if(window._wDraw)window._wDraw();pushWish(m);toast(`Вернула ${back.length} ${back.length===1?"желание":"желания"} в вишлист`);return;}}
     if(has(srv)&&!same){LS.set(WKEY,{n:srv.n||(loc&&loc.n)||"",wish:srv.wish||"",items:srv.items||[]});const ww=$("#ww");if(ww)ww.value=srv.wish||"";const wn=$("#wn");if(wn&&srv.n)wn.value=srv.n;if(window._wDraw)window._wDraw();wsync("✓ Загрузила свежую версию твоего вишлиста");return;}
     if(has(srv))wsync("✓ Сохранено — твой тайный человек это видит");
     else wsync("Твой вишлист пока пуст — напиши хоть одно желание, и тайный человек его увидит.");

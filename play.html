@@ -79,23 +79,30 @@ const wishEditor=name=>{const w=LS.get(WKEY)||{n:name||"",wish:"",items:[]};
   <div id="wl">${wlHtml(w)}</div>
   <input id="wt" placeholder="Что хочется"><input id="wp" placeholder="Цена (необязательно)"><input id="wu" placeholder="Ссылка (необязательно)">
   <button class="ghost" id="wa">+ Добавить</button><button id="ws">${LIVE?"Поделиться вишлистом":"Отправить вишлист"}</button>${LIVE?`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Это живая ссылка: всё, что ты добавишь потом, друзья увидят по ней сами.</p>`:""}</div>`;};
+/* every list lives in a second record "~name" owned by the personal link itself, so it can be edited from any browser
+   without changing the database; readers take whichever record is newer */
+const P2=me=>"~"+me;
+async function getW(game,me){const [a,b]=await Promise.all([rpc("get_wish",{p_game:game,p_person:P2(me)}).catch(()=>null),rpc("get_wish",{p_game:game,p_person:me}).catch(()=>null)]);
+  if(a&&a.data&&b&&b.data)return (Date.parse(a.at||0)>=Date.parse(b.at||0))?a:b;return (a&&a.data)?a:b;}
 async function linkTok(L){try{const pre=L.k?"k:":"n:",src=L.k?("w|"+L.k+"|"+L.me):("w|"+L.game+"|"+L.me);L.ltok=pre+_hex(await crypto.subtle.digest("SHA-256",_te.encode(src))).slice(0,40);}catch(e){}return L.ltok;}
 const wsync=(t,bad)=>{const s=$("#wsync");if(s){s.textContent=t;s.style.color=bad?"#C0392B":"";s.style.fontWeight=bad?"700":"";}};
 const PEND=()=>"bari-play-pend-"+(LIVE?LIVE.game+"|"+LIVE.me:"");
 async function setWishAny(L,data){const lt=L.ltok||await linkTok(L);
   /* new rule: the personal link is the key; fall back to this browser's old key until the server is updated */
-  if(lt){const ok=await rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:lt,p_data:data});if(ok)return true;}
-  return await rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:L.tok,p_data:data});}
+  let ok=false;if(lt)ok=await rpc("set_wish",{p_game:L.game,p_person:P2(L.me),p_token:lt,p_data:data});
+  /* keep the old record in step too where this browser is allowed to — older pages still read it */
+  rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:lt||L.tok,p_data:data}).then(x=>{if(!x&&lt)rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:L.tok,p_data:data}).catch(()=>{});}).catch(()=>{});
+  if(ok)return true;return await rpc("set_wish",{p_game:L.game,p_person:L.me,p_token:L.tok,p_data:data});}
 function pushWish(w){if(!LIVE)return;const L=LIVE;wsync("Сохраняю…");LS.set(PEND(),1);
   setWishAny(L,{n:w.n,wish:w.wish,items:w.items}).then(ok=>{
     if(ok){LS.set("bari-play-pend-"+L.game+"|"+L.me,null);wsync("✓ Сохранено — твой тайный человек это видит");}
-    else wsync("Не получилось сохранить: этот вишлист начали в другом браузере. Открой ссылку там, где писала впервые, — после обновления BARI это ограничение уйдёт.",true);
+    else wsync("⚠️ Не получилось сохранить — попробую ещё раз, когда вернёшься на страницу.",true);
   }).catch(()=>{wsync("⚠️ Нет связи — пока сохранено только на этом телефоне. Я отправлю сама, когда появится интернет.",true);});}
 function retryPending(){if(LIVE&&LS.get(PEND())){const w=LS.get(WKEY);if(w)pushWish(w);}}
 addEventListener("online",retryPending);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)retryPending();});
 /* on open: if my list never reached the server (old bug or no internet) — send it now; on a new browser — show what is already saved */
-async function healWish(){if(!LIVE)return;const L=LIVE;try{const r=await rpc("get_wish",{p_game:L.game,p_person:L.me});const srv=r&&r.data;const loc=LS.get(WKEY);
+async function healWish(){if(!LIVE)return;const L=LIVE;try{const r=await getW(L.game,L.me);const srv=r&&r.data;const loc=LS.get(WKEY);
     const has=w=>w&&((w.wish||"").trim()||(w.items||[]).length);
     const same=has(loc)&&has(srv)&&JSON.stringify({w:loc.wish||"",i:loc.items||[]})===JSON.stringify({w:srv.wish||"",i:srv.items||[]});
     /* only changes that never reached the server are sent; otherwise the server copy is the fresh one (it may come from another phone or browser) */
@@ -187,7 +194,7 @@ async function syncGame(g,gk){try{const r=await rpc("get_game",{p_game:gk});cons
   }catch(e){}}
 setInterval(()=>{const h=location.hash.slice(1);if(!document.hidden&&h.startsWith("g=")){const g=dec(h.slice(2));if(g)syncGame(g,gameKey(g));}},45000);
 async function loadTheirs(g,gk){window._twG=[g,gk];const box=$("#twBody");if(!box)return;
-  try{const r=await rpc("get_wish",{p_game:gk,p_person:norm(g.to)});const w=r&&r.data;
+  try{const r=await getW(gk,norm(g.to));const w=r&&r.data;
     if(!w||(!w.wish&&!(w.items||[]).length)){box.innerHTML=`<p class="muted">Вишлист ${esc(g.to)} пока не дошёл. Если она уже писала — пусть просто откроет свою ссылку ещё раз: список отправится сам и появится здесь.</p>`;return;}
     const at=r.at?new Date(r.at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
     box.innerHTML=`${w.wish?`<p style="font-size:17px;font-weight:700;margin:4px 0">${esc(w.wish)}</p>`:""}${(w.items||[]).map((it,i)=>`<div class="it" style="flex-wrap:wrap"><div style="flex:1"><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">посмотреть</a>`:""}</div><button class="x ib" data-idea="${i}">💡 Идеи</button><div class="idea-slot" id="slot${i}" style="width:100%"></div></div>`).join("")}${w.wish?`<div class="it" style="flex-wrap:wrap"><div style="flex:1"><b>Главное желание:</b> ${esc(w.wish)}</div><button class="x ib" data-idea="w">💡 Идеи</button><div class="idea-slot" id="slotw" style="width:100%"></div></div>`:""}${at?`<p class="muted" style="font-size:12px">обновлено ${esc(at)}</p>`:""}`;
@@ -200,7 +207,7 @@ function wish(w){LIVE=null;window._shown=null;app.innerHTML=`<div class="bari">$
   <div class="card">${(w.items||[]).map(it=>`<div class="it"><div><b>${esc(it.t)}</b>${it.p?` · ${esc(it.p)}`:""}${it.u?`<br><a href="${esc(it.u)}" target="_blank" rel="noopener">посмотреть</a>`:""}${it.no?`<br><span class="muted">${esc(it.no)}</span>`:""}</div></div>`).join("")||`<p class="muted">Список пока пуст.</p>`}</div>
   <a class="btn ghost" href="${base}#new">Создать свой вишлист</a><footer><a href="./">BARI — планер и путешествия каждый день</a></footer>`;}
 async function liveView(v){LIVE=null;window._shown=null;app.innerHTML=`<div class="bari">${BH}</div><p class="muted">Загружаю вишлист…</p>`;
-  const load=async()=>{try{const r=await rpc("get_wish",{p_game:v.g,p_person:v.p});const w=(r&&r.data)||{};const cur=JSON.stringify(w);if(cur===liveView._last)return;liveView._last=cur;wish({n:w.n||v.n,wish:w.wish||"",items:w.items||[]});
+  const load=async()=>{try{const r=await getW(v.g,v.p);const w=(r&&r.data)||{};const cur=JSON.stringify(w);if(cur===liveView._last)return;liveView._last=cur;wish({n:w.n||v.n,wish:w.wish||"",items:w.items||[]});
       const h=$("h1");if(h)h.insertAdjacentHTML("afterend",`<p class="muted" style="font-size:12.5px">Живой вишлист — обновляется сам${r&&r.at?` · изменён ${esc(new Date(r.at).toLocaleString("ru-RU",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}))}`:""}</p>`);}catch(e){if(!liveView._last)app.innerHTML=`<p class="muted">Не получилось загрузить — проверь интернет и обнови страницу.</p>`;}};
   liveView._last=null;await load();clearInterval(window._lvT);window._lvT=setInterval(()=>{if(!document.hidden)load();},20000);window._lvV=v;}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&window._lvV&&location.hash.startsWith("#v="))liveView(window._lvV);});

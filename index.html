@@ -4855,11 +4855,11 @@ async function ensureWishPub(){let pub=wishPub();if(pub)return pub;const r=()=>A
 let _wOutT=null;
 function wishSyncOut(){clearTimeout(_wOutT);_wOutT=setTimeout(async()=>{const sb=window.sbClient;if(!sb)return;const w=wishDoc(),data={n:userName()||"",wish:w.wish||"",items:(w.items||[]).slice(0,40)};
   try{const pub=await ensureWishPub();await sb.rpc("set_wish",{p_game:pub.g,p_person:"me",p_token:"k:"+await wSha("w|"+pub.s+"|me"),p_data:data});}catch(e){}
-  for(const x of myGameSeats()){try{await sb.rpc("set_wish",{p_game:x.gk,p_person:wNorm(x.p.n),p_token:await seatTok(x.gk,x.p),p_data:data});}catch(e){}}},600);}
+  for(const x of myGameSeats()){try{const t=await seatTok(x.gk,x.p);await sb.rpc("set_wish",{p_game:x.gk,p_person:"~"+wNorm(x.p.n),p_token:t,p_data:data});await sb.rpc("set_wish",{p_game:x.gk,p_person:wNorm(x.p.n),p_token:t,p_data:data});}catch(e){}}},600);}
 /* bring in a list written on the game page, so nothing is typed twice */
 let _wInDone=false;
 async function wishSyncIn(){if(_wInDone)return;_wInDone=true;const sb=window.sbClient;if(!sb)return;const w=wishDoc();
-  for(const x of myGameSeats()){try{const {data:r}=await sb.rpc("get_wish",{p_game:x.gk,p_person:wNorm(x.p.n)});const gw=r&&r.data;if(!gw)continue;
+  for(const x of myGameSeats()){try{const me=wNorm(x.p.n);const [{data:a},{data:b}]=await Promise.all([sb.rpc("get_wish",{p_game:x.gk,p_person:"~"+me}),sb.rpc("get_wish",{p_game:x.gk,p_person:me})]);const r=a&&a.data&&b&&b.data?(Date.parse(a.at||0)>=Date.parse(b.at||0)?a:b):(a&&a.data?a:b);const gw=r&&r.data;if(!gw)continue;
     const have=new Set((w.items||[]).map(it=>wNorm(it.t)));const add=(gw.items||[]).filter(it=>it&&it.t&&!have.has(wNorm(it.t)));
     if(add.length||(!w.wish&&gw.wish)){const nw={...wishDoc(),wish:wishDoc().wish||gw.wish||"",items:[...(wishDoc().items||[]),...add]};await store.saveDoc("wish","main",nw);S.wish={...(S.wish||{}),main:nw};toast(`Добавила в вишлист ${add.length} ${plural(add.length,"желание","желания","желаний")} из игры «${x.g.title}»`);if(funTab==="wish")openFun();wishSyncOut();}
   }catch(e){}}}

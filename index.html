@@ -2517,7 +2517,7 @@ function workCard(k){
 function bindWork(){
   const hc=document.getElementById("hookCopy");
   if(hc) hc.onclick=async()=>{const t=document.querySelector(".hook-t")?.textContent||"";try{await navigator.clipboard.writeText(t);toast("Хук скопирован");}catch(e){const r=document.createRange();r.selectNodeContents(document.querySelector(".hook-t"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Выделила текст — скопируй вручную");}};
-  const lb=document.getElementById("lvlBtn"); if(lb) lb.onclick=openLevel;
+  const lb=document.getElementById("lvlBtn"); if(lb) lb.onclick=()=>openLevel();
 }
 /* ---------- extras: mood, habits, idea box, quick links, week review ---------- */
 let ideas={}, daily={}, ideasOpen=false;

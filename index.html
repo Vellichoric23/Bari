@@ -5041,9 +5041,10 @@ const CHANGELOG=[
  {d:"2026-10-24",t:"Сказка о BARI, экскурсия по приложению, объёмный BARI, генератор идей, студия контента, деньги, погода в городе, паспорт"},
  {d:"2026-10-23",t:"Мелодии городов, звуки, забота о себе, сувениры с историями, все 46 городов маршрута"}
 ];
-let BACKLOG=null;
-async function loadBacklog(){if(BACKLOG!==null)return BACKLOG;BACKLOG=[];try{const r=await fetch("content/backlog.json",{cache:"no-cache"});if(r.ok){BACKLOG=await r.json();render();}}catch(e){}return BACKLOG;}
-setTimeout(loadBacklog,2500);
+let BACKLOG=(()=>{try{return JSON.parse(localStorage.getItem("bari-backlog")||"null");}catch(e){return null;}})();
+let _blLoaded=false;
+async function loadBacklog(){if(_blLoaded)return BACKLOG;_blLoaded=true;if(BACKLOG===null)BACKLOG=[];try{const r=await fetch("content/backlog.json",{cache:"no-cache"});if(r.ok){const nb=await r.json();const ch=JSON.stringify(nb)!==JSON.stringify(BACKLOG);BACKLOG=nb;try{localStorage.setItem("bari-backlog",JSON.stringify(nb));}catch(e){}if(ch)render();}}catch(e){}return BACKLOG;}
+setTimeout(loadBacklog,200);
 const citySoon=city=>Array.isArray(BACKLOG)&&BACKLOG.some(x=>x.city===city);
 const countryLocked=country=>{const jn=JOURNEY.find(x=>x.country===country);return !!(jn&&Array.isArray(BACKLOG)&&BACKLOG.length&&jn.cities.every(([c])=>BACKLOG.some(x=>x.city===c)));};
 const readyCountries=()=>JOURNEY.map(j=>j.country).filter(c=>!countryLocked(c));
@@ -5264,10 +5265,12 @@ const mondayOf=k=>{const d=fromKey(k);d.setDate(d.getDate()-((d.getDay()+6)%7));
 function routeJourney(k){
   const r=settings.route, start=settings.routeStart||mondayOf(todayKey());
   const wk=Math.max(0,Math.floor((fromKey(k)-fromKey(start))/(7*864e5)));
-  const L=r.map(c=>(JOURNEY.find(x=>x.country===c)||JOURNEY[0]).cities.length), tot=L.reduce((a,b)=>a+b,0)||1;
+  /* only cities whose lessons are ready: a new person never lands in a city with an empty lesson tab */
+  const ready=jn=>{const c=Array.isArray(BACKLOG)&&BACKLOG.length?jn.cities.filter(([n])=>!BACKLOG.some(x=>x.city===n)):jn.cities;return c.length?c:jn.cities;};
+  const CS=r.map(c=>ready(JOURNEY.find(x=>x.country===c)||JOURNEY[0])), L=CS.map(x=>x.length), tot=L.reduce((a,b)=>a+b,0)||1;
   let w=wk%tot, i=0; while(i<L.length-1&&w>=L[i]){w-=L[i];i++;}
   const jn=JOURNEY.find(x=>x.country===r[i])||JOURNEY[0];
-  const [city,mark]=jn.cities[w%jn.cities.length];
+  const [city,mark]=CS[i][w%CS[i].length];
   return {country:jn.country,lang:jn.lang,city,mark,week:wk};
 }
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -5291,7 +5294,7 @@ function obStep2(edit){
 }
 function obStep3(edit){
   const d=obDraft; d.route=d.route||(hasRoute()?settings.route.slice():[]);
-  if(BACKLOG===null) loadBacklog().then(()=>{if(document.querySelector(".route-pick"))draw();});
+  if(!_blLoaded) loadBacklog().then(()=>{if(document.querySelector(".route-pick"))draw();});
   const draw=()=>{
     openSheet(`<div class="ci-sheet ob">
       <div class="ob-top">${bari({mood:"joy",wave:true,size:80,prop:PROPS.spark})}<div><span class="label">Шаг 3 из 3</span><h3 style="margin:2px 0 0">Куда отправимся?</h3><p class="tip" style="margin:4px 0 0">Каждый месяц — новая страна, каждую неделю — новый город. Уроки, факты и фон приложения будут про него. Нажимай страны в том порядке, в каком хочешь путешествовать.</p></div></div>

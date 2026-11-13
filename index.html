@@ -209,9 +209,19 @@ ol.guide{padding-left:22px;margin:12px 0;display:grid;gap:10px}ol.guide li b{dis
 .mag-title{font-family:"PT Serif",Georgia,serif;font-size:32px;margin:4px 0;color:var(--mc);justify-content:center}
 .mag-small{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .mag-art{padding:12px 0;border-bottom:1px solid var(--line)}.mag-art h3{font-family:"PT Serif",Georgia,serif;font-weight:700;font-size:19px;line-height:1.25;margin:0 0 6px}.mag-art.lead h3{font-size:24px}
-.mag-art p{margin:0 0 8px;font-size:16px;line-height:1.55}.mag-art.lead>p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:4px 6px 0 0;color:var(--mc);font-weight:700}
+.mag-art p{margin:0 0 8px;font-size:16px;line-height:1.55}.mag-art.lead>.mag-body::first-letter{float:left;font-size:44px;line-height:.9;padding:4px 6px 0 0;color:var(--mc);font-weight:700}
 .mag-why{font-size:14.5px!important;color:var(--muted)}.mag-talk{font-style:italic;font-size:14.5px!important;border-left:3px solid var(--mc);padding-left:10px}
 .mag-src{font-family:var(--body);font-size:12.5px;color:var(--mc)}
+.daily-cover{display:block;width:100%;text-align:left;border:0;background:none;color:inherit;padding:0 0 12px;margin:0 0 12px;border-bottom:1px solid #D9CCB0;cursor:pointer;font-family:"PT Serif",Georgia,serif}
+.daily-kick,.mag-kick{display:inline-block;font-family:var(--body);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#B23A2E;margin-bottom:4px}
+.mag-kick{color:var(--mc)}
+.daily-cover h3{font-family:"PT Serif",Georgia,serif;font-size:25px;line-height:1.15;margin:2px 0 6px;font-weight:700}
+.daily-cover p{margin:0;font-size:15.5px;line-height:1.5;color:#3D3627}.daily-cover .more{display:inline-block;margin-top:6px;font-family:var(--body);font-size:13px;font-weight:700;color:#B23A2E}
+.daily-row{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid #D9CCB0;border-radius:14px;background:#fff8}
+.daily-num{font-family:"PT Serif",Georgia,serif;font-size:30px;font-weight:700;color:#B23A2E;line-height:1;white-space:nowrap}
+.daily-numt{font-size:13.5px;line-height:1.4;color:#3D3627;min-width:0;overflow-wrap:anywhere}
+.daily-col{margin:12px 0 0;padding:12px 0 0;border-top:3px double #1E1B2E;font-family:"PT Serif",Georgia,serif;font-size:15px;line-height:1.55;color:#3D3627}.daily-col b{font-family:var(--body);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#1E1B2E;display:block;margin-bottom:4px}
+.mag-lede{font-size:17px!important;font-style:italic;color:var(--muted)}
 .mag-nav{display:flex;justify-content:space-between;gap:8px;margin-top:12px;font-family:var(--body)}
 .lib-c{border-top:1px solid var(--line);padding:10px 0}.lib-city{margin-top:8px}.lib-city>span{font-weight:700;font-size:14px}.lib-city.cur>span{color:var(--accent)}
 .lib-t{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.lib-t .mini-btn{padding:6px 9px;font-size:12px}
@@ -4800,6 +4810,8 @@ document.addEventListener("click",e=>{if(e.target.closest?.("[data-tour2]"))star
 
 /* ---------- "new in BARI": Sims-style announcements with a guided show-me ---------- */
 const NEWS=[
+ {id:"n-mag",g:"book2",t:"BARI Daily стала журналом 📰",d:"Обложка с главной историей, «Цифра дня», рубрики, живые заголовки и «Почему это касается тебя». Почти 20 историй каждое утро.",
+  steps:[{v:"me",sel:".daily",t:"Начни с обложки — главная история дня. Ниже цифра дня и журналы."}]},
  {id:"n-reels",g:"book2",t:"Библиотека уроков + рилс в 1 тап 🎬",d:"Все прошлые уроки теперь доступны. По любому — готовый сценарий рилса: хук, текст, ТЗ для мобилографа и подпись.",
   steps:[{v:"me",sel:".lib-open",t:"«Библиотека уроков»: все города и темы. Открой урок и нажми «Сделать рилс»."}]},
  {id:"n-daily",g:"book2",t:"Утренняя газета BARI Daily 📰",d:"Сводка стала газетой из журналов: Мир, Казахстан, Деньги, Книги, Кино и звёзды, Наука. Первым идёт то, что ближе твоей работе.",
@@ -5645,14 +5657,18 @@ function digestIssues(dg){if(!dg)return [];if(Array.isArray(dg.issues)&&dg.issue
 function issueOrder(L){const g=[...(isOwner()?["content"]:[]),...nichesOf().map(n=>APPLY_GROUP[n.id])].filter(Boolean);const first=[];g.forEach(x=>(MAG_FIRST[x]||[]).forEach(id=>{if(!first.includes(id))first.push(id);}));
   return [...L].sort((a,b)=>{const ia=first.indexOf(a.id),ib=first.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib);});}
 const magOf=x=>({...(MAGS[x.id]||{n:x.name||"Главное",k:"",c:"#3B2FA8",i:"sun"}),...(x.name?{n:x.name}:{})});
+function dailyCover(dg,L){if(dg&&dg.cover&&dg.cover.title)return dg.cover;const x=L[0];if(!x)return null;const n=x.items[0];return {kicker:n.kicker||magOf(x).n,title:n.title,lead:n.lead||n.what,mag:x.id};}
 function dailyHtml(k,dg){const L=issueOrder(digestIssues(dg));
   if(!L.length)return `<div class="empty"><span class="tile">${ic("sun")}</span>Свежий выпуск BARI Daily выходит каждое утро около 8:00.</div>`;
-  const d=fromKey(k),n=L.reduce((a,x)=>a+x.items.length,0);
-  return `<section class="daily"><div class="daily-mast"><span class="daily-date">${WD_FULL[d.getDay()]}, ${esc(nice(k))}</span><b class="daily-name">BARI Daily</b><span class="daily-sub">${L.length} ${plural(L.length,"журнал","журнала","журналов")} · ${n} ${plural(n,"история","истории","историй")} · 5 минут чтения</span></div>
-    <div class="daily-covers">${L.map((x,i)=>{const m=magOf(x);return `<button class="mag-cover" data-mag="${i}" style="--mc:${m.c}"><span class="mag-n">${esc(m.n)}</span><span class="mag-k">${esc(m.k)}</span><span class="mag-h">${esc(x.items[0].title||"")}</span><span class="mag-c">${x.items.length} ${plural(x.items.length,"статья","статьи","статей")} →</span></button>`;}).join("")}</div></section>`;}
+  const d=fromKey(k),n=L.reduce((a,x)=>a+x.items.length,0),cv=dailyCover(dg,L),ci=cv?Math.max(0,L.findIndex(x=>x.id===cv.mag)):0,num=dg&&dg.number,col=dg&&dg.column;
+  return `<section class="daily"><div class="daily-mast"><span class="daily-date">${WD_FULL[d.getDay()]}, ${esc(nice(k))}</span><b class="daily-name">BARI Daily</b><span class="daily-sub">${L.length} ${plural(L.length,"журнал","журнала","журналов")} · ${n} ${plural(n,"история","истории","историй")} · ${Math.max(5,Math.round(n*0.7))} минут чтения</span></div>
+    ${cv?`<button class="daily-cover" data-mag="${ci}"><span class="daily-kick">${esc(cv.kicker||"Главная история")}</span><h3>${esc(cv.title)}</h3><p>${esc(cv.lead||"")}</p><span class="more">Читать в журнале «${esc(magOf(L[ci]).n)}» →</span></button>`:""}
+    ${num&&num.n?`<div class="daily-row"><span class="daily-num">${esc(num.n)}</span><span class="daily-numt"><b>Цифра дня</b><br>${esc(num.text||"")}</span></div>`:""}
+    <div class="daily-covers">${L.map((x,i)=>{const m=magOf(x);return `<button class="mag-cover" data-mag="${i}" style="--mc:${m.c}"><span class="mag-n">${esc(m.n)}</span><span class="mag-k">${esc(m.k)}</span><span class="mag-h">${esc(x.items[0].title||"")}</span><span class="mag-c">${x.items.length} ${plural(x.items.length,"статья","статьи","статей")} →</span></button>`;}).join("")}</div>
+    ${col&&col.text?`<div class="daily-col"><b>${esc(col.title||"Колонка BARI")}</b>${esc(col.text)}</div>`:""}</section>`;}
 function openMag(k,i){const L=issueOrder(digestIssues(digest[k]||contentCache.digest[k]));const x=L[i];if(!x)return;const m=magOf(x);track("daily",1);
   openSheet(`<article class="mag" style="--mc:${m.c}"><header class="mag-top"><span class="mag-small">BARI Daily · ${esc(nice(k))}</span><h2 class="mag-title">${esc(m.n)}</h2><span class="mag-small">${esc(m.k)}</span></header>
-    ${x.items.map((n,j)=>`<section class="mag-art ${j===0?"lead":""}"><h3>${esc(n.title||"")}</h3><p>${esc(n.what||"")}</p>${n.why?`<p class="mag-why"><b>Почему важно.</b> ${esc(n.why)}</p>`:""}${n.talk?`<p class="mag-talk">«${esc(n.talk)}»</p>`:""}${n.src?`<a class="mag-src" href="${esc(n.src)}" target="_blank" rel="noopener">Источник${n.srcName?": "+esc(n.srcName):""}</a>`:""}</section>`).join("")}
+    ${x.items.map((n,j)=>`<section class="mag-art ${j===0?"lead":""}">${n.kicker?`<span class="mag-kick">${esc(n.kicker)}</span>`:""}<h3>${esc(n.title||"")}</h3>${n.lead?`<p class="mag-lede">${esc(n.lead)}</p>`:""}<p class="mag-body">${esc(n.what||"")}</p>${n.why?`<p class="mag-why"><b>${n.whyLabel?esc(n.whyLabel):"Почему это касается тебя"}.</b> ${esc(n.why)}</p>`:""}${n.talk?`<p class="mag-talk">«${esc(n.talk)}»</p>`:""}${n.src?`<a class="mag-src" href="${esc(n.src)}" target="_blank" rel="noopener">Источник${n.srcName?": "+esc(n.srcName):""}</a>`:""}</section>`).join("")}
     <div class="mag-nav">${i>0?`<button class="ghost" data-magjump="${i-1}">← ${esc(magOf(L[i-1]).n)}</button>`:"<span></span>"}${i<L.length-1?`<button class="primary" data-magjump="${i+1}">${esc(magOf(L[i+1]).n)} →</button>`:`<button class="primary" id="magClose">Готово</button>`}</div></article>`);
   document.querySelectorAll("#sheetIn [data-magjump]").forEach(b=>b.onclick=()=>openMag(k,+b.dataset.magjump));const c=document.getElementById("magClose");if(c)c.onclick=closeSheet;}
 document.addEventListener("click",e=>{const b=e.target.closest?.("[data-mag]");if(b)openMag(meToday(),+b.dataset.mag);});

@@ -12,12 +12,12 @@
 | `content/lessons/<citySlug>/<topic>.json` | урок; `topic` ∈ `history, art, lang, film, food, books, logic` |
 | `content/city/<citySlug>.json` | карточки города, легенды и 7 «фактов дня» |
 | `content/history/MM-DD.json` | «В этот день в истории»: `{date:"MM-DD", year, text}` |
-| `content/digest/YYYY-MM-DD.json` | утренняя газета BARI Daily: 4–6 журналов по 2–4 истории |
+| `content/digest/YYYY-MM-DD.json` | утренняя газета BARI Daily: 6 журналов по 3 истории (не меньше 15 историй) |
 | `content/ideas/<niche>.json` | идеи по сферам: `smm, teach, biz, beauty, it, creative, student, mom, office, driver, med, build, sales, sport, oil, finance, gov, other` |
 
 ## Что делать каждое утро (D0 = сегодня, D1 = завтра, время Атырау)
 
-1. **Газета BARI Daily:** `digest/D0.json`, если его нет (формат ниже, `issues`). Только важное и интересное, без пустословия; на газету — не больше 10% лимита.
+1. **Газета BARI Daily:** `digest/D0.json`, если его нет (формат ниже, `issues`). Только важное и интересное, без пустословия. Полный выпуск: все 6 журналов по 3 истории; погоду — не больше одной заметки на выпуск. Источники: страницы-подборки (10things.news, tengrinews.kz, zakon.kz, inform.kz, lithub.com, lifehacker.ru и т. п.) — одна подборка даёт сразу много новостей.
 2. **История:** `history/MM-DD.json` для D0 и D1, если нет.
 3. **Основной маршрут:** по `plan.json` для D0 и D1 проверь `lessons/<citySlug>/<topic>.json` и `city/<citySlug>.json`; создай недостающие.
 4. **Очередь:** возьми **три первых города** из `backlog.json` (если лимита мало — хотя бы один). Для каждого: Если `city/<slug>.json` ещё нет — создай его. Если он уже есть — не переписывай, только проверь. Затем создай недостающие уроки города (`history, art, lang, film, food, books, logic`) в `lessons/<slug>/`. Когда все 7 уроков на месте — убери город из очереди. Названия `items` в `city/<slug>.json` должны совпадать с CITY_ITEMS (или COUNTRY_ITEMS) в index.html.
